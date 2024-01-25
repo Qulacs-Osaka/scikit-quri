@@ -24,14 +24,14 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ./.venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+          key: venv-${{ runner.os }}-${{ hashFiles("**/poetry.lock") }}
 
       - name: Install dependencies
         if: steps.cached-poetry-deps.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root --with bench
+        run: poetry install --no-interaction --no-root
 
       - name: Install library
-        run: poetry install --no-interaction --with bench
+        run: poetry install --no-interaction
 
       - name: Run tests
         run: poetry run pytest
