@@ -6,25 +6,26 @@
         "dockerfile": "Dockerfile",
         "context": ".."
     },
-    // Set *default* container specific settings.json values on container create.
     "customizations": {
         "vscode": {
             "settings": {
                 "python.defaultInterpreterPath": "${containerWorkspaceFolder}/.venv/bin/python",
-                "python.linting.enabled": true,
-                "python.linting.pylintEnabled": false,
-                "python.linting.flake8Enabled": true,
-                "python.formatting.provider": "black",
-                "editor.formatOnSave": true,
-                "editor.codeActionsOnSave": {
-                    "source.organizeImports": true
+                "[python]": {
+                    "editor.formatOnSave": true,
+                    "editor.defaultFormatter": "charliermarsh.ruff",
+                    "editor.codeActionsOnSave": {
+                        "source.fixAll.ruff": true,
+                        "source.organizeImports.ruff": true
+                    }
                 },
-                "python.linting.mypyEnabled": true,
+                "mypy-type-checker.importStrategy": "fromEnvironment"
             },
             // Add the IDs of extensions you want installed when the container is created.
             "extensions": [
                 "ms-python.python",
-                "ms-python.vscode-pylance"
+                "ms-python.vscode-pylance",
+                "ms-python.mypy-type-checker",
+                "charliermarsh.ruff"
             ]
         }
     },

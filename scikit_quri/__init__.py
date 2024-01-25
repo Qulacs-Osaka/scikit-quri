@@ -1,5 +1,5 @@
 from .add import add
 
 
-def hello():
+def hello() -> int:
     return add(1, 2)
