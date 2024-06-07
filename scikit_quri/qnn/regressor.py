@@ -26,6 +26,7 @@ class QNNRegressor:
     def fit(self, x_train: NDArray[np.float_], y_train: NDArray[np.float_]) -> None:
         init_params = np.random.random(self.ansatz.parameter_count)
         optimizer_state = self.optimizer.get_init_state(init_params)
+        print(optimizer_state)
 
         while True:
             optimizer_state = self.optimizer.step(
@@ -33,6 +34,7 @@ class QNNRegressor:
                 self.cost_fn,
                 self.grad_fn,
             )
+            break
 
             if optimizer_state.status == "CONVERGED":
                 break
@@ -41,9 +43,12 @@ class QNNRegressor:
                 break
 
     def run(self, x_train: NDArray[np.float_]) -> NDArray[np.float_]:
-        self.ansatz += 
+        # self.ansatz += 1
+        pass
 
     def cost_fn(self, params: Sequence[float]) -> float:
+        print(f"{params=}")
+        # * init circuit state to |00..0>
         circuit_state = ParametricCircuitQuantumState(self.n_qubits, self.ansatz)
         estimate = self.estimator(
             self.operator,
@@ -60,3 +65,5 @@ class QNNRegressor:
             param_values,
         )
         return np.asarray([g.real for g in estimate.values])
+
+

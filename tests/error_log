@@ -1,0 +1,35 @@
+PS C:\Users\kazum\Documents\GitHub\scikit-quri\tests> py -3.11 .\test_reg.py
+OptimizerStateAdam(params=array([0.07445638, 0.08582847, 0.98707451, 0.18211217, 0.20057779,
+       0.39961947, 0.67440445, 0.60315022]), cost=0.0, status=<OptimizerStatus.SUCCESS: 1>, niter=0, funcalls=0, gradcalls=0, m=array([0., 0., 0., 0., 0., 0., 0., 0.]), v=array([0., 0., 0., 0., 0., 0., 0., 0.]))
+params=array([0.07445638, 0.08582847, 0.98707451, 0.18211217, 0.20057779,
+       0.39961947, 0.67440445, 0.60315022])
+Traceback (most recent call last):
+  File "C:\Users\kazum\Documents\GitHub\scikit-quri\tests\test_reg.py", line 63, in <module>
+    qnn.fit(x_train,y_train)
+    ��       ��       �� array([ 0.76578227, -0.98730754, -0.24931674, -0.09580179,  0.92616326,
+        0.52847352,  0.62810709,  1.00103388,  0.2718337...
+    ��       �� array([ 2.73923375e-01, -4.60426572e-01, -9.18052952e-01, -9.66944729e-01,
+        6.26540478e-01,  8.25511155e-01,  2.13271552e...
+    �� QNNRegressor(n_qubits=2, ansatz=<quri_parts.circuit.circuit_parametric.UnboundParametricQuantumCircuit object at 0x0000018C49679...
+  File "C:\Users\kazum\Documents\GitHub\scikit-quri\scikit_quri\qnn\regressor.py", line 32, in fit
+    optimizer_state = self.optimizer.step(
+  File "C:\Users\kazum\AppData\Local\Programs\Python\Python311\Lib\site-packages\quri_parts\algo\optimizer\adam.py", line 126, in step
+    cost_prev = cost_function(state.params)
+                ��             �� OptimizerStateAdam(params=array([0.07445638, 0.08582847, 0.98707451, 0.18211217, 0.20057779,
+       0.39961947, 0.67440445, 0.60...
+                �� <bound method QNNRegressor.cost_fn of QNNRegressor(n_qubits=2, ansatz=<quri_parts.circuit.circuit_parametric.UnboundParametricQu...
+  File "C:\Users\kazum\Documents\GitHub\scikit-quri\scikit_quri\qnn\regressor.py", line 53, in cost_fn
+    estimate = self.estimator(
+  File "C:\Users\kazum\AppData\Local\Programs\Python\Python311\Lib\site-packages\quri_parts\qulacs\estimator.py", line 219, in estimator
+    return execute_concurrently(
+  File "C:\Users\kazum\AppData\Local\Programs\Python\Python311\Lib\site-packages\quri_parts\core\utils\concurrent.py", line 40, in execute_concurrently
+    return list(fn(common_input, individual_input_list))
+                ��  ��             �� [0.07445637983792563, 0.08582847097200252, 0.9870745141479051, 0.18211216680454867, 0.20057778685684424, 0.39961946586449404, 0....
+                ��  �� ({PauliLabel({(0, <SinglePauli.X: 1>), (1, <SinglePauli.Y: 2>)}): (0.5+0.5j), PauliLabel({(1, <SinglePauli.X: 1>), (0, <SinglePa...
+                �� <function _sequential_parametric_estimate at 0x0000018C497036A0>
+  File "C:\Users\kazum\AppData\Local\Programs\Python\Python311\Lib\site-packages\quri_parts\qulacs\estimator.py", line 189, in _sequential_parametric_estimate
+    for i, v in enumerate(param_mapper(param)):
+  File "C:\Users\kazum\AppData\Local\Programs\Python\Python311\Lib\site-packages\quri_parts\qulacs\circuit\__init__.py", line 219, in param_mapper
+    return tuple(-p for p in s)
+                             �� 0.07445637983792563
+TypeError: 'numpy.float64' object is not iterable
