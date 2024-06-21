@@ -17,7 +17,7 @@ from quri_parts.qulacs.estimator import (
     create_qulacs_vector_parametric_estimator,
     create_qulacs_vector_concurrent_parametric_estimator,
 )
-from quri_parts.algo.optimizer import Adam
+from quri_parts.algo.optimizer import Adam, LBFGS
 
 def create_farhi_neven_ansatz(
     n_qubit: int, c_depth: int, seed: Optional[int] = 0
@@ -46,18 +46,25 @@ def generate_noisy_sine(x_min, x_max, num_x):
     return np.array(x_train).flatten(), np.array(y_train)
 
 if __name__ == "__main__":
+    from scikit_quri.circuit import LearningCircuit
     n_qubits = 2
     parametric_circuit = create_farhi_neven_ansatz(n_qubits,2)
+    # parametric_circuit = LearningCircuit(n_qubits)
+    
+    # parametric_circuit.bind_parameters()
     op = Operator({
         pauli_label("X0 Y1"): 0.5 + 0.5j,
         pauli_label("Z0 X1"): 0.2,
     })
-
+    op = Operator()
+    for i in range(n_qubits):
+        op.add_term(pauli_label(f"Z {i}"),1.0)
+    estimator = create_qulacs_vector_parametric_estimator()
     concurrent_estimator = create_qulacs_vector_concurrent_parametric_estimator()
     gradient_estimator = create_parameter_shift_gradient_estimator(concurrent_estimator)
     adam = Adam()
     # Create Instance
-    qnn = QNNRegressor(n_qubits,parametric_circuit,concurrent_estimator,gradient_estimator,adam,op)
+    qnn = QNNRegressor(n_qubits,parametric_circuit,estimator,gradient_estimator,adam,op)
 
     x_train,y_train = generate_noisy_sine(-1.,1.,80)
-    qnn.fit(x_train,y_train)
+    qnn.fit(x_train,y_train,len(x_train))

@@ -46,13 +46,13 @@ def preprocess_x(x: NDArray[np.float_], i: int) -> float:
     a: float = x[i % len(x)]
     return a
 
-
-n_qubits = 3
-circuit = LearningCircuit(n_qubits)
-for i in range(n_qubits):
-    circuit.add_input_RX_gate(i, lambda x, i=i: np.arcsin(preprocess_x(x, i)))
-circuit.add_parametric_RX_gate(0)
-circuit.add_parametric_RX_gate(1)
-circuit.bind_input_and_parameters(np.array([0.1, 0.2, 0.3]), np.array([0.4, 0.5]))
-print(circuit.circuit.gates)
-print(circuit.circuit.param_mapping.in_params)
+if __name__ == "__main__":
+    n_qubits = 3
+    circuit = LearningCircuit(n_qubits)
+    for i in range(n_qubits):
+        circuit.add_input_RX_gate(i, lambda x, i=i: np.arcsin(preprocess_x(x, i)))
+    circuit.add_parametric_RX_gate(0)
+    circuit.add_parametric_RX_gate(1)
+    circuit.bind_input_and_parameters(np.array([0.1, 0.2, 0.3]), np.array([0.4, 0.5]))
+    print(circuit.circuit.gates)
+    print(circuit.circuit.param_mapping.in_params)
