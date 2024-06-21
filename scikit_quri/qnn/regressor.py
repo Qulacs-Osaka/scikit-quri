@@ -26,6 +26,8 @@ class QNNRegressor:
     operator: Estimatable
     # * TODO: scaled_x
     # * batchすればいけそう
+    # * learning_parameter_list => update_parameters(theta)
+    # * input_parameter_list => 
     # ? x_trainの埋め込み方がわからん！
     # ? Unboundである必要性がわからん！
     # ? AdamってcostとかArrayでいいの？

@@ -29,6 +29,28 @@ class LearningCircuit:
         self.circuit.add_ParametricRX_gate(qubit)
         self.n_parameters += 1
 
+    def add_input_RY_gate(
+        self, qubit: int, input_function: Callable[[NDArray[np.float_]], float]
+    ) -> None:
+        self.circuit.add_ParametricRY_gate(qubit)
+        self.input_functions[qubit] = input_function
+        self.n_parameters += 1
+
+    def add_parametric_RY_gate(self, qubit: int) -> None:
+        self.circuit.add_ParametricRY_gate(qubit)
+        self.n_parameters += 1
+
+    def add_input_RZ_gate(
+        self, qubit: int, input_function: Callable[[NDArray[np.float_]], float]
+    ) -> None:
+        self.circuit.add_ParametricRZ_gate(qubit)
+        self.input_functions[qubit] = input_function
+        self.n_parameters += 1
+
+    def add_parametric_RZ_gate(self, qubit: int) -> None:
+        self.circuit.add_ParametricRZ_gate(qubit)
+        self.n_parameters += 1
+    
     def bind_input_and_parameters(
         self, x: NDArray[np.float_], parameters: NDArray[np.float_]
     ) -> None:
