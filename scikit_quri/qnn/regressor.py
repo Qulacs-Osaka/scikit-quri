@@ -35,32 +35,44 @@ class QNNRegressor:
     do_x_scale: bool = field(default=True)
     do_y_scale: bool = field(default=True)
     n_outputs: int = field(default=1)
-    # * TODO: scaled_x
-    #  batchすればいけそう
-    #  learning_parameter_list => update_parameters(theta)
-    #  input_parameter_list => 
-    # * calc_gradどうやってbind分けるか考えといて
+
+    trained_param: Sequence[float] = field(default=None)
     # * xとしてのParamsと，ParametricとしてのParamsが混合してる
     # * i番目のQubitに対して，x[i]をbindする
-    # ! add_inputで，indexに対して，同じxをbindする必要がある
-    # ! 現状,RYとRZがあるが,両方arccos(x**2)でbindされている
     # ! gradで，スライスが恒等である保障はない
     # ! EstimatorをConcurrentにしたほうが，predict_innnerで多次元outputに対応できる
-    # ? add_input_RX_gateだと，inputが増えていく
-    # ? 一気にbindするしかなさそう
-    # ? 理想をいうなら，inputとparameterを分けて，parameterに従属な回路を作ってEstimateしたい
-    # ? Unboundである必要性がわからん！
 
     def minMaxScaler(self,X:NDArray[np.float_],feature_range:tuple[int,int]=(0, 1)):
+        """
+        Normalize the input data in feature=(min,max).
+
+        Parameters:
+            X: Input data.
+            feature_range: Tuple of (min, max) value of the feature.
+        
+        Returns:
+            X_scaled: Normalized input data.
+        """
         (min,max) = feature_range
         X_std = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
         X_scaled = X_std * (max - min) + min
         return X_scaled
 
+    # 未実装
     def __post_init__(self) -> None:
         pass
 
+    # !miniBatch処理未実装
     def fit(self, x_train: NDArray[np.float_], y_train: NDArray[np.float_],batch_size=32) -> None:
+        """
+        Fit the model to the training data.
+
+        Parameters:
+            x_train: Input data whose shape is (n_samples, n_features).
+            y_train: Output data whose shape is (n_samples, n_outputs).
+            batch_size: The number of samples in each batch.
+        
+        """
         if x_train.ndim == 1:
             x_train = x_train.reshape((-1, 1))
         
@@ -77,6 +89,7 @@ class QNNRegressor:
         else:
             y_scaled = y_train
         
+
         self.n_outputs = y_scaled.shape[1]
 
 
@@ -91,9 +104,12 @@ class QNNRegressor:
         else:
             parameter_count = self.ansatz.parameter_count
         print(f"{parameter_count=}")
+
+        # set initial learning parameters
         init_params = np.random.random(parameter_count)
         print(f"{init_params=}")
         optimizer_state = self.optimizer.get_init_state(init_params)
+        # batch process
         x_split = list(self._batch(self.x_train,batch_size))
         y_spilt = list(self._batch(self.y_train,batch_size))
 
@@ -118,29 +134,41 @@ class QNNRegressor:
         print(f"{self.trained_param=}")
             # break
 
+    # ! 未実装
     def run(self, x_train: NDArray[np.float_]) -> NDArray[np.float_]:
         # self.ansatz += 1
         pass
 
     def cost_fn(self,x_batched:NDArray[np.float_],y_batched:NDArray[np.float_], params: Sequence[float]) -> float:
+        """
+        Calculate the cost function for solver.
+
+        Parameters:
+            x_batched: Input data whose shape is (batch_size, n_features).
+            y_batched: Output data whose shape is (batch_size, n_outputs).
+            params: Parameters for the quantum circuit.
+
+        Returns:
+            cost: Cost function value.
+        """
         y_pred = self._predict_inner(x_batched,params)
         # Case of MSE
         cost = np.mean((y_batched - y_pred) ** 2)
-        # cost = self._log_loss(y_batched,y_pred)
-        # print(f"{cost=}")
         return cost
     
     def predict(self,x_test:NDArray[np.float_]) -> NDArray[np.float_]:
-        """Predict outcome for each input data in `x_test`.
+        """
+        Predict outcome for each input data in `x_test`.
 
         Arguments:
-            x_test: Input data whose shape is (n_samples, n_features).
+            x_test: Input data whose shape is (batch_size, n_features).
 
         Returns:
             y_pred: Predicted outcome.
         """
         if self.trained_param is None:
             raise ValueError("Model is not trained yet.")
+
         if x_test.ndim == 1:
             x_test = x_test.reshape((-1, 1))
         
@@ -159,12 +187,24 @@ class QNNRegressor:
         
         return y_pred
 
-    def grad_fn(self, x_batched:NDArray[np.float_], y_batched:NDArray[np.float_] ,param_values: Sequence[Sequence[float]]) -> np.ndarray:
+    def grad_fn(self, x_batched:NDArray[np.float_], y_batched:NDArray[np.float_] ,params: Sequence[Sequence[float]]) -> NDArray[np.float_]:
+        """
+        Calculate the gradient of the cost function for solver.
+
+        Parameters:
+            x_batched: Input data whose shape is (batch_size, n_features).
+            y_batched: Output data whose shape is (batch_size, n_outputs).
+            params: Parameters for the quantum circuit.
+        
+        Returns:
+            grads: Gradient of the cost function.
+        """
         if isinstance(self.ansatz, LearningCircuit):
             # ? shape=(batch_size,)
-            y_pred = self._predict_inner(x_batched,param_values)
-            circuit_grads = self._estimate_grad(x_batched,param_values)
-            grads = 2*(y_pred-y_batched) * circuit_grads
+            # for MSE
+            y_pred = self._predict_inner(x_batched,params)
+            y_pred_grads = self._estimate_grad(x_batched,params)
+            grads = 2*(y_pred-y_batched) * y_pred_grads
             grads = np.mean(grads, axis=0)
         else:
             embed_circuits = self._embed_x_circuit(x_batched)
@@ -172,14 +212,16 @@ class QNNRegressor:
                 grad_estimate = self.gradient_estimator(
                     self.operator,
                     circuit_state,
-                    param_values,
+                    params,
                 )
                 grads.append(grad_estimate.values)
+
         grads = np.asarray([g.real for g in grads])
         # print(f"{grads=}")
 
         return grads
     
+    # * 未使用 
     def _embed_x_circuit(self,x_scaled: NDArray[np.float_]) -> List[ParametricCircuitQuantumState]:
         circuits = []
         for x in x_scaled:
@@ -203,6 +245,16 @@ class QNNRegressor:
                 yield data[i:i+batch_size]
 
     def _estimate_grad(self, x_scaled: NDArray[np.float_], params: Sequence[float]) -> NDArray[np.float_]:
+        """
+        Estimate the gradient of the cost function.
+
+        Parameters:
+            x_scaled: Input data whose shape is (batch_size, n_features).
+            params: Parameters for the quantum circuit.
+        
+        Returns:
+            grads: Gradients of the cost function.
+        """
         grads = []
         n_all_params = self.ansatz.n_parameters
         n_params = self.ansatz.parameter_count
@@ -216,8 +268,17 @@ class QNNRegressor:
         return np.asarray(grads)
 
     def _predict_inner(self, x_scaled: NDArray[np.float_], params: Sequence[float]) -> NDArray[np.float_]:
+        """
+        Predict inner function.
+
+        Parameters:
+            x_scaled: Input data whose shape is (batch_size, n_features).
+            params: Parameters for the quantum circuit.
+        
+        Returns:
+            res: Predicted outcome.
+        """
         res = []
-        from quri_parts.circuit.utils.circuit_drawer import draw_circuit
         if isinstance(self.ansatz, LearningCircuit):
             for x in x_scaled:
                 circuit_params = self.ansatz.generate_bound_params(x,params)
