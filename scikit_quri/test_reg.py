@@ -65,7 +65,6 @@ def _create_farhi_neven_ansatz(
         circuit.add_input_RZ_gate(i,lambda x,i=i: np.arccos(preprocess_x(x,i) * preprocess_x(x,i)))
     
     zyu = list(range(n_qubit))
-    rng = default_rng(seed)
 
     for _ in range(c_depth):
         rng.shuffle(zyu)
@@ -89,24 +88,51 @@ def generate_noisy_sine(x_min, x_max, num_x):
 
 if __name__ == "__main__":
     from scikit_quri.circuit import LearningCircuit
+    from quri_parts.circuit.utils.circuit_drawer import draw_circuit
+    import matplotlib.pyplot as plt
     n_qubits = 2
-    parametric_circuit = _create_farhi_neven_ansatz(n_qubits,2)
+    n_outputs = 1
+    parametric_circuit = _create_farhi_neven_ansatz(n_qubits,2,1)
+    print(f"{parametric_circuit.circuit.gates_and_params=}")
     # parametric_circuit = LearningCircuit(n_qubits)
     
     # parametric_circuit.bind_parameters()
-    op = Operator({
-        pauli_label("X0 Y1"): 0.5 + 0.5j,
-        pauli_label("Z0 X1"): 0.2,
-    })
     op = Operator()
-    for i in range(n_qubits):
+    for i in range(n_outputs):
         op.add_term(pauli_label(f"Z {i}"),1.0)
+    draw_circuit(parametric_circuit.circuit)
     estimator = create_qulacs_vector_parametric_estimator()
     concurrent_estimator = create_qulacs_vector_concurrent_parametric_estimator()
     gradient_estimator = create_parameter_shift_gradient_estimator(concurrent_estimator)
     adam = Adam()
     # Create Instance
     qnn = QNNRegressor(n_qubits,parametric_circuit,estimator,gradient_estimator,adam,op)
-
     x_train,y_train = generate_noisy_sine(-1.,1.,80)
+    x_test,y_test = generate_noisy_sine(-1.,1.,80)
+    print(f"{x_train=}")
     qnn.fit(x_train,y_train,len(x_train))
+    y_pred = qnn.predict(x_test)
+    print(f"{y_test.reshape(-1,1)=}")
+    print(f"{y_pred=}")
+
+    y_pred = y_pred.flatten()
+    plt.figure(figsize=(5,5))
+
+    # plt.plot(x_test,y_test,marker="o",color="orange",label="Test")
+    plt.plot(
+        np.sort(x_test),
+        y_test[np.argsort(x_test.flatten())],label="Test")
+    
+    x_true = np.linspace(-1,1,100)
+    y_true = np.sin(np.pi * x_true)
+    plt.plot(x_true,y_true,label="True")
+    plt.plot(
+        np.sort(x_test.flatten()),
+        y_pred[np.argsort(x_test.flatten())],
+        label="Prediction")
+    plt.legend()
+    
+    cost = np.mean((y_test- y_pred) ** 2)
+    print(f"{cost=}")
+    # plt.show()
+    plt.savefig("quri-parts.png")
