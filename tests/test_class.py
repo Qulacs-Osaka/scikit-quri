@@ -40,6 +40,7 @@ def create_farhi_neven_ansatz(
             circuit.add_CNOT_gate(zyu[i + 1], zyu[i])
             circuit.add_ParametricRY_gate(zyu[i])
             circuit.add_ParametricRX_gate(zyu[i])
+            circuit
     return circuit
 
 def preprocess_x(x: np.ndarray, i: int) -> float:
@@ -124,9 +125,9 @@ if __name__ == "__main__":
     gradient_estimator = create_parameter_shift_gradient_estimator(create_qulacs_vector_concurrent_parametric_estimator())
     adam = Adam()
     # Create Instance
-    qnn = QNNClassifier(parametric_circuit,num_class,concurrent_estimator,gradient_estimator,adam,ops)
+    qnn = QNNClassifier(parametric_circuit,num_class,concurrent_estimator,gradient_estimator,adam,ops,y_exp_ratio=4.0)
     print(f"{x_train.shape=}")
-    qnn.fit(x_train,y_train)
+    qnn.fit(x_train,y_train,maxiter=500)
     # y_pred = qnn.predict(x_test)
     # print(f"{y_test.reshape(-1,1)=}")
     # print(f"{y_pred=}")

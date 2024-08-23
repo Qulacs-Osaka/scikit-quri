@@ -64,7 +64,7 @@ class QNNClassifier:
     def fit(self,
         x_train:NDArray[np.float_],
         y_train:NDArray[np.int_],
-        maxiter:Optional[int] = None):
+        maxiter:Optional[int] = 500):
 
         if x_train.ndim == 1:
             x_train = x_train.reshape(-1, 1)
@@ -75,14 +75,16 @@ class QNNClassifier:
             x_scaled = x_train
         
         parameter_count = self.ansatz.theta_count
-        init_params = np.random.random(parameter_count)
+        init_params = 2*np.pi * np.random.random(parameter_count)
+        # init_params = np.zeros(parameter_count)
+        print(f"{init_params=}")
         cost = self.cost_func(x_scaled,y_train,init_params)
         print(f"{cost=}")
         optimizaer_state = self.optimizer.get_init_state(init_params)
 
 
         cost_func = lambda params: self.cost_func(x_scaled,y_train,params)
-        result = minimize(cost_func,init_params,method="COBYLA",options={"maxiter":500})
+        result = minimize(cost_func,init_params,method="COBYLA",options={"maxiter":maxiter})
         print(result)
 
         # while True:
@@ -119,10 +121,19 @@ class QNNClassifier:
         res = []
         for x in x_scaled:
             circuit_params = self.ansatz.generate_bound_params(x,params)
+            # print(f"{len(circuit_params)=}")
             parametric_circuit = ParametricCircuitQuantumState(self.n_qubit, self.ansatz.circuit)
             general_state = parametric_circuit.bind_parameters(circuit_params)
+            # if res == []:
+            #     from quri_parts.circuit.utils.circuit_drawer import draw_circuit
+            #     for i,gate in enumerate(general_state.circuit.gates):
+            #         if gate.params is not None:
+            #             print(f"{i}: {gate.name}: {gate.params}")
+            #     # print(f"{x=}")
+            #     # print(f"{circuit_params=}")
+            #     draw_circuit(general_state.circuit)
             estimate = self.estimator(self.operator,[general_state])
-            res.append([e.value.real for e in estimate])
+            res.append([e.value.real*self.y_exp_ratio for e in estimate])
         return np.asarray(res)
     
     def cost_func(self,x_scaled:NDArray[np.float_],y_scaled:NDArray[np.int_],params:NDArray[np.float_])->float:
