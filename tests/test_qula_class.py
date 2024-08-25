@@ -11,7 +11,7 @@ x_train, x_test, y_train, y_test = train_test_split(
 x_train = x_train.to_numpy()
 x_test = x_test.to_numpy()
 
-from skqulacs.circuit.pre_defined import create_qcl_ansatz
+from skqulacs.circuit.pre_defined import create_qcl_ansatz,create_farhi_neven_ansatz
 from skqulacs.qnn import QNNClassifier
 from skqulacs.qnn.solver import Bfgs
 
@@ -22,7 +22,8 @@ num_class = 3                   # 分類数（ここでは3つの品種に分類
 solver = Bfgs()                   # アルゴリズム。ほかには、`Adam()` や `NelderMead()` が使える。
 maxiter = 200                   # ループの最大。これが多いほど、正確になるが、時間がかかる。
 circuit = create_qcl_ansatz(nqubit, c_depth, time_step)     # LearningCircuitを作る
+print(f"{circuit._circuit.get_parameter_count()=}")
 qcl = QNNClassifier(circuit, num_class, solver)     # モデル構築を行う
 opt_loss, opt_params = qcl.fit(x_train, y_train, maxiter)                          # 学習
-print("trained parameters", opt_params)
-print("loss", opt_loss)
+# print("trained parameters", opt_params)
+# print("loss", opt_loss)
