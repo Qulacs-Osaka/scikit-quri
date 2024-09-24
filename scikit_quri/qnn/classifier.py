@@ -158,10 +158,10 @@ class QNNClassifier:
         # softmax
         y_pred_sm = self.softmax(y_pred,axis=1)
         loss = log_loss(y_scaled,y_pred_sm)
-        print(f"{params[:4]=}")
+        # print(f"{params[:4]=}")
         return loss
-    
     def cost_func_grad(self,x_scaled:NDArray[np.float_],y_train:NDArray[np.float_],params:NDArray[np.float_])->float:
+        # start = time.perf_counter()
         y_pred = self._predict_inner(x_scaled,params)
         y_pred_sm = self.softmax(y_pred,axis=1)
         raw_grads = self._estimate_grad(x_scaled,params)
@@ -174,6 +174,7 @@ class QNNClassifier:
                 coef = self.y_exp_ratio*(-expected + y_pred_sm[sample_index][current_class])
                 grads += coef*raw_grads[sample_index][current_class]
         grads /= len(x_scaled)
+        # print(f"{time.perf_counter()-start=}")
 
         return grads
 

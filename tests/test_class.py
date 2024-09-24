@@ -90,12 +90,14 @@ if __name__ == "__main__":
     estimator = create_qulacs_vector_estimator()
     concurrent_estimator = create_qulacs_vector_concurrent_estimator()
     # gradient_estimator = create_parameter_shift_gradient_estimator(concurrent_estimator)
-    gradient_estimator = create_parameter_shift_gradient_estimator(create_qulacs_vector_concurrent_parametric_estimator())
+    # gradient_estimator = create_parameter_shift_gradient_estimator(create_qulacs_vector_concurrent_parametric_estimator())
+    gradient_estimator = create_numerical_gradient_estimator(create_qulacs_vector_concurrent_parametric_estimator(),delta=1e-10)
     adam = Adam()
     # Create Instance
-    qnn = QNNClassifier(parametric_circuit,num_class,estimator,gradient_estimator,adam,ops,)
+    qnn = QNNClassifier(parametric_circuit,num_class,concurrent_estimator,gradient_estimator,adam,ops,)
     print(f"{x_train.shape=}")
     qnn.fit(x_train,y_train,maxiter=500)
+    
     # y_pred = qnn.predict(x_test)
     # print(f"{y_test.reshape(-1,1)=}")
     # print(f"{y_pred=}")
