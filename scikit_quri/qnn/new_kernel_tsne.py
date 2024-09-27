@@ -150,7 +150,7 @@ class quantum_kernel_tsne:
         y = self.calc_y(fidelity, alpha.reshape(len(alpha) // 2, 2))
         q_prob = self.tsne.calc_probabilities_q(y)
         loss = self.calc_loss(p_prob, q_prob)
-        print(f"{loss=}")
+        # print(f"{loss=}")
         return loss
 
     def train(self, X_train: NDArray[np.float_], y_label, method="adam"):
