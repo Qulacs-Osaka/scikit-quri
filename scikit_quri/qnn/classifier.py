@@ -122,7 +122,7 @@ class QNNClassifier:
             x_scaled = self.scale_x_scaler.transform(x_test)
         else:
             x_scaled = x_test
-        y_pred = self._predict_inner(x_scaled,self.trained_param).argmax(axis=1)
+        y_pred = self._predict_inner(x_scaled,self.trained_param)#.argmax(axis=1)
         return y_pred
 
     def _predict_inner(self, x_scaled: NDArray[np.float_],params:NDArray[np.float_]) -> NDArray[np.float_]:
