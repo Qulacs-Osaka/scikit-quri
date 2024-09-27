@@ -1,9 +1,9 @@
 from typing import Callable
-from circuit.circuit import LearningCircuit
+from ..circuit.circuit import LearningCircuit
 from numpy.typing import NDArray
 import numpy as np
 from quri_parts.algo.optimizer import Adam
-from functools import partial, lru_cache
+from functools import partial
 from quri_parts.qulacs.overlap_estimator import create_qulacs_vector_overlap_estimator
 from quri_parts.core.state import quantum_state, GeneralCircuitQuantumState
 import time
