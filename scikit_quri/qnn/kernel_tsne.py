@@ -53,9 +53,7 @@ class TSNE:
         P /= np.sum(P)
         return P
 
-    def binary_search_perplexity(
-        self, sq_distance: NDArray[np.float_], perplexity: int
-    ):
+    def binary_search_perplexity(self, sq_distance: NDArray[np.float_], perplexity: int):
         PERPLEXITY_TOLERANCE = 1e-5
         n = sq_distance.shape[0]
         # Maximum number of binary search steps
@@ -92,12 +90,8 @@ class TSNE:
             neg_inf_flag = np.logical_and(neg_flag, (beta_min == -np.inf))
             beta[neg_inf_flag] /= 2.0
             neg_not_inf_flag = np.logical_and((H_diff <= 0.0), (beta_min != -np.inf))
-            neg_not_inf_flag = np.logical_and(
-                np.logical_not(neg_inf_flag), neg_not_inf_flag
-            )
-            beta[neg_not_inf_flag] = (
-                beta[neg_not_inf_flag] + beta_min[neg_not_inf_flag]
-            ) / 2.0
+            neg_not_inf_flag = np.logical_and(np.logical_not(neg_inf_flag), neg_not_inf_flag)
+            beta[neg_not_inf_flag] = (beta[neg_not_inf_flag] + beta_min[neg_not_inf_flag]) / 2.0
         return conditional_P
 
     def kldiv(self, p_probs, q_probs):
@@ -118,7 +112,6 @@ class TSNE:
 
 
 class quantum_kernel_tsne:
-
     def __init__(self, perplexity=30, max_iter=400):
         self.perplexity = perplexity
         self.max_iter = max_iter
@@ -174,15 +167,11 @@ class quantum_kernel_tsne:
             for n_epoch in range(self.max_iter):
                 if n_epoch % 10 == 0:
                     print(f"epoch:{n_epoch}")
-                self.optimizer_state = self.optimizer.step(
-                    self.optimizer_state, cost_f, None
-                )
+                self.optimizer_state = self.optimizer.step(self.optimizer_state, cost_f, None)
         elif method == "COBYLA":
             from scipy.optimize import minimize
 
-            result = minimize(
-                cost_f, alpha, method="COBYLA", options={"maxiter": self.max_iter}
-            )
+            result = minimize(cost_f, alpha, method="COBYLA", options={"maxiter": self.max_iter})
             print(result)
             self.trained_alpha = result.x
 
@@ -196,9 +185,8 @@ class quantum_kernel_tsne:
     @param fidelity: |<φi|φj>|^2 (n_data, n_data)
     @param alpha: α (n_data, 2)
     """
-    def calc_y(
-        self, fidelity: NDArray[np.float_], alpha: NDArray[np.float_]
-    ) -> NDArray[np.float_]:
+
+    def calc_y(self, fidelity: NDArray[np.float_], alpha: NDArray[np.float_]) -> NDArray[np.float_]:
         fidelity = (fidelity + fidelity.T) / 2.0
         return fidelity @ alpha
 
@@ -211,9 +199,9 @@ class quantum_kernel_tsne:
     ) -> GeneralCircuitQuantumState:
         qc = pqc_f()
         bind_params = qc.generate_bound_params(input, theta)
-        circuit_state = quantum_state(
-            n_qubits=qc.n_qubits, circuit=qc.circuit
-        ).bind_parameters(bind_params)
+        circuit_state = quantum_state(n_qubits=qc.n_qubits, circuit=qc.circuit).bind_parameters(
+            bind_params
+        )
         return circuit_state
 
     # Parallelに|<φi|φj>|^2計算するための関数
@@ -271,7 +259,7 @@ if __name__ == "__main__":
         return qc
 
     X_train, y_train = load_digits(return_X_y=True)
-    X_train = X_train / 16.
+    X_train = X_train / 16.0
     X_train = X_train[:500]
     y_train = y_train[:500]
     scaler = MinMaxScaler((0, np.pi / 2))

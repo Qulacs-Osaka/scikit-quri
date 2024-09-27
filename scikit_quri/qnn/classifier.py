@@ -60,7 +60,6 @@ class QNNClassifier:
         y_train: NDArray[np.int_],
         params: NDArray[np.float_],
     ):
-
         if x_train.ndim == 1:
             x_train = x_train.reshape(-1, 1)
 
@@ -78,7 +77,6 @@ class QNNClassifier:
         y_train: NDArray[np.int_],
         maxiter: Optional[int] = 100,
     ):
-
         if x_train.ndim == 1:
             x_train = x_train.reshape(-1, 1)
 
@@ -98,9 +96,7 @@ class QNNClassifier:
         grad_func = partial(self.cost_func_grad, x_scaled=x_scaled, y_train=y_train)
         c = 0
         while maxiter > c:
-            optimizer_state = self.optimizer.step(
-                optimizer_state, cost_func, grad_func
-            )
+            optimizer_state = self.optimizer.step(optimizer_state, cost_func, grad_func)
             print(f"{optimizer_state.cost=}")
 
             if optimizer_state.status == OptimizerStatus.CONVERGED:
@@ -187,9 +183,7 @@ class QNNClassifier:
         for sample_index in range(len(x_scaled)):
             for current_class in range(self.num_class):
                 expected = 1.0 if current_class == y_train[sample_index] else 0.0
-                coef = self.y_exp_ratio * (
-                    -expected + y_pred_sm[sample_index][current_class]
-                )
+                coef = self.y_exp_ratio * (-expected + y_pred_sm[sample_index][current_class])
                 grads += coef * raw_grads[sample_index][current_class]
         grads /= len(x_scaled)
         # print(f"{time.perf_counter()-start=}")
@@ -205,9 +199,7 @@ class QNNClassifier:
             _grads = []
             for op in self.operator:
                 circuit_params = self.ansatz.generate_bound_params(x, params)
-                param_state = quantum_state(
-                    n_qubits=self.n_qubit, circuit=self.ansatz.circuit
-                )
+                param_state = quantum_state(n_qubits=self.n_qubit, circuit=self.ansatz.circuit)
                 estimate = self.gradient_estimator(op, param_state, circuit_params)
                 # input用のparamsを取り除く
                 grad = np.array(estimate.values)[learning_param_indexes]

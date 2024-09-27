@@ -14,7 +14,6 @@ from quri_parts.core.state import quantum_state
 from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
 from scikit_quri.circuit import LearningCircuit
 from typing import List
-from numpy.random import default_rng
 
 # ! Will remove
 from sklearn.preprocessing import MinMaxScaler
@@ -67,9 +66,7 @@ class QNNRegressor:
                 feature_range=(-self.y_norm_range, self.y_norm_range)
             )
 
-    def fit(
-        self, x_train: NDArray[np.float_], y_train: NDArray[np.float_], maxiter=20
-    ) -> None:
+    def fit(self, x_train: NDArray[np.float_], y_train: NDArray[np.float_], maxiter=20) -> None:
         """
         Fit the model to the training data.
 
@@ -249,9 +246,7 @@ class QNNRegressor:
 
         for x in x_scaled:
             circuit_params = self.ansatz.generate_bound_params(x, params)
-            param_circuit_state = quantum_state(
-                n_qubits=self.n_qubits, circuit=self.ansatz.circuit
-            )
+            param_circuit_state = quantum_state(n_qubits=self.n_qubits, circuit=self.ansatz.circuit)
             circuit_state = param_circuit_state.bind_parameters(circuit_params)
             circuit_states.append(circuit_state)
 

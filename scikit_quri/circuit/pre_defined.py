@@ -37,7 +37,6 @@ def create_qcl_ansatz(
             i, lambda x, i=i: np.arccos(preprocess_x(x, i) * preprocess_x(x, i))
         )
 
-    rng = default_rng(seed)
     time_evol_gate = _create_time_evol_gate(n_qubit, time_step)
     for _ in range(c_depth):
         circuit.add_gate(time_evol_gate)
@@ -46,6 +45,7 @@ def create_qcl_ansatz(
             circuit.add_parametric_RZ_gate(i)
             circuit.add_parametric_RX_gate(i)
     return circuit
+
 
 def _create_time_evol_gate(
     n_qubit, time_step=0.77, rng: Generator = None, seed: Optional[int] = 0
@@ -71,9 +71,15 @@ def _create_time_evol_gate(
     )  # e^-iHT
 
     # Convert to a qulacs gate
-    time_evol_gate = QuantumGate(name="UnitaryMatrix",target_indices=[i for i in range(n_qubit)], unitary_matrix=time_evol_op)
+    time_evol_gate = QuantumGate(
+        name="UnitaryMatrix",
+        target_indices=[i for i in range(n_qubit)],
+        unitary_matrix=time_evol_op,
+    )
 
     return time_evol_gate
+
+
 def _make_hamiltonian(n_qubit, rng: Generator = None, seed: Optional[int] = 0):
     if rng is None:
         rng = default_rng(seed)
@@ -110,8 +116,9 @@ def _make_fullgate(list_SiteAndOperator, n_qubit):
 
 def preprocess_x(x: np.ndarray, i: int) -> float:
     xa = x[i % len(x)]
-    clamped = min(1,max(-1,xa))
+    clamped = min(1, max(-1, xa))
     return clamped
+
 
 def create_farhi_neven_ansatz(
     n_qubit: int, c_depth: int, seed: Optional[int] = 0
@@ -119,18 +126,20 @@ def create_farhi_neven_ansatz(
     circuit = LearningCircuit(n_qubit)
     rng = default_rng(seed)
     for i in range(n_qubit):
-        circuit.add_input_RY_gate(i,lambda x,i=i: np.arcsin(preprocess_x(x,i)))
-        circuit.add_input_RZ_gate(i,lambda x,i=i: np.arccos(preprocess_x(x,i) * preprocess_x(x,i)))
-    
+        circuit.add_input_RY_gate(i, lambda x, i=i: np.arcsin(preprocess_x(x, i)))
+        circuit.add_input_RZ_gate(
+            i, lambda x, i=i: np.arccos(preprocess_x(x, i) * preprocess_x(x, i))
+        )
+
     zyu = list(range(n_qubit))
 
     for _ in range(c_depth):
         rng.shuffle(zyu)
         for i in range(0, n_qubit - 1, 2):
-            circuit.circuit.add_CNOT_gate(zyu[i+1],zyu[i])
+            circuit.circuit.add_CNOT_gate(zyu[i + 1], zyu[i])
             circuit.add_parametric_RX_gate(zyu[i])
             circuit.add_parametric_RY_gate(zyu[i])
-            circuit.circuit.add_CNOT_gate(zyu[i+1],zyu[i])
+            circuit.circuit.add_CNOT_gate(zyu[i + 1], zyu[i])
             circuit.add_parametric_RY_gate(zyu[i])
             circuit.add_parametric_RX_gate(zyu[i])
     return circuit

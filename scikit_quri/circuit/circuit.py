@@ -77,7 +77,6 @@ class LearningCircuit:
         target: _Axis,
         input_function: Callable[[NDArray[np.float_]], float],
     ):
-
         self._gate_list.append(_GateTypes.Input)
 
         pos = self._new_parameter_position()
@@ -120,22 +119,16 @@ class LearningCircuit:
 
     def get_learning_param_indexes(self) -> List[int]:
         learning_param_mask = list(
-            map(
-                lambda gate: 1 if gate == _GateTypes.Learning else None, self._gate_list
-            )
+            map(lambda gate: 1 if gate == _GateTypes.Learning else None, self._gate_list)
         )
-        return list(
-            filter(lambda i: learning_param_mask[i] != None, range(self.n_parameters))
-        )
+        return list(filter(lambda i: learning_param_mask[i] != None, range(self.n_parameters)))
         # return [i for i, gate_type in enumerate(self._gate_list) if gate_type == _GateTypes.Learning]
 
     def get_input_params_indexes(self) -> List[int]:
         input_param_mask = list(
             map(lambda gate: 1 if gate == _GateTypes.Input else None, self._gate_list)
         )
-        return list(
-            filter(lambda i: input_param_mask[i] != None, range(self.n_parameters))
-        )
+        return list(filter(lambda i: input_param_mask[i] != None, range(self.n_parameters)))
 
     # def get_input_params(self) -> List[float]:
     #     parametric_gates = list(filter(lambda x:isinstance(x[0],ParametricQuantumGate),self.circuit.gates_and_params))
