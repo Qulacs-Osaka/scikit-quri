@@ -1,0 +1,61 @@
+[tool.poetry]
+name = "scikit-quri"
+version = "0.1.0"
+description = ""
+authors = ["Qulacs-Osaka <qulacs.osaka@gmail.com>"]
+license = "MIT"
+readme = "./README.md"
+repository = "https://github.com/Qulacs-Osaka/scikit-quri"
+homepage = "https://github.com/Qulacs-Osaka/scikit-quri"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+[tool.poetry.dependencies]
+python = ">=3.9.8,<3.12"
+quri-parts = {extras = ["qulacs"], version = "^0.16.1"}
+scikit-learn = "^1.4.0"
+matplotlib = "^3.8.4"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.4"
+ruff = "^0.1.14"
+mypy = "^1.8.0"
+pytest-cov = "^4.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 100
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_any_decorated = false
+disallow_any_generics = true
+disallow_any_unimported = false
+disallow_incomplete_defs = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = false
+disallow_untyped_defs = true
+ignore_errors = false
+ignore_missing_imports = true
+no_implicit_optional = true
+python_version = 3.8
+show_error_codes = true
+strict_equality = true
+strict_optional = true
+warn_redundant_casts = true
+warn_return_any = true
+warn_unreachable = true
+warn_unused_configs = true
+warn_unused_ignores = true

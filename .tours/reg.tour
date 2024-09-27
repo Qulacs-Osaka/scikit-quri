@@ -1,0 +1,12 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "Reg",
+  "steps": [
+    {
+      "file": "scikit_quri/qnn/regressor.py",
+      "description": "inputのparamが変化しても，thetaのgradが変化しないことは検証済み",
+      "line": 102
+    }
+  ],
+  "ref": "dev_reg"
+}
