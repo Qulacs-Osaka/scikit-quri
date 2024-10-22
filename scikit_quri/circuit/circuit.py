@@ -32,7 +32,7 @@ class LearningCircuit:
     n_parameters: int = field(init=False, default=0)
     n_learning_params: int = field(init=False, default=0)
     circuit: UnboundParametricQuantumCircuit = field(init=False)
-    input_functions: dict[int, Callable[[NDArray[np.float_]], float]] = field(
+    input_functions: dict[int, Callable[[NDArray[np.float64]], float]] = field(
         init=False, default_factory=dict
     )
     _input_parameter_list: list[int] = field(init=False, default_factory=list)
@@ -49,17 +49,17 @@ class LearningCircuit:
         return self.circuit.parameter_count
 
     def add_input_RX_gate(
-        self, qubit: int, input_function: Callable[[NDArray[np.float_]], float]
+        self, qubit: int, input_function: Callable[[NDArray[np.float64]], float]
     ) -> None:
         self._add_input_R_gate_inner(qubit, _Axis.X, input_function)
 
     def add_input_RY_gate(
-        self, qubit: int, input_function: Callable[[NDArray[np.float_]], float]
+        self, qubit: int, input_function: Callable[[NDArray[np.float64]], float]
     ) -> None:
         self._add_input_R_gate_inner(qubit, _Axis.Y, input_function)
 
     def add_input_RZ_gate(
-        self, qubit: int, input_function: Callable[[NDArray[np.float_]], float]
+        self, qubit: int, input_function: Callable[[NDArray[np.float64]], float]
     ) -> None:
         self._add_input_R_gate_inner(qubit, _Axis.Z, input_function)
 
@@ -75,7 +75,7 @@ class LearningCircuit:
         self,
         index: int,
         target: _Axis,
-        input_function: Callable[[NDArray[np.float_]], float],
+        input_function: Callable[[NDArray[np.float64]], float],
     ):
         self._gate_list.append(_GateTypes.Input)
 
@@ -136,7 +136,7 @@ class LearningCircuit:
     #     return [self.input_functions[i] for i in self.get_input_params_indexes()]
 
     def bind_input_and_parameters(
-        self, x: NDArray[np.float_], parameters: NDArray[np.float_]
+        self, x: NDArray[np.float64], parameters: NDArray[np.float64]
     ) -> ImmutableBoundParametricQuantumCircuit:
         bound_parameters = []
         parameter_index = 0
@@ -150,8 +150,8 @@ class LearningCircuit:
         return self.circuit.bind_parameters(bound_parameters)
 
     def generate_bound_params(
-        self, x: NDArray[np.float_], learning_params: NDArray[np.float_]
-    ) -> NDArray[np.float_]:
+        self, x: NDArray[np.float64], learning_params: NDArray[np.float64]
+    ) -> NDArray[np.float64]:
         bound_parameters = []
         input_index = 0
         parameter_index = 0
@@ -169,7 +169,7 @@ class LearningCircuit:
         return bound_parameters
 
 
-def preprocess_x(x: NDArray[np.float_], i: int) -> float:
+def preprocess_x(x: NDArray[np.float64], i: int) -> float:
     a: float = x[i % len(x)]
     return a
 

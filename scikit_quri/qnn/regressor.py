@@ -23,16 +23,16 @@ from sklearn.metrics import mean_squared_error
 #     def __init__(self,feature_range:tuple[int,int]=(0, 1)):
 #         self.feature_range = feature_range
 
-#     def fit(self,X:NDArray[np.float_]):
+#     def fit(self,X:NDArray[np.float64]):
 #         self.data_min = X.min(axis=0)
 #         self.data_max = X.max(axis=0)
 
-#     def transform(self,X:NDArray[np.float_]):
+#     def transform(self,X:NDArray[np.float64]):
 #         X_std = (X - self.data_min) / (self.data_max - self.data_min)
 #         X_scaled = X_std * (self.feature_range[1] - self.feature_range[0]) + self.feature_range[0]
 #         return X_scaled
 
-#     def fit_transform(self,X:NDArray[np.float_]):
+#     def fit_transform(self,X:NDArray[np.float64]):
 #         self.fit(X)
 #         return self.transform(X)
 
@@ -66,7 +66,7 @@ class QNNRegressor:
                 feature_range=(-self.y_norm_range, self.y_norm_range)
             )
 
-    def fit(self, x_train: NDArray[np.float_], y_train: NDArray[np.float_], maxiter=20) -> None:
+    def fit(self, x_train: NDArray[np.float64], y_train: NDArray[np.float64], maxiter=20) -> None:
         """
         Fit the model to the training data.
 
@@ -124,8 +124,8 @@ class QNNRegressor:
 
     def cost_fn(
         self,
-        x_scaled: NDArray[np.float_],
-        y_scaled: NDArray[np.float_],
+        x_scaled: NDArray[np.float64],
+        y_scaled: NDArray[np.float64],
         params: Sequence[float],
     ) -> float:
         """
@@ -144,7 +144,7 @@ class QNNRegressor:
         cost = mean_squared_error(y_scaled, y_pred)
         return cost
 
-    def predict(self, x_test: NDArray[np.float_]) -> NDArray[np.float_]:
+    def predict(self, x_test: NDArray[np.float64]) -> NDArray[np.float64]:
         """
         Predict outcome for each input data in `x_test`.
 
@@ -166,7 +166,7 @@ class QNNRegressor:
             x_scaled = x_test
 
         if self.do_y_scale:
-            y_pred: NDArray[np.float_] = self.scale_y_scaler.inverse_transform(
+            y_pred: NDArray[np.float64] = self.scale_y_scaler.inverse_transform(
                 self._predict_inner(x_scaled, self.trained_param)
             )
         else:
@@ -176,10 +176,10 @@ class QNNRegressor:
 
     def grad_fn(
         self,
-        x_scaled: NDArray[np.float_],
-        y_scaled: NDArray[np.float_],
+        x_scaled: NDArray[np.float64],
+        y_scaled: NDArray[np.float64],
         params: Sequence[Sequence[float]],
-    ) -> NDArray[np.float_]:
+    ) -> NDArray[np.float64]:
         """
         Calculate the gradient of the cost function for solver.
 
@@ -205,8 +205,8 @@ class QNNRegressor:
         return grads
 
     def _estimate_grad(
-        self, x_scaled: NDArray[np.float_], params: Sequence[float]
-    ) -> NDArray[np.float_]:
+        self, x_scaled: NDArray[np.float64], params: Sequence[float]
+    ) -> NDArray[np.float64]:
         """
         Estimate the gradient of the cost function.
 
@@ -229,8 +229,8 @@ class QNNRegressor:
         return np.asarray(grads)
 
     def _predict_inner(
-        self, x_scaled: NDArray[np.float_], params: Sequence[float]
-    ) -> NDArray[np.float_]:
+        self, x_scaled: NDArray[np.float64], params: Sequence[float]
+    ) -> NDArray[np.float64]:
         """
         Predict inner function.
 

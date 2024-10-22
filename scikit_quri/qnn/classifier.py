@@ -49,16 +49,16 @@ class QNNClassifier:
                 feature_range=(-self.x_norm_range, self.x_norm_range)
             )
 
-    def softmax(self, x: NDArray[np.float_], axis=None) -> NDArray[np.float_]:
+    def softmax(self, x: NDArray[np.float64], axis=None) -> NDArray[np.float64]:
         x_max = np.amax(x, axis=axis, keepdims=True)
         exp_x_shifted = np.exp(x - x_max)
         return exp_x_shifted / np.sum(exp_x_shifted, axis=axis, keepdims=True)
 
     def _cost(
         self,
-        x_train: NDArray[np.float_],
+        x_train: NDArray[np.float64],
         y_train: NDArray[np.int_],
-        params: NDArray[np.float_],
+        params: NDArray[np.float64],
     ):
         if x_train.ndim == 1:
             x_train = x_train.reshape(-1, 1)
@@ -73,7 +73,7 @@ class QNNClassifier:
 
     def fit(
         self,
-        x_train: NDArray[np.float_],
+        x_train: NDArray[np.float64],
         y_train: NDArray[np.int_],
         maxiter: Optional[int] = 100,
     ):
@@ -109,7 +109,7 @@ class QNNClassifier:
         print(f"{optimizer_state.cost=}")
         self.trained_param = optimizer_state.params
 
-    def predict(self, x_test: NDArray[np.float_]) -> NDArray[np.float_]:
+    def predict(self, x_test: NDArray[np.float64]) -> NDArray[np.float64]:
         if self.trained_param is None:
             raise ValueError("Model is not trained.")
 
@@ -123,8 +123,8 @@ class QNNClassifier:
         return y_pred
 
     def _predict_inner(
-        self, x_scaled: NDArray[np.float_], params: NDArray[np.float_]
-    ) -> NDArray[np.float_]:
+        self, x_scaled: NDArray[np.float64], params: NDArray[np.float64]
+    ) -> NDArray[np.float64]:
         """
         Predict inner function.
 
@@ -155,8 +155,8 @@ class QNNClassifier:
 
     def cost_func(
         self,
-        params: NDArray[np.float_],
-        x_scaled: NDArray[np.float_],
+        params: NDArray[np.float64],
+        x_scaled: NDArray[np.float64],
         y_train: NDArray[np.int_],
     ) -> float:
         y_pred = self._predict_inner(x_scaled, params)
@@ -169,9 +169,9 @@ class QNNClassifier:
 
     def cost_func_grad(
         self,
-        params: NDArray[np.float_],
-        x_scaled: NDArray[np.float_],
-        y_train: NDArray[np.float_],
+        params: NDArray[np.float64],
+        x_scaled: NDArray[np.float64],
+        y_train: NDArray[np.float64],
     ) -> float:
         # start = time.perf_counter()
         y_pred = self._predict_inner(x_scaled, params)
@@ -191,8 +191,8 @@ class QNNClassifier:
         return grads
 
     def _estimate_grad(
-        self, x_scaled: NDArray[np.float_], params: NDArray[np.float_]
-    ) -> NDArray[np.float_]:
+        self, x_scaled: NDArray[np.float64], params: NDArray[np.float64]
+    ) -> NDArray[np.float64]:
         grads = []
         learning_param_indexes = self.ansatz.get_learning_param_indexes()
         for x in x_scaled:

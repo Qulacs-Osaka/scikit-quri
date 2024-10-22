@@ -23,7 +23,7 @@ def create_qcl_ansatz(
         >>> qnn.fit(x_train, y_train)
     """
 
-    def preprocess_x(x: NDArray[np.float_], index: int) -> float:
+    def preprocess_x(x: NDArray[np.float64], index: int) -> float:
         xa = x[index % len(x)]
         return min(1, max(-1, xa))
 
