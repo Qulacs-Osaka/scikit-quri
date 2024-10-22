@@ -17,6 +17,9 @@ EPS_abs = 1e-12
 
 # pqc_fを入力によってcacheするclass
 class pqc_f_helper:
+    """
+    入力データXに対して，量子回路を計算してcacheしておくClass
+    """
     def __init__(self, pqs_f: Callable[[NDArray[np.float64]], GeneralCircuitQuantumState]):
         self.pqs_f = pqs_f
         self.cache = {}
@@ -29,6 +32,7 @@ class pqc_f_helper:
             self.cache[hashed] = state
         return state
 
+# quri-partsのoverlap_estimatorが遅すぎるため
 class overlap_estimator:
     def __init__(self,states:List[GeneralCircuitQuantumState]):
         self.states = states
@@ -67,7 +71,7 @@ class TSNE:
         self.perplexity = perplexity
 
     def calc_probabilities_p(self, X_train: NDArray[np.float64]) -> NDArray[np.float64]:
-        sq_distance = self.cdist(X_train)
+        sq_distance = self.cdist(X_train,X_train)
         p_probs = self.joint_probabilities(sq_distance, self.perplexity)
         return p_probs
 
@@ -81,13 +85,14 @@ class TSNE:
                 inner_prod = estimator.estimate(i,j) 
                 sq_distance[i][j] = 1 - inner_prod
                 sq_distance[j][i] = sq_distance[i][j]
-            print(f"{i}/{n_data}")
+            print("\r",f"{i}/{n_data}",end="")
+        print()
         p_probs = self.joint_probabilities(sq_distance, self.perplexity)
         return p_probs
 
     def calc_probabilities_q(self, c_data: NDArray[np.float64]) -> NDArray[np.float64]:
         # Student's t-distribution
-        q_tmp = 1 / (1 + self.cdist(c_data))
+        q_tmp = 1 / (1 + self.cdist(c_data,c_data))
         n_data = len(c_data)
         for i in range(n_data):
             q_tmp[i][i] = 0.0
@@ -147,17 +152,18 @@ class TSNE:
         c = np.sum(C)
         return c
 
-    def cdist(self, X: NDArray[np.float64]):
+    def cdist(self, X: NDArray[np.float64], X_tr: NDArray[np.float64]):
         """
         Calculate the distances by Euclidean distance between the data
         """
-        
+        if(X_tr is None):
+            raise ValueError("X_tr is None") 
         # n = len(X)
         # Xsq = np.sum(np.square(X), axis=1)
         # # sq_distance[i,j]はX[i]とX[j]のユークリッド距離の二乗
         # sq_distance = (Xsq.reshape(n, 1) + Xsq) - 2 * np.dot(X, X.T)
         # sq_distance = np.sqrt(sq_distance)
-        sq_distance = distance.cdist(X, X)
+        sq_distance = distance.cdist(X, X_tr)
         return sq_distance
 
 
@@ -195,7 +201,9 @@ class quantum_kernel_tsne:
         # print(f"{y=}")
         q_prob = self.tsne.calc_probabilities_q(y)
         loss = self.calc_loss(p_prob, q_prob)
-        print(f"{loss=}")
+        self.cost_f_iter += 1
+        if self.cost_f_iter % 100 == 0:
+            print("\r",f"iter={self.cost_f_iter} {loss=}",end="")
         return loss
     
     def generate_X_train_state(self, X_train: NDArray[np.float64]):
@@ -207,6 +215,7 @@ class quantum_kernel_tsne:
     def train(self, X_train: NDArray[np.float64], y_label, method="adam"):
         if self.pqc_f is None:
             raise ValueError("please call 'init' before training")
+        self.X_train = X_train
         n_data = X_train.shape[0]
         # transformで使う
         self.X_train = X_train
@@ -222,6 +231,8 @@ class quantum_kernel_tsne:
         cost_f = partial(self.cost_f, p_prob=p_probs, fidelity=fidelity)
         # d=2次元に落とすので2倍
         alpha = np.random.rand(n_data * 2)
+        # cost_fの呼び出し回数
+        self.cost_f_iter = 0
         self.plot(self.calc_y(fidelity, alpha.reshape(n_data, 2)), y_label, "before")
         if method == "adam":
             self.optimizer_state = self.optimizer.get_init_state(alpha)
@@ -231,17 +242,22 @@ class quantum_kernel_tsne:
                 self.optimizer_state = self.optimizer.step(self.optimizer_state, cost_f, None)
         elif method == "COBYLA":
             from scipy.optimize import minimize
-
             result = minimize(cost_f, alpha, method="COBYLA", options={"maxiter": self.max_iter})
+            print(result)
+            self.trained_alpha = result.x
+        elif method == "Powell":
+            from scipy.optimize import minimize
+            result = minimize(cost_f, alpha, method="Powell", options={"maxfev": self.max_iter})
             print(result)
             self.trained_alpha = result.x
 
         y = self.calc_y(fidelity, self.trained_alpha.reshape(n_data, 2))
         self.plot(y, y_label, "after")
 
-    def transform(self, X: NDArray[np.float64]):
-        # fidelity = self.calc_fidelity(X,)
-        pass
+    def transform(self, X_test: NDArray[np.float64]):
+        fidelity = self.calc_fidelity_all(X_test,self.X_train,self.pqs_f_helper)
+        y = self.calc_y(fidelity, self.trained_alpha.reshape(len(self.trained_alpha) // 2, 2))
+        return y
 
     """
     @param fidelity: |<φi|φj>|^2 (n_data, n_data)
@@ -273,13 +289,20 @@ class quantum_kernel_tsne:
     # ? Cacheできそう
     def _calc_fidelity(self, j, data, data_tr, estimator: overlap_estimator):
         n_data = len(data)
-        fidelities = np.zeros(n_data)
         if np.array_equal(data,data_tr):
+            fidelities = np.zeros(n_data)
             for k in range(j+1):
                 inner_prod = estimator.estimate(j,k)
                 fidelities[k] = inner_prod
         else:
-            raise ValueError("まだ実装されてないよ")
+            n_data_offset = n_data
+            n_data_tr = len(data_tr)
+            fidelities = np.zeros(n_data_tr)
+            for k in range(n_data_tr):
+                # estimatorは[data,data_tr]なので，offsetを使ってdata_trのindexを計算
+                inner_prod = estimator.estimate(j,k+n_data_offset)
+                fidelities[k] = inner_prod
+            # raise ValueError("まだ実装されてないよ")
 
         # TODO こいつをcacheに
         # state_bra = pqs_f_helper.get(data[j])
@@ -291,18 +314,32 @@ class quantum_kernel_tsne:
         return fidelities
 
     def calc_fidelity(self, data, data_tr, pqs_f_helper: pqc_f_helper):
+        if not np.array_equal(data, data_tr):
+            raise ValueError("data and data_tr must be the same")
         n_data = len(data)
         n_data_tr = len(data_tr)
         fidelities = np.zeros((n_data, n_data_tr))
-        if np.array_equal(data, data_tr):
-            estimator = overlap_estimator([pqs_f_helper.get(data[i]) for i in range(n_data)])
-            # どうせ全部使うので，先に全部計算する
-            estimator.calc_all_qula_states()
-            for j in range(n_data):
-                fidelities[j] = self._calc_fidelity(j, data, data_tr, estimator)
-                print(f"{j}/{n_data}")
-            fidelities = fidelities + fidelities.T - np.eye(n_data)
-            print(fidelities) 
+        estimator = overlap_estimator([pqs_f_helper.get(data[i]) for i in range(n_data)])
+        # どうせ全部使うので，先に全部計算する
+        estimator.calc_all_qula_states()
+        for j in range(n_data):
+            fidelities[j] = self._calc_fidelity(j, data, data_tr, estimator)
+            print("\r",f"{j}/{n_data}",end="")
+        fidelities = fidelities + fidelities.T - np.eye(n_data)
+        print(fidelities) 
+        return fidelities
+
+    def calc_fidelity_all(self, data, data_tr, pqs_f_helper: pqc_f_helper):
+        n_data = len(data)
+        n_data_tr = len(data_tr)
+        fidelities = np.zeros((n_data, n_data_tr))
+        # dataとdata_trの両方の量子状態をestimatorに入れる
+        estimator = overlap_estimator([pqs_f_helper.get(x) for x in np.concatenate([data,data_tr])])
+        estimator.calc_all_qula_states()
+        for j in range(n_data):
+            fidelities[j] = self._calc_fidelity(j, data, data_tr, estimator)
+            print("\r",f"{j}/{n_data}",end="")
+        print()
         return fidelities
 
     def plot(self, y: NDArray[np.float64], y_label: NDArray[np.int_], title: str):
