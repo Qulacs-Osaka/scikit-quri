@@ -1,11 +1,14 @@
-from typing import Callable, overload,List
+from typing import Callable, overload, List
 from ..circuit.circuit import LearningCircuit
 from numpy.typing import NDArray
 import numpy as np
 from quri_parts.algo.optimizer import Adam
 from quri_parts.qulacs.circuit import convert_circuit
 from functools import partial
-from quri_parts.qulacs.overlap_estimator import create_qulacs_vector_overlap_estimator,_create_qulacs_initial_state
+from quri_parts.qulacs.overlap_estimator import (
+    create_qulacs_vector_overlap_estimator,
+    _create_qulacs_initial_state,
+)
 from qulacs.state import inner_product
 from qulacs import QuantumState
 from quri_parts.core.state import quantum_state, GeneralCircuitQuantumState
@@ -20,9 +23,10 @@ class pqc_f_helper:
     """
     入力データXに対して，量子回路を計算してcacheしておくClass
     """
+
     def __init__(self, pqs_f: Callable[[NDArray[np.float64]], GeneralCircuitQuantumState]) -> None:
         """
-        Args: 
+        Args:
             pqs_f: 入力データXを受け取って，量子状態を返す関数
         """
         self.pqs_f = pqs_f
@@ -43,20 +47,22 @@ class pqc_f_helper:
             self.cache[hashed] = state
         return state
 
+
 class overlap_estimator:
     """
     quri-partsのoverlap_estimatorの代替Class
     (n_data:500のとき,x60 faster)
     """
-    def __init__(self,states:List[GeneralCircuitQuantumState]):
+
+    def __init__(self, states: List[GeneralCircuitQuantumState]):
         """
         Args:
             states (List[GeneralCircuitQuantumState]): 量子状態のリスト
         """
         self.states = states
-        self.qula_states = np.full(len(states),fill_value=None,dtype=object)
+        self.qula_states = np.full(len(states), fill_value=None, dtype=object)
 
-    def _state_to_qula_state(self, state:GeneralCircuitQuantumState) -> QuantumState:
+    def _state_to_qula_state(self, state: GeneralCircuitQuantumState) -> QuantumState:
         """
         量子状態をqulacsのstateに変換
         Args:
@@ -68,7 +74,7 @@ class overlap_estimator:
         qulacs_state = _create_qulacs_initial_state(state)
         circuit.update_quantum_state(qulacs_state)
         return qulacs_state
-    
+
     def calc_all_qula_states(self):
         """
         cache用に予め全ての量子状態をqulacsのstateに変換
@@ -76,7 +82,7 @@ class overlap_estimator:
         for i in range(len(self.states)):
             self.qula_states[i] = self._state_to_qula_state(self.states[i])
 
-    def estimate(self, i:int, j:int):
+    def estimate(self, i: int, j: int):
         # ? これi,jじゃなくて数値でhash取った方が使いやすそう
         """
         与えられた量子状態のi番目とj番目の内積の絶対値の二乗を計算
@@ -95,15 +101,17 @@ class overlap_estimator:
         if bra is None:
             bra = self._state_to_qula_state(self.states[j])
             self.qula_states[j] = bra
-        overlap = inner_product(bra,ket)
-        overlap_mag_sqrd = abs(overlap)**2
+        overlap = inner_product(bra, ket)
+        overlap_mag_sqrd = abs(overlap) ** 2
         return overlap_mag_sqrd
+
 
 # p_ijを計算するTSNE Class
 class TSNE:
     """
     基本的なTSNEの実装
     """
+
     def __init__(self, perplexity=30):
         self.perplexity = perplexity
 
@@ -115,11 +123,13 @@ class TSNE:
         Returns:
             p_probs (NDArray[np.float64]): t-sneのp行列 (X_trainのサイズ, X_trainのサイズ)
         """
-        sq_distance = self.cdist(X_train,X_train)
+        sq_distance = self.cdist(X_train, X_train)
         p_probs = self.joint_probabilities(sq_distance, self.perplexity)
         return p_probs
 
-    def calc_probabilities_p_state(self, X_train_state: List[GeneralCircuitQuantumState]) -> NDArray[np.float64]:
+    def calc_probabilities_p_state(
+        self, X_train_state: List[GeneralCircuitQuantumState]
+    ) -> NDArray[np.float64]:
         """
         p行列を計算する
         Args:
@@ -132,11 +142,11 @@ class TSNE:
         estimator = overlap_estimator(X_train_state)
         # xが量子状態の場合
         for i in range(n_data):
-            for j in range(i+1,n_data):
-                inner_prod = estimator.estimate(i,j) 
+            for j in range(i + 1, n_data):
+                inner_prod = estimator.estimate(i, j)
                 sq_distance[i][j] = 1 - inner_prod
                 sq_distance[j][i] = sq_distance[i][j]
-            print("\r",f"{i}/{n_data}",end="")
+            print("\r", f"{i}/{n_data}", end="")
         print()
         p_probs = self.joint_probabilities(sq_distance, self.perplexity)
         return p_probs
@@ -150,7 +160,7 @@ class TSNE:
             q_probs (NDArray[np.float64]): t-sneのq行列 (c_dataのサイズ, c_dataのサイズ)
         """
         # Student's t-distribution
-        q_tmp = 1 / (1 + self.cdist(c_data,c_data))
+        q_tmp = 1 / (1 + self.cdist(c_data, c_data))
         n_data = len(c_data)
         for i in range(n_data):
             q_tmp[i][i] = 0.0
@@ -217,8 +227,8 @@ class TSNE:
         """
         Calculate the distances by Euclidean distance between the data
         """
-        if(X_tr is None):
-            raise ValueError("X_tr is None") 
+        if X_tr is None:
+            raise ValueError("X_tr is None")
         # n = len(X)
         # Xsq = np.sum(np.square(X), axis=1)
         # # sq_distance[i,j]はX[i]とX[j]のユークリッド距離の二乗
@@ -232,6 +242,7 @@ class quantum_kernel_tsne:
     """
     quantum kernel t-sneで学習するためのClass
     """
+
     def __init__(self, perplexity=30, max_iter=400):
         self.perplexity = perplexity
         self.max_iter = max_iter
@@ -243,7 +254,7 @@ class quantum_kernel_tsne:
     # pqc_fの設定
     def init(self, pqc_f: Callable[[], LearningCircuit], theta: NDArray[np.float64]) -> None:
         """
-        Args: 
+        Args:
             pqc_f: 量子回路を返す関数
             theta: 量子回路のパラメータ
         """
@@ -278,9 +289,9 @@ class quantum_kernel_tsne:
         loss = self.calc_loss(p_prob, q_prob)
         self.cost_f_iter += 1
         if self.cost_f_iter % 100 == 0:
-            print("\r",f"iter={self.cost_f_iter} {loss=}",end="")
+            print("\r", f"iter={self.cost_f_iter} {loss=}", end="")
         return loss
-    
+
     def generate_X_train_state(self, X_train: NDArray[np.float64]):
         """
         X_train(NDAarray[np.float64])から量子状態のリストを生成
@@ -324,11 +335,13 @@ class quantum_kernel_tsne:
                 self.optimizer_state = self.optimizer.step(self.optimizer_state, cost_f, None)
         elif method == "COBYLA":
             from scipy.optimize import minimize
+
             result = minimize(cost_f, alpha, method="COBYLA", options={"maxiter": self.max_iter})
             print(result)
             self.trained_alpha = result.x
         elif method == "Powell":
             from scipy.optimize import minimize
+
             result = minimize(cost_f, alpha, method="Powell", options={"maxfev": self.max_iter})
             print(result)
             self.trained_alpha = result.x
@@ -344,12 +357,13 @@ class quantum_kernel_tsne:
         Returns:
             y (NDArray[np.float64]): 低次元表現
         """
-        fidelity = self.calc_fidelity_all(X_test,self.X_train,self.pqs_f_helper)
+        fidelity = self.calc_fidelity_all(X_test, self.X_train, self.pqs_f_helper)
         y = self.calc_y(fidelity, self.trained_alpha.reshape(len(self.trained_alpha) // 2, 2))
         return y
 
-
-    def calc_y(self, fidelity: NDArray[np.float64], alpha: NDArray[np.float64]) -> NDArray[np.float64]:
+    def calc_y(
+        self, fidelity: NDArray[np.float64], alpha: NDArray[np.float64]
+    ) -> NDArray[np.float64]:
         """
         fidelityとαからyを計算
         Args:
@@ -381,10 +395,10 @@ class quantum_kernel_tsne:
     # ? Cacheできそう
     def _calc_fidelity(self, j, data, data_tr, estimator: overlap_estimator):
         n_data = len(data)
-        if np.array_equal(data,data_tr):
+        if np.array_equal(data, data_tr):
             fidelities = np.zeros(n_data)
-            for k in range(j+1):
-                inner_prod = estimator.estimate(j,k)
+            for k in range(j + 1):
+                inner_prod = estimator.estimate(j, k)
                 fidelities[k] = inner_prod
         else:
             n_data_offset = n_data
@@ -392,7 +406,7 @@ class quantum_kernel_tsne:
             fidelities = np.zeros(n_data_tr)
             for k in range(n_data_tr):
                 # estimatorは[data,data_tr]なので，offsetを使ってdata_trのindexを計算
-                inner_prod = estimator.estimate(j,k+n_data_offset)
+                inner_prod = estimator.estimate(j, k + n_data_offset)
                 fidelities[k] = inner_prod
         return fidelities
 
@@ -410,7 +424,7 @@ class quantum_kernel_tsne:
         estimator.calc_all_qula_states()
         for j in range(n_data):
             fidelities[j] = self._calc_fidelity(j, data, data_tr, estimator)
-            print("\r",f"{j}/{n_data}",end="")
+            print("\r", f"{j}/{n_data}", end="")
         fidelities = fidelities + fidelities.T - np.eye(n_data)
         return fidelities
 
@@ -422,18 +436,20 @@ class quantum_kernel_tsne:
         n_data_tr = len(data_tr)
         fidelities = np.zeros((n_data, n_data_tr))
         # dataとdata_trの両方の量子状態をestimatorに入れる
-        estimator = overlap_estimator([pqs_f_helper.get(x) for x in np.concatenate([data,data_tr])])
+        estimator = overlap_estimator(
+            [pqs_f_helper.get(x) for x in np.concatenate([data, data_tr])]
+        )
         estimator.calc_all_qula_states()
         for j in range(n_data):
             fidelities[j] = self._calc_fidelity(j, data, data_tr, estimator)
-            print("\r",f"{j}/{n_data}",end="")
+            print("\r", f"{j}/{n_data}", end="")
         print()
         return fidelities
 
     def plot(self, y: NDArray[np.float64], y_label: NDArray[np.int_], title: str):
         """
         yをplotする
-        Args: 
+        Args:
             y (NDArray[np.float64]): 低次元表現
             y_label (NDArray[np.int_]): ラベル
             title (str): タイトル
