@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Callable, List
+from typing_extensions import deprecated
 
 from enum import Enum, auto
 import numpy as np
@@ -7,6 +8,7 @@ from numpy.typing import NDArray
 from quri_parts.circuit import (
     UnboundParametricQuantumCircuit,
     ImmutableBoundParametricQuantumCircuit,
+    QuantumGate
 )
 
 
@@ -48,6 +50,74 @@ class LearningCircuit:
         """
         return self.circuit.parameter_count
 
+    def add_gate(self, gate:QuantumGate) -> None:
+        """Add arbitrary gate.
+
+        Args:
+            gate: Gate to add.
+        """
+        self.circuit.add_gate(gate)
+
+    def add_X_gate(self, index: int) -> None:
+        """
+        Args:
+            index: Index of qubit to add X gate.
+        """
+        self.circuit.add_X_gate(index)
+
+    def add_Y_gate(self, index: int) -> None:
+        """
+        Args:
+            index: Index of qubit to add Y gate.
+        """
+        self.circuit.add_Y_gate(index)
+
+    def add_Z_gate(self, index: int) -> None:
+        """
+        Args:
+            index: Index of qubit to add Z gate.
+        """
+        self.circuit.add_Z_gate(index)
+
+    def add_RX_gate(self, index: int, angle: float) -> None:
+        """
+        Args:
+            index: Index of qubit to add RX gate.
+            angle: Rotation angle.
+        """
+        self._add_R_gate_inner(index, angle, _Axis.X)
+
+    def add_RY_gate(self, index: int, parameter: float) -> None:
+        """
+        Args:
+            index: Index of qubit to add RY gate.
+            angle: Rotation angle.
+        """
+        self._add_R_gate_inner(index, parameter, _Axis.Y)
+
+    def add_RZ_gate(self, index: int, parameter: float) -> None:
+        """
+        Args:
+            index: Index of qubit to add RZ gate.
+            angle: Rotation angle.
+        """
+        self._add_R_gate_inner(index, parameter, _Axis.Z)
+
+    def add_CNOT_gate(self, control_index: int, target_index: int) -> None:
+        """
+        Args:
+            control_index: Index of control qubit.
+            target_index: Index of target qubit.
+        """
+        self.circuit.add_CNOT_gate(control_index, target_index)
+
+    def add_H_gate(self, index: int) -> None:
+        """
+        Args:
+            index: Index of qubit to put H gate.
+        """
+        self.circuit.add_H_gate(index)
+    
     def add_input_RX_gate(
         self, qubit: int, input_function: Callable[[NDArray[np.float64]], float]
     ) -> None:
@@ -63,13 +133,20 @@ class LearningCircuit:
     ) -> None:
         self._add_input_R_gate_inner(qubit, _Axis.Z, input_function)
 
-    def add_gate(self, gate) -> None:
-        """Add arbitrary gate.
-
-        Args:
-            gate: Gate to add.
-        """
-        self.circuit.add_gate(gate)
+    def _add_R_gate_inner(
+        self,
+        index: int,
+        angle: float,
+        target: _Axis,
+    ) -> None:
+        if target == _Axis.X:
+            self.circuit.add_RX_gate(index, angle)
+        elif target == _Axis.Y:
+            self.circuit.add_RY_gate(index, angle)
+        elif target == _Axis.Z:
+            self.circuit.add_RZ_gate(index, angle)
+        else:
+            raise NotImplementedError
 
     def _add_input_R_gate_inner(
         self,
@@ -135,18 +212,13 @@ class LearningCircuit:
     #     print(parametric_gates[0][1])
     #     return [self.input_functions[i] for i in self.get_input_params_indexes()]
 
+    def update_parameters(self, parameters: NDArray[np.float64]) -> ImmutableBoundParametricQuantumCircuit:
+        return self.circuit.bind_parameters(parameters)
+
     def bind_input_and_parameters(
         self, x: NDArray[np.float64], parameters: NDArray[np.float64]
     ) -> ImmutableBoundParametricQuantumCircuit:
-        bound_parameters = []
-        parameter_index = 0
-        for i in range(self.n_parameters):
-            input_function = self.input_functions.get(i)
-            if input_function is None:
-                bound_parameters.append(parameters[parameter_index])
-                parameter_index += 1
-            else:
-                bound_parameters.append(input_function(x))
+        bound_parameters = self.generate_bound_params(x, parameters)
         return self.circuit.bind_parameters(bound_parameters)
 
     def generate_bound_params(

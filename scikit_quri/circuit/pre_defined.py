@@ -143,3 +143,31 @@ def create_farhi_neven_ansatz(
             circuit.add_parametric_RY_gate(zyu[i])
             circuit.add_parametric_RX_gate(zyu[i])
     return circuit
+
+def create_ibm_embedding_circuit(n_qubit:int) -> LearningCircuit:
+    """create circuit proposed in https://arxiv.org/abs/1802.06002.
+    Args:
+        n_qubits: number of qubits
+    """
+    def preprocess_x(x: NDArray[np.float64], index: int) -> float:
+        xa:float = x[index % len(x)]
+        return xa
+    
+    circuit = LearningCircuit(n_qubit)
+    for i in range(n_qubit):
+        circuit.add_H_gate(i)
+    for i in range(n_qubit):
+        j = (i + 1) % n_qubit
+        circuit.add_input_RZ_gate(i, lambda x,i=i: preprocess_x(x,i))
+        circuit.add_CNOT_gate(i,j)
+        circuit.add_input_RZ_gate(j,lambda x,i=i:(np.pi - preprocess_x(x,i)*(np.pi-preprocess_x(x,j))))
+        circuit.add_CNOT_gate(i,j)
+    for i in range(n_qubit):
+        circuit.add_H_gate(i)
+    for i in range(n_qubit):
+        j = (i + 1) % n_qubit
+        circuit.add_input_RZ_gate(i, lambda x,i=i: preprocess_x(x,i))
+        circuit.add_CNOT_gate(i,j)
+        circuit.add_input_RZ_gate(j,lambda x,i=i:(np.pi - preprocess_x(x,i)*(np.pi-preprocess_x(x,j))))
+        circuit.add_CNOT_gate(i,j)
+    return circuit

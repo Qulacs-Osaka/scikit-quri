@@ -109,7 +109,8 @@ class QNNRegressor:
             cost_fn = lambda params: self.cost_fn(self.x_train, self.y_train, params)
             grad_fn = lambda params: self.grad_fn(self.x_train, self.y_train, params)
             optimizer_state = self.optimizer.step(optimizer_state, cost_fn, grad_fn)
-            print(f"{optimizer_state.cost=}")
+            print("\r",f"iter:{c}/{maxiter} cost:{optimizer_state.cost}",end="")
+            # print(f"{optimizer_state.cost=}")
             # break
             if optimizer_state.status == OptimizerStatus.CONVERGED:
                 break
@@ -117,10 +118,10 @@ class QNNRegressor:
             if optimizer_state.status == OptimizerStatus.FAILED:
                 break
             c += 1
+        print("")
 
         self.trained_param = optimizer_state.params
-        print(f"{self.trained_param=}")
-        # break
+        print(f"{optimizer_state.cost=}")
 
     def cost_fn(
         self,

@@ -15,6 +15,8 @@ from quri_parts.core.state import quantum_state, GeneralCircuitQuantumState
 import time
 import matplotlib.pyplot as plt
 from scipy.spatial import distance
+from quri_parts.algo.optimizer import OptimizerStatus
+from scipy.misc import derivative
 
 EPS_abs = 1e-12
 
@@ -276,6 +278,28 @@ class quantum_kernel_tsne:
         loss = self.tsne.kldiv(p_prob, q_prob)
         return loss
 
+    def _calc_grad(self, alpha: NDArray[np.float64], p_prob: NDArray[np.float64], fidelity: NDArray[np.float64]):
+        y = self.calc_y(fidelity, alpha.reshape(len(alpha) // 2, 2))
+        q_prob = self.tsne.calc_probabilities_q(y)
+        loss = self.calc_loss(p_prob, q_prob)
+        return loss
+    
+    def calc_grad(self, alpha: NDArray[np.float64], p_prob: NDArray[np.float64], fidelity: NDArray[np.float64]):
+        dx = 1e-6
+        grads = np.zeros(len(alpha))
+        alpha = alpha.copy()
+        for i in range(len(alpha)):
+            print("\r", f"{i}/{len(alpha)}", end="")
+            alpha[i] += dx
+            loss_plus = self._calc_grad(alpha, p_prob, fidelity)
+            alpha[i] -= 2*dx
+            loss_minus = self._calc_grad(alpha, p_prob, fidelity)
+            alpha[i] += dx
+            grad = (loss_plus - loss_minus) / (2*dx)
+            grads[i] = grad
+        print(f"{grads=}")
+        return grads
+    
     def cost_f(
         self,
         alpha: NDArray[np.float64],
@@ -331,8 +355,15 @@ class quantum_kernel_tsne:
             self.optimizer_state = self.optimizer.get_init_state(alpha)
             for n_epoch in range(self.max_iter):
                 if n_epoch % 10 == 0:
-                    print(f"epoch:{n_epoch}")
-                self.optimizer_state = self.optimizer.step(self.optimizer_state, cost_f, None)
+                    print(f"epoch:{n_epoch} loss:{self.optimizer_state.cost}")
+                grad_f = lambda alpha: self.calc_grad(alpha, p_probs, fidelity)
+                self.optimizer_state = self.optimizer.step(self.optimizer_state, cost_f, grad_f)
+                if self.optimizer_state.status == OptimizerStatus.CONVERGED:
+                    break
+                if self.optimizer_state.status == OptimizerStatus.FAILED:
+                    print("failed")
+                    break
+            self.trained_alpha = self.optimizer_state.params
         elif method == "COBYLA":
             from scipy.optimize import minimize
 

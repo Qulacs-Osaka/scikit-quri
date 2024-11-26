@@ -97,16 +97,15 @@ class QNNClassifier:
         c = 0
         while maxiter > c:
             optimizer_state = self.optimizer.step(optimizer_state, cost_func, grad_func)
-            print(f"{optimizer_state.cost=}")
+            print("\r",f"iter:{c}/{maxiter} cost:{optimizer_state.cost=}",end="")
 
             if optimizer_state.status == OptimizerStatus.CONVERGED:
                 break
             if optimizer_state.status == OptimizerStatus.FAILED:
                 break
-
+    
             c += 1
-
-        print(f"{optimizer_state.cost=}")
+        print("")
         self.trained_param = optimizer_state.params
 
     def predict(self, x_test: NDArray[np.float64]) -> NDArray[np.float64]:
