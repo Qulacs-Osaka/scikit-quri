@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 from quri_parts.circuit import (
     UnboundParametricQuantumCircuit,
     ImmutableBoundParametricQuantumCircuit,
-    QuantumGate
+    QuantumGate,
 )
 
 
@@ -50,7 +50,7 @@ class LearningCircuit:
         """
         return self.circuit.parameter_count
 
-    def add_gate(self, gate:QuantumGate) -> None:
+    def add_gate(self, gate: QuantumGate) -> None:
         """Add arbitrary gate.
 
         Args:
@@ -117,7 +117,7 @@ class LearningCircuit:
             index: Index of qubit to put H gate.
         """
         self.circuit.add_H_gate(index)
-    
+
     def add_input_RX_gate(
         self, qubit: int, input_function: Callable[[NDArray[np.float64]], float]
     ) -> None:
@@ -212,7 +212,9 @@ class LearningCircuit:
     #     print(parametric_gates[0][1])
     #     return [self.input_functions[i] for i in self.get_input_params_indexes()]
 
-    def update_parameters(self, parameters: NDArray[np.float64]) -> ImmutableBoundParametricQuantumCircuit:
+    def update_parameters(
+        self, parameters: NDArray[np.float64]
+    ) -> ImmutableBoundParametricQuantumCircuit:
         return self.circuit.bind_parameters(parameters)
 
     def bind_input_and_parameters(

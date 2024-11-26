@@ -8,7 +8,6 @@ from sklearn.kernel_ridge import KernelRidge
 from sklearn.model_selection import RandomizedSearchCV
 
 
-
 from scikit_quri.circuit import LearningCircuit
 from scikit_quri.state.overlap_estimator import overlap_estimator
 
@@ -27,14 +26,14 @@ class QKRR:
         self.n_qubit: int = circuit.n_qubits
         self.n_iteration = n_iteration
 
-    def run_circuit(self,x:NDArray[np.float64]):
+    def run_circuit(self, x: NDArray[np.float64]):
         # ここにはparametrizeされたcircuitは入ってこないはず...
         # circuit = self.circuit.bind_input_and_parameters(x,[])
         circuit = self.circuit.bind_input_and_parameters(x, [])
-        state = quantum_state(n_qubits=self.n_qubit,circuit=circuit)
+        state = quantum_state(n_qubits=self.n_qubit, circuit=circuit)
         return state
-    
-    def fit(self, x:NDArray[np.float64], y:NDArray[np.int_]) -> None:
+
+    def fit(self, x: NDArray[np.float64], y: NDArray[np.int_]) -> None:
         """
         train the machine.
         :param x: training inputs
@@ -47,8 +46,8 @@ class QKRR:
         self.estimator = overlap_estimator(self.data_states.copy())
         for i in range(len(x)):
             for j in range(len(x)):
-                kar[i][j] = self.estimator.estimate(i,j)
-        
+                kar[i][j] = self.estimator.estimate(i, j)
+
         self.krr.fit(kar, y)
 
         # hyperparameter tuning

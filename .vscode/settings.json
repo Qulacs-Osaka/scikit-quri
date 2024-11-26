@@ -2,5 +2,9 @@
     "cSpell.words": [
         "cdist",
         "tsne"
-    ]
+    ],
+    "[python]": {
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.formatOnType": true
+    }
 }

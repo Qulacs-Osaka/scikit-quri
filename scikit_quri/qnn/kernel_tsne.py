@@ -278,13 +278,17 @@ class quantum_kernel_tsne:
         loss = self.tsne.kldiv(p_prob, q_prob)
         return loss
 
-    def _calc_grad(self, alpha: NDArray[np.float64], p_prob: NDArray[np.float64], fidelity: NDArray[np.float64]):
+    def _calc_grad(
+        self, alpha: NDArray[np.float64], p_prob: NDArray[np.float64], fidelity: NDArray[np.float64]
+    ):
         y = self.calc_y(fidelity, alpha.reshape(len(alpha) // 2, 2))
         q_prob = self.tsne.calc_probabilities_q(y)
         loss = self.calc_loss(p_prob, q_prob)
         return loss
-    
-    def calc_grad(self, alpha: NDArray[np.float64], p_prob: NDArray[np.float64], fidelity: NDArray[np.float64]):
+
+    def calc_grad(
+        self, alpha: NDArray[np.float64], p_prob: NDArray[np.float64], fidelity: NDArray[np.float64]
+    ):
         dx = 1e-6
         grads = np.zeros(len(alpha))
         alpha = alpha.copy()
@@ -292,14 +296,14 @@ class quantum_kernel_tsne:
             print("\r", f"{i}/{len(alpha)}", end="")
             alpha[i] += dx
             loss_plus = self._calc_grad(alpha, p_prob, fidelity)
-            alpha[i] -= 2*dx
+            alpha[i] -= 2 * dx
             loss_minus = self._calc_grad(alpha, p_prob, fidelity)
             alpha[i] += dx
-            grad = (loss_plus - loss_minus) / (2*dx)
+            grad = (loss_plus - loss_minus) / (2 * dx)
             grads[i] = grad
         print(f"{grads=}")
         return grads
-    
+
     def cost_f(
         self,
         alpha: NDArray[np.float64],

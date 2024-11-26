@@ -97,13 +97,13 @@ class QNNClassifier:
         c = 0
         while maxiter > c:
             optimizer_state = self.optimizer.step(optimizer_state, cost_func, grad_func)
-            print("\r",f"iter:{c}/{maxiter} cost:{optimizer_state.cost=}",end="")
+            print("\r", f"iter:{c}/{maxiter} cost:{optimizer_state.cost=}", end="")
 
             if optimizer_state.status == OptimizerStatus.CONVERGED:
                 break
             if optimizer_state.status == OptimizerStatus.FAILED:
                 break
-    
+
             c += 1
         print("")
         self.trained_param = optimizer_state.params

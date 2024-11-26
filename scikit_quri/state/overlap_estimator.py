@@ -1,5 +1,5 @@
 from typing import List
-from quri_parts.core.state import GeneralCircuitQuantumState,QuantumState
+from quri_parts.core.state import GeneralCircuitQuantumState, QuantumState
 import numpy as np
 from quri_parts.qulacs.circuit import convert_circuit
 from quri_parts.qulacs.overlap_estimator import (
@@ -9,6 +9,7 @@ from quri_parts.qulacs.overlap_estimator import (
 from qulacs.state import inner_product
 from qulacs import QuantumState
 from quri_parts.core.state import GeneralCircuitQuantumState
+
 
 class overlap_estimator:
     """
@@ -37,14 +38,16 @@ class overlap_estimator:
         circuit.update_quantum_state(qulacs_state)
         return qulacs_state
 
-    def add_state(self, states:List[GeneralCircuitQuantumState]):
+    def add_state(self, states: List[GeneralCircuitQuantumState]):
         """
         量子状態を追加
         Args:
             states (List[GeneralCircuitQuantumState]): 量子状態のリスト
         """
         self.states.extend(states)
-        self.qula_states = np.append(self.qula_states, np.full(len(states), fill_value=None, dtype=object))
+        self.qula_states = np.append(
+            self.qula_states, np.full(len(states), fill_value=None, dtype=object)
+        )
 
     def calc_all_qula_states(self):
         """
