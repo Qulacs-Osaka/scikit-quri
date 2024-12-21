@@ -84,7 +84,7 @@ class QKRR:
         for i in range(len(xs)):
             x_qc = self.run_circuit(xs[i])
             new_status.append(x_qc)
-        self.estimator.add_state(new_status)
+        self.estimator.add_data(new_status)
         offset = len(self.data_states)
         for i in range(len(xs)):
             for j in range(len(self.data_states)):
