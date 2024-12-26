@@ -38,7 +38,7 @@ class overlap_estimator:
         circuit.update_quantum_state(qulacs_state)
         return qulacs_state
 
-    def add_state(self, states: List[GeneralCircuitQuantumState]):
+    def add_data(self, states: List[GeneralCircuitQuantumState]):
         """
         量子状態を追加
         Args:

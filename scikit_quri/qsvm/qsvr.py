@@ -38,7 +38,7 @@ class QSVR:
         for i in range(len(xs)):
             x_qc = self.run_circuit(xs[i])
             new_states.append(x_qc)
-        self.estimator.add_state(new_states)
+        self.estimator.add_data(new_states)
         offset = len(self.data_states)
         for i in range(len(xs)):
             for j in range(len(self.data_states)):
