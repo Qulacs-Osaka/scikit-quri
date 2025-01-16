@@ -13,7 +13,7 @@ from quri_parts.core.estimator.gradient import _ParametricStateT
 from quri_parts.algo.optimizer import OptimizerStatus
 from quri_parts.qulacs import QulacsStateT
 from scikit_quri.circuit import LearningCircuit
-from typing import List, Optional
+from typing import List, Optional, Dict, Tuple
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import log_loss
 from quri_parts.core.state import quantum_state
@@ -41,6 +41,8 @@ class QNNClassifier:
     trained_param: Sequence[float] = field(default=None)
 
     n_qubit: int = field(init=False)
+
+    predict_inner_cache: Dict[Tuple[bytes,bytes],NDArray[np.float64]] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         self.n_qubit = self.ansatz.n_qubits
@@ -134,6 +136,10 @@ class QNNClassifier:
         Returns:
             res: Predicted outcome.
         """
+        key = (x_scaled.tobytes(),params.tobytes())
+        cache = self.predict_inner_cache.get(key)
+        if cache is not None:
+            return cache
         res = np.zeros((len(x_scaled), self.num_class))
         circuit_states = []
         # 入力ごとのcircuit_state生成
@@ -145,11 +151,12 @@ class QNNClassifier:
             circuit_states.append(circuit_state)
 
         for i in range(self.num_class):
+            print("\r", f"pred_inner:{i}/{self.num_class}", end="")
             op = self.operator[i]
             estimates = self.estimator(op, circuit_states)
             estimates = [e.value.real * self.y_exp_ratio for e in estimates]
             res[:, i] = estimates.copy()
-
+        self.predict_inner_cache[(x_scaled.tobytes(),params.tobytes())] = res
         return res
 
     def cost_func(

@@ -4,7 +4,7 @@ from functools import reduce
 from typing import Optional
 from .circuit import LearningCircuit
 from numpy.typing import NDArray
-from quri_parts.circuit import QuantumGate
+from quri_parts.circuit import QuantumGate,CZ, CNOT
 
 
 def create_qcl_ansatz(
@@ -176,4 +176,51 @@ def create_ibm_embedding_circuit(n_qubit: int) -> LearningCircuit:
             j, lambda x, i=i: (np.pi - preprocess_x(x, i) * (np.pi - preprocess_x(x, j)))
         )
         circuit.add_CNOT_gate(i, j)
+    return circuit
+
+def create_dqn_cl(n_qubit: int, c_depth: int, s_qubit: int) -> LearningCircuit:
+    # from https://arxiv.org/abs/2112.15002
+    def preprocess_x(x: np.ndarray, i: int) -> float:
+        xa = x[i % len(x)]
+        clamped = min(1, max(-1, xa))
+        return clamped
+    circuit = LearningCircuit(n_qubit)
+    for i in range(n_qubit):
+        circuit.add_input_RY_gate(i, lambda x,i=i: preprocess_x(x,i))
+        circuit.add_parametric_RY_gate(i)
+    
+    for _ in range(c_depth):
+        for i in range(n_qubit):
+            # 元の論文ではすべての組に対して張っていたっぽいが、それはゲート数が多すぎるだろ
+            circuit.add_gate(CZ(i,(i+1)%n_qubit))
+        for i in range(s_qubit, n_qubit - 1):
+            circuit.add_gate(CNOT(i,(i+1)%n_qubit))
+        circuit.add_gate(CNOT(n_qubit-1,s_qubit))
+        for i in range(n_qubit):
+            circuit.add_parametric_RX_gate(i)
+            circuit.add_parametric_RY_gate(i)
+            circuit.add_parametric_RX_gate(i)
+    
+    return circuit
+
+def create_dqn_cl_no_cz(n_qubit: int, c_depth: int) -> LearningCircuit:
+    # from https://arxiv.org/abs/2112.15002
+    def preprocess_x(x: np.ndarray, i: int) -> float:
+        xa = x[i % len(x)]
+        clamped = min(1, max(-1, xa))
+        return clamped
+    circuit = LearningCircuit(n_qubit)
+
+    for i in range(n_qubit):
+        circuit.add_input_RY_gate(i, lambda x,i=i: preprocess_x(x,i))
+        circuit.add_parametric_RY_gate(i)
+    
+    for _ in range(c_depth):
+        for i in range(n_qubit):
+            circuit.add_gate(CNOT(i, (i+1)%n_qubit))
+            circuit.add_parametric_RX_gate(i)
+            circuit.add_parametric_RY_gate(i)
+            circuit.add_parametric_RX_gate(i)
+        circuit.add_gate(CNOT(n_qubit-1,0))
+    
     return circuit

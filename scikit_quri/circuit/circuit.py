@@ -32,6 +32,7 @@ class _GateTypes(Enum):
 class LearningCircuit:
     n_qubits: int
     n_parameters: int = field(init=False, default=0)
+    n_inputs: int = field(init=False,default=0)
     n_learning_params: int = field(init=False, default=0)
     circuit: UnboundParametricQuantumCircuit = field(init=False)
     input_functions: dict[int, Callable[[NDArray[np.float64]], float]] = field(
@@ -156,9 +157,11 @@ class LearningCircuit:
     ):
         self._gate_list.append(_GateTypes.Input)
 
-        pos = self._new_parameter_position()
+        # pos = self._new_parameter_position()
+        pos = self.n_inputs
         self.input_functions[pos] = input_function
         self.n_parameters += 1
+        self.n_inputs += 1
         if target == _Axis.X:
             self.circuit.add_ParametricRX_gate(index)
         elif target == _Axis.Y:
