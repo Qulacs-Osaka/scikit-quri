@@ -88,8 +88,11 @@ class QNNClassifier:
             x_scaled = x_train
 
         parameter_count = self.ansatz.learning_params_count
-        init_params = 2 * np.pi * np.random.random(parameter_count)
-        print(f"{init_params=}")
+        if self.trained_param is None:
+            init_params = 2 * np.pi * np.random.random(parameter_count)
+        else:
+            init_params = self.trained_param
+        # print(f"{init_params=}")
         optimizer_state = self.optimizer.get_init_state(init_params)
 
         # cost_func = lambda params: self.cost_func(x_scaled, y_train, params)
@@ -139,6 +142,7 @@ class QNNClassifier:
         key = (x_scaled.tobytes(),params.tobytes())
         cache = self.predict_inner_cache.get(key)
         if cache is not None:
+            # print("cache hit")
             return cache
         res = np.zeros((len(x_scaled), self.num_class))
         circuit_states = []
@@ -151,7 +155,7 @@ class QNNClassifier:
             circuit_states.append(circuit_state)
 
         for i in range(self.num_class):
-            print("\r", f"pred_inner:{i}/{self.num_class}", end="")
+            # print("\r", f"pred_inner:{i}/{self.num_class}", end="")
             op = self.operator[i]
             estimates = self.estimator(op, circuit_states)
             estimates = [e.value.real * self.y_exp_ratio for e in estimates]

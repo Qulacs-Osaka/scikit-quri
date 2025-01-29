@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Callable, List
+from typing import Callable, List, Optional
 from typing_extensions import deprecated
 
 from enum import Enum, auto
@@ -29,6 +29,48 @@ class _GateTypes(Enum):
 
 
 @dataclass
+class _PositionDetail:
+    """Manage a parameter of `ParametricQuantumCircuit.positions_in_circuit`.
+    This class manages indexe and coefficients (optional) of gate.
+    Args:
+        gate_pos: Indices of a parameter in LearningCircuit._circuit.
+        coef: Coefficient of a parameter in LearningCircuit._circuit. It's a optional.
+    """
+    gate_pos: int
+    coef: Optional[float]
+
+@dataclass
+class _LearningParameter:
+    """Manage a parameter of `ParametricQuantumCircuit`.
+    This class manages index and value of parameter.
+    There is two member variables to note: `positions_in_circuit` and `parameter_id`.
+    `positions_in_circuit` is indices of parameters in `ParametricQuantumCircuit` held by `LearningCircuit`.
+    If you change the parameter value of the `_LearningParameter` instance, all of the parameters
+    specified in `positions_in_circuit` are also updated with that value.
+    And `parameter_id` is an index of a whole set of learning parameters.
+    This is used by method of `LearningCircuit` which has "parametric" in its name.
+
+    Args:
+        positions_in_circuit: Indices and coefficient of a parameter in LearningCircuit._circuit.
+        parameter_id: Index at array of learning parameter(theta).
+        value: Current `parameter_id`-th parameter of LearningCircuit._circuit.
+        is_input: Whethter this parameter is used with a input parameter.
+    """
+    positions_in_circuit: List[_PositionDetail]
+    parameter_id: int
+    value: float
+    is_input: bool = field(default=False)
+
+    def __init__(self, parameter_id: int, value: float, is_input: bool = False) -> None:
+        self.positions_in_circuit = []
+        self.parameter_id = parameter_id
+        self.value = value
+        self.is_input = is_input
+    
+    def append_position(self, position: int, coef: Optional[float]) -> None:
+        self.positions_in_circuit.append(_PositionDetail(position, coef))
+
+@dataclass
 class LearningCircuit:
     n_qubits: int
     n_parameters: int = field(init=False, default=0)
@@ -39,6 +81,7 @@ class LearningCircuit:
         init=False, default_factory=dict
     )
     _input_parameter_list: list[int] = field(init=False, default_factory=list)
+    _learning_parameter_list: List[_LearningParameter] = field(init=False, default_factory=list)
     _gate_list: List[_GateTypes] = field(init=False, default_factory=list)
 
     def __post_init__(self) -> None:
@@ -46,10 +89,10 @@ class LearningCircuit:
 
     def _new_parameter_position(self) -> int:
         """
-        Return a position of a new parameter to be registered to `ParametricQuantumCircuit`.
         This function does not actually register a new parameter.
         """
         return self.circuit.parameter_count
+    
 
     def add_gate(self, gate: QuantumGate) -> None:
         """Add arbitrary gate.
@@ -170,24 +213,53 @@ class LearningCircuit:
             self.circuit.add_ParametricRZ_gate(index)
         else:
             raise ValueError("Invalid target axis")
+    
+    def _add_parametric_R_gate_inner(self, index: int, target: _Axis, share_with:Optional[int],share_with_coef: Optional[float]) -> int:
+        new_gate_pos = self._new_parameter_position()
 
-    def add_parametric_RX_gate(self, qubit: int) -> None:
-        self.circuit.add_ParametricRX_gate(qubit)
+        if share_with is None:
+            parameter_id = len(self._learning_parameter_list)
+            learning_parameter = _LearningParameter(
+                parameter_id,
+                # 仮置きで0.0にしてます
+                0.0,
+            )
+            learning_parameter.append_position(new_gate_pos, None)
+            self._learning_parameter_list.append(learning_parameter)
+        else:
+            parameter_id = share_with
+            sharing_parameter = self._learning_parameter_list[parameter_id]
+            sharing_parameter.append_position(new_gate_pos, share_with_coef)
+
+        if target == _Axis.X:
+            self.circuit.add_ParametricRX_gate(index)
+        elif target == _Axis.Y:
+            self.circuit.add_ParametricRY_gate(index)
+        elif target == _Axis.Z:
+            self.circuit.add_ParametricRZ_gate(index)
+        # parameter_id = self.n_learning_params
         self.n_parameters += 1
         self.n_learning_params += 1
         self._gate_list.append(_GateTypes.Learning)
+        return parameter_id
 
-    def add_parametric_RY_gate(self, qubit: int) -> None:
-        self.circuit.add_ParametricRY_gate(qubit)
+    def add_parametric_RX_gate(self, qubit: int, share_with: Optional[int] = None, share_with_coef: Optional[float] = None) -> int:
+        return self._add_parametric_R_gate_inner(qubit, _Axis.X, share_with, share_with_coef)
+
+    def add_parametric_RY_gate(self, qubit: int, share_with: Optional[int] = None, share_with_coef: Optional[float] = None) -> int:
+        return self._add_parametric_R_gate_inner(qubit, _Axis.Y, share_with, share_with_coef)
+
+    def add_parametric_RZ_gate(self, qubit: int, share_with: Optional[int] = None, share_with_coef: Optional[float] = None) -> int:
+        return self._add_parametric_R_gate_inner(qubit, _Axis.Z, share_with, share_with_coef)
+    
+    def add_parametric_multi_Pauli_rotation_gate(self, targets: List[int], pauli_ids: List[int]) -> None:
+        self.circuit.add_ParametricPauliRotation_gate(targets, pauli_ids)
+        # TODO learning_parameter_listの処理してない
+        parameter_id = len(self._learning_parameter_list)
         self.n_parameters += 1
         self.n_learning_params += 1
         self._gate_list.append(_GateTypes.Learning)
-
-    def add_parametric_RZ_gate(self, qubit: int) -> None:
-        self.circuit.add_ParametricRZ_gate(qubit)
-        self.n_parameters += 1
-        self.n_learning_params += 1
-        self._gate_list.append(_GateTypes.Learning)
+        return parameter_id
 
     @property
     def parameter_count(self) -> int:
@@ -232,6 +304,7 @@ class LearningCircuit:
         bound_parameters = []
         input_index = 0
         parameter_index = 0
+        # TODO share_with未実装
         if len(learning_params) != self.n_learning_params:
             raise ValueError("Invalid number of learning parameters")
         for i in range(self.n_parameters):

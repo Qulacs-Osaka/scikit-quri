@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.random import default_rng, Generator
 from functools import reduce
-from typing import Optional
+from typing import Optional, List
 from .circuit import LearningCircuit
 from numpy.typing import NDArray
 from quri_parts.circuit import QuantumGate,CZ, CNOT
@@ -222,5 +222,88 @@ def create_dqn_cl_no_cz(n_qubit: int, c_depth: int) -> LearningCircuit:
             circuit.add_parametric_RY_gate(i)
             circuit.add_parametric_RX_gate(i)
         circuit.add_gate(CNOT(n_qubit-1,0))
+    
+    return circuit
+
+def create_qcnn_ansatz(n_qubit: int, seed: Optional[int] = 0) -> LearningCircuit:
+    """
+    Creates circuit used in https://www.tensorflow.org/quantum/tutorials/qcnn?hl=en, Section 1.
+    Args:
+        n_qubit: number of qubits. must be even.
+        seed: seed for random numbers. used for determining the interaction strength of the hamiltonian simulation
+    """
+
+    rng = default_rng(seed)
+
+    def one_qubit_unitary(circuit: LearningCircuit, index: int) -> List[int]:
+        ids = []
+        id = circuit.add_parametric_RX_gate(index)
+        ids.append(id)
+        id = circuit.add_parametric_RY_gate(index)
+        ids.append(id)
+        id = circuit.add_parametric_RZ_gate(index)
+        ids.append(id)
+        return ids
+    
+    def _two_qubit_unitary(circuit: LearningCircuit, targets: List[int], pauli_ids: List[int]) -> LearningCircuit:
+        circuit.add_parametric_multi_Pauli_rotation_gate(targets, pauli_ids)
+        return circuit
+    
+    def two_qubit_unitary(circuit: LearningCircuit, src:int, dest: int) -> LearningCircuit:
+        one_qubit_unitary(circuit, src)
+        one_qubit_unitary(circuit, dest)
+        targets = [src, dest]
+        pauli_xx_ids = [1,1]
+        circuit = _two_qubit_unitary(circuit, targets, pauli_xx_ids)
+        pauli_yy_ids = [2,2]
+        circuit = _two_qubit_unitary(circuit, targets, pauli_yy_ids)
+        pauli_zz_ids = [3,3]
+        circuit = _two_qubit_unitary(circuit, targets, pauli_zz_ids)
+        one_qubit_unitary(circuit, src)
+        one_qubit_unitary(circuit, dest)
+        return circuit
+    
+    def conv_circuit(circuit: LearningCircuit, src: int, dest: int) -> LearningCircuit:
+        return two_qubit_unitary(circuit, src, dest)
+
+    def pooling_circuit(circuit: LearningCircuit, src: int, dest: int) -> LearningCircuit:
+        ids = one_qubit_unitary(circuit, dest)
+        one_qubit_unitary(circuit, src)
+        circuit.add_CNOT_gate(src, dest)
+        circuit.add_parametric_RZ_gate(dest, share_with=ids[2], share_with_coef=-1)
+        circuit.add_parametric_RY_gate(dest, share_with=ids[1], share_with_coef=-1)
+        circuit.add_parametric_RX_gate(dest, share_with=ids[0], share_with_coef=-1)
+        return circuit
+    
+    circuit = LearningCircuit(n_qubit)
+    for i in range(n_qubit):
+        circuit.add_input_RX_gate(i, lambda x:x)
+    
+    # cluster state
+    for i in range(n_qubit):
+        circuit.add_H_gate(i)
+    for this_bit in range(n_qubit):
+        next_bit = (this_bit + 1) if this_bit < n_qubit - 1 else 0
+        circuit.add_CNOT_gate(this_bit, next_bit)
+        circuit.add_Z_gate(next_bit)
+    
+    targets = []
+
+    def tree(ns: List[int]) -> dict:
+        n = len(ns)
+        if n <= 0:
+            return
+        node = {}
+        node["ns"] = ns
+        left = tree(ns[: n // 2])
+        right = tree(ns[n - (n//2):])
+        if left is not None and right is not None:
+            targets.append([max(left["ns"]), max(right["ns"])])
+        return node
+
+    tree([x for x in range(n_qubit)])
+    for t in targets:
+        circuit = conv_circuit(circuit, t[0], t[1])
+        circuit = pooling_circuit(circuit, t[0], t[1])
     
     return circuit
