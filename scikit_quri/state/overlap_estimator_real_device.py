@@ -27,7 +27,7 @@ class overlap_estimator_real_device:
         self.n_shots = n_shots
         # self._generate_state()
 
-    def add_data(self, circuits: List[QuantumCircuit]):
+    def add_data(self, circuits: List[QuantumCircuit]) -> None:
         """
         量子状態を追加
         Args:
@@ -35,7 +35,7 @@ class overlap_estimator_real_device:
         """
         self.circuits.extend(circuits)
 
-    def estimate(self, i: int, j: int):
+    def estimate(self, i: int, j: int) -> float:
         # ? これi,jじゃなくて数値でhash取った方が使いやすそう
         """
         与えられた量子状態のi番目とj番目の内積の絶対値の二乗を計算

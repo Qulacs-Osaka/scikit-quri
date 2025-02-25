@@ -1,13 +1,14 @@
 from typing import List
 from quri_parts.core.state import GeneralCircuitQuantumState, QuantumState
 import numpy as np
+from numpy.typing import NDArray
 from quri_parts.qulacs.circuit import convert_circuit
 from quri_parts.qulacs.overlap_estimator import (
     create_qulacs_vector_overlap_estimator,
     _create_qulacs_initial_state,
 )
 from qulacs.state import inner_product
-from qulacs import QuantumState
+from qulacs import QuantumState as QulacsQuantumState
 from quri_parts.core.state import GeneralCircuitQuantumState
 
 
@@ -23,9 +24,9 @@ class overlap_estimator:
             states (List[GeneralCircuitQuantumState]): 量子状態のリスト
         """
         self.states = states
-        self.qula_states = np.full(len(states), fill_value=None, dtype=object)
+        self.qula_states:NDArray[np.float64] = np.full(len(states), fill_value=None, dtype=object)
 
-    def _state_to_qula_state(self, state: GeneralCircuitQuantumState) -> QuantumState:
+    def _state_to_qula_state(self, state: GeneralCircuitQuantumState) -> QulacsQuantumState:
         """
         量子状態をqulacsのstateに変換
         Args:
@@ -38,7 +39,7 @@ class overlap_estimator:
         circuit.update_quantum_state(qulacs_state)
         return qulacs_state
 
-    def add_data(self, states: List[GeneralCircuitQuantumState]):
+    def add_data(self, states: List[GeneralCircuitQuantumState]) -> None:
         """
         量子状態を追加
         Args:
@@ -49,14 +50,14 @@ class overlap_estimator:
             self.qula_states, np.full(len(states), fill_value=None, dtype=object)
         )
 
-    def calc_all_qula_states(self):
+    def calc_all_qula_states(self) -> None:
         """
         cache用に予め全ての量子状態をqulacsのstateに変換
         """
         for i in range(len(self.states)):
             self.qula_states[i] = self._state_to_qula_state(self.states[i])
 
-    def estimate(self, i: int, j: int):
+    def estimate(self, i: int, j: int) -> float:
         # ? これi,jじゃなくて数値でhash取った方が使いやすそう
         """
         与えられた量子状態のi番目とj番目の内積の絶対値の二乗を計算

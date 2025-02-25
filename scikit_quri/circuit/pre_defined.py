@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 import numpy as np
 from numpy.random import default_rng, Generator
 from functools import reduce

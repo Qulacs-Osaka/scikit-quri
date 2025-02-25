@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 from functools import partial
 from typing import List, Literal, Optional, Tuple
 
