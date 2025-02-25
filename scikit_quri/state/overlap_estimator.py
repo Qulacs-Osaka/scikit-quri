@@ -24,7 +24,7 @@ class overlap_estimator:
             states (List[GeneralCircuitQuantumState]): 量子状態のリスト
         """
         self.states = states
-        self.qula_states:NDArray[np.float64] = np.full(len(states), fill_value=None, dtype=object)
+        self.qula_states: NDArray[np.float64] = np.full(len(states), fill_value=None, dtype=object)
 
     def _state_to_qula_state(self, state: GeneralCircuitQuantumState) -> QulacsQuantumState:
         """
