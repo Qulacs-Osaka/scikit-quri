@@ -1,4 +1,3 @@
-
 from typing import List
 from quri_parts.core.state import GeneralCircuitQuantumState, quantum_state
 from quri_parts.circuit import QuantumCircuit
@@ -8,13 +7,16 @@ from quri_parts.circuit.inverse import inverse_circuit, inverse_gate
 from quri_parts.backend import SamplingBackend
 from quri_parts.core.sampling import create_sampler_from_sampling_backend
 
+
 class overlap_estimator_real_device:
     """
     quri-partsのoverlap_estimatorの代替Class
     (n_data:500のとき,x60 faster)
     """
 
-    def __init__(self, circuit: List[QuantumCircuit], sampler:SamplingBackend, n_shots:int=1000):
+    def __init__(
+        self, circuit: List[QuantumCircuit], sampler: SamplingBackend, n_shots: int = 1000
+    ):
         """
         Args:
             states (List[GeneralCircuitQuantumState]): 量子状態のリスト
@@ -24,7 +26,6 @@ class overlap_estimator_real_device:
         self.sampler = create_sampler_from_sampling_backend(sampler)
         self.n_shots = n_shots
         # self._generate_state()
-    
 
     def add_data(self, circuits: List[QuantumCircuit]):
         """
@@ -33,7 +34,6 @@ class overlap_estimator_real_device:
             states (List[GeneralCircuitQuantumState]): 量子状態のリスト
         """
         self.circuits.extend(circuits)
-
 
     def estimate(self, i: int, j: int):
         # ? これi,jじゃなくて数値でhash取った方が使いやすそう
@@ -52,7 +52,7 @@ class overlap_estimator_real_device:
         inv_circuit = inverse_circuit(bra_circuit)
         for inv_gate in inv_circuit.gates:
             circuit.add_gate(inv_gate)
-        sampling_count = self.sampler(circuit,self.n_shots)
+        sampling_count = self.sampler(circuit, self.n_shots)
         count_zero = sampling_count.get(0)
         if count_zero is None:
             count_zero = 0
@@ -60,4 +60,3 @@ class overlap_estimator_real_device:
         # count_zero = sampling_result.counts.get(0)
         p = count_zero / self.n_shots
         return p
-        

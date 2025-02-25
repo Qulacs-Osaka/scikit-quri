@@ -42,7 +42,9 @@ class QNNClassifier:
 
     n_qubit: int = field(init=False)
 
-    predict_inner_cache: Dict[Tuple[bytes,bytes],NDArray[np.float64]] = field(default_factory=dict)
+    predict_inner_cache: Dict[Tuple[bytes, bytes], NDArray[np.float64]] = field(
+        default_factory=dict
+    )
 
     def __post_init__(self) -> None:
         self.n_qubit = self.ansatz.n_qubits
@@ -139,7 +141,7 @@ class QNNClassifier:
         Returns:
             res: Predicted outcome.
         """
-        key = (x_scaled.tobytes(),params.tobytes())
+        key = (x_scaled.tobytes(), params.tobytes())
         cache = self.predict_inner_cache.get(key)
         if cache is not None:
             # print("cache hit")
@@ -160,7 +162,7 @@ class QNNClassifier:
             estimates = self.estimator(op, circuit_states)
             estimates = [e.value.real * self.y_exp_ratio for e in estimates]
             res[:, i] = estimates.copy()
-        self.predict_inner_cache[(x_scaled.tobytes(),params.tobytes())] = res
+        self.predict_inner_cache[(x_scaled.tobytes(), params.tobytes())] = res
         return res
 
     def cost_func(
@@ -188,7 +190,8 @@ class QNNClassifier:
         y_pred_sm = self.softmax(y_pred, axis=1)
         raw_grads = self._estimate_grad(x_scaled, params)
         # print(f"{raw_grads.shape=}")
-        grads = np.zeros(self.ansatz.n_learning_params)
+        grads = np.zeros(self.ansatz.learning_params_count)
+        # print(f"{grads.shape=}")
         # print(f"{raw_grads=}")
         for sample_index in range(len(x_scaled)):
             for current_class in range(self.num_class):
@@ -204,7 +207,8 @@ class QNNClassifier:
         self, x_scaled: NDArray[np.float64], params: NDArray[np.float64]
     ) -> NDArray[np.float64]:
         grads = []
-        learning_param_indexes = self.ansatz.get_learning_param_indexes()
+        # learning_param_indexes = self.ansatz.get_learning_param_indexes()
+        learning_param_indexes = self.ansatz.get_minimum_learning_param_indexes()
         for x in x_scaled:
             _grads = []
             for op in self.operator:

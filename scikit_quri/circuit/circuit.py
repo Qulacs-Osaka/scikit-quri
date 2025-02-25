@@ -1,15 +1,18 @@
 from dataclasses import dataclass, field
-from typing import Callable, List, Optional
-from typing_extensions import deprecated
-
 from enum import Enum, auto
+from typing import Callable, List, Optional, Self, Tuple, Union
+
 import numpy as np
 from numpy.typing import NDArray
+from qulacs import QuantumState as QulacsQuantumState
 from quri_parts.circuit import (
-    UnboundParametricQuantumCircuit,
     ImmutableBoundParametricQuantumCircuit,
     QuantumGate,
+    UnboundParametricQuantumCircuit,
+    Parameter,
 )
+from quri_parts.qulacs.circuit import convert_parametric_circuit
+from typing_extensions import deprecated
 
 
 class _Axis(Enum):
@@ -28,6 +31,13 @@ class _GateTypes(Enum):
     Learning = auto()
 
 
+# Depends on x
+InputFunc = Callable[[NDArray[np.float64]], float]
+
+# Depends on theta, x
+InputFuncWithParam = Callable[[float, NDArray[np.float64]], float]
+
+
 @dataclass
 class _PositionDetail:
     """Manage a parameter of `ParametricQuantumCircuit.positions_in_circuit`.
@@ -36,8 +46,22 @@ class _PositionDetail:
         gate_pos: Indices of a parameter in LearningCircuit._circuit.
         coef: Coefficient of a parameter in LearningCircuit._circuit. It's a optional.
     """
+
     gate_pos: int
     coef: Optional[float]
+
+
+@dataclass
+class _InputParameter:
+    """Manage transformation of an input.
+    `func` transforms the given input and the outcome is stored at `pos`-th parameter in `LearningCircuit._circuit`.
+    If the `func` needs a learning parameter, supply `companion_parameter_id` with the learning parameter's `parameter_id`.
+    """
+
+    pos: int
+    func: Union[InputFunc, InputFuncWithParam] = field(compare=False)
+    companion_parameter_id: Optional[int]
+
 
 @dataclass
 class _LearningParameter:
@@ -56,6 +80,7 @@ class _LearningParameter:
         value: Current `parameter_id`-th parameter of LearningCircuit._circuit.
         is_input: Whethter this parameter is used with a input parameter.
     """
+
     positions_in_circuit: List[_PositionDetail]
     parameter_id: int
     value: float
@@ -66,23 +91,21 @@ class _LearningParameter:
         self.parameter_id = parameter_id
         self.value = value
         self.is_input = is_input
-    
+
     def append_position(self, position: int, coef: Optional[float]) -> None:
         self.positions_in_circuit.append(_PositionDetail(position, coef))
+
 
 @dataclass
 class LearningCircuit:
     n_qubits: int
-    n_parameters: int = field(init=False, default=0)
-    n_inputs: int = field(init=False,default=0)
-    n_learning_params: int = field(init=False, default=0)
     circuit: UnboundParametricQuantumCircuit = field(init=False)
     input_functions: dict[int, Callable[[NDArray[np.float64]], float]] = field(
         init=False, default_factory=dict
     )
-    _input_parameter_list: list[int] = field(init=False, default_factory=list)
+    _input_parameter_list: list[_InputParameter] = field(init=False, default_factory=list)
     _learning_parameter_list: List[_LearningParameter] = field(init=False, default_factory=list)
-    _gate_list: List[_GateTypes] = field(init=False, default_factory=list)
+    # _gate_list: List[_GateTypes] = field(init=False, default_factory=list)
 
     def __post_init__(self) -> None:
         self.circuit = UnboundParametricQuantumCircuit(self.n_qubits)
@@ -92,7 +115,6 @@ class LearningCircuit:
         This function does not actually register a new parameter.
         """
         return self.circuit.parameter_count
-    
 
     def add_gate(self, gate: QuantumGate) -> None:
         """Add arbitrary gate.
@@ -198,13 +220,10 @@ class LearningCircuit:
         target: _Axis,
         input_function: Callable[[NDArray[np.float64]], float],
     ):
-        self._gate_list.append(_GateTypes.Input)
+        new_gate_pos = self._new_parameter_position()
+        self._input_parameter_list.append(_InputParameter(new_gate_pos, input_function, None))
+        self.input_functions[new_gate_pos] = input_function
 
-        # pos = self._new_parameter_position()
-        pos = self.n_inputs
-        self.input_functions[pos] = input_function
-        self.n_parameters += 1
-        self.n_inputs += 1
         if target == _Axis.X:
             self.circuit.add_ParametricRX_gate(index)
         elif target == _Axis.Y:
@@ -213,8 +232,10 @@ class LearningCircuit:
             self.circuit.add_ParametricRZ_gate(index)
         else:
             raise ValueError("Invalid target axis")
-    
-    def _add_parametric_R_gate_inner(self, index: int, target: _Axis, share_with:Optional[int],share_with_coef: Optional[float]) -> int:
+
+    def _add_parametric_R_gate_inner(
+        self, index: int, target: _Axis, share_with: Optional[int], share_with_coef: Optional[float]
+    ) -> int:
         new_gate_pos = self._new_parameter_position()
 
         if share_with is None:
@@ -237,50 +258,67 @@ class LearningCircuit:
             self.circuit.add_ParametricRY_gate(index)
         elif target == _Axis.Z:
             self.circuit.add_ParametricRZ_gate(index)
-        # parameter_id = self.n_learning_params
-        self.n_parameters += 1
-        self.n_learning_params += 1
-        self._gate_list.append(_GateTypes.Learning)
+
         return parameter_id
 
-    def add_parametric_RX_gate(self, qubit: int, share_with: Optional[int] = None, share_with_coef: Optional[float] = None) -> int:
+    def add_parametric_RX_gate(
+        self, qubit: int, share_with: Optional[int] = None, share_with_coef: Optional[float] = None
+    ) -> int:
         return self._add_parametric_R_gate_inner(qubit, _Axis.X, share_with, share_with_coef)
 
-    def add_parametric_RY_gate(self, qubit: int, share_with: Optional[int] = None, share_with_coef: Optional[float] = None) -> int:
+    def add_parametric_RY_gate(
+        self, qubit: int, share_with: Optional[int] = None, share_with_coef: Optional[float] = None
+    ) -> int:
         return self._add_parametric_R_gate_inner(qubit, _Axis.Y, share_with, share_with_coef)
 
-    def add_parametric_RZ_gate(self, qubit: int, share_with: Optional[int] = None, share_with_coef: Optional[float] = None) -> int:
+    def add_parametric_RZ_gate(
+        self, qubit: int, share_with: Optional[int] = None, share_with_coef: Optional[float] = None
+    ) -> int:
         return self._add_parametric_R_gate_inner(qubit, _Axis.Z, share_with, share_with_coef)
-    
-    def add_parametric_multi_Pauli_rotation_gate(self, targets: List[int], pauli_ids: List[int]) -> None:
-        self.circuit.add_ParametricPauliRotation_gate(targets, pauli_ids)
-        # TODO learning_parameter_listの処理してない
-        parameter_id = len(self._learning_parameter_list)
-        self.n_parameters += 1
-        self.n_learning_params += 1
-        self._gate_list.append(_GateTypes.Learning)
-        return parameter_id
+
+    def add_parametric_multi_Pauli_rotation_gate(
+        self, targets: List[int], pauli_ids: List[int]
+    ) -> Parameter:
+        return self.circuit.add_ParametricPauliRotation_gate(targets, pauli_ids)
 
     @property
     def parameter_count(self) -> int:
-        return self.n_parameters - len(self.input_functions)
+        return self.circuit.parameter_count
+        # return len(self._input_parameter_list) + len(self._learning_parameter_list)
+        # return self.n_parameters - len(self.input_functions)
+
+    @property
+    def input_params_count(self) -> int:
+        return len(self._input_parameter_list)
 
     @property
     def learning_params_count(self) -> int:
-        return self.n_learning_params
+        return len(self._learning_parameter_list)
+        # return self.n_learning_params
 
     def get_learning_param_indexes(self) -> List[int]:
-        learning_param_mask = list(
-            map(lambda gate: 1 if gate == _GateTypes.Learning else None, self._gate_list)
-        )
-        return list(filter(lambda i: learning_param_mask[i] != None, range(self.n_parameters)))
-        # return [i for i, gate_type in enumerate(self._gate_list) if gate_type == _GateTypes.Learning]
+        pos = []
+        for param in self._learning_parameter_list:
+            for pos_in_circuit in param.positions_in_circuit:
+                pos.append(pos_in_circuit.gate_pos)
+        return np.array(pos)
+
+    def get_minimum_learning_param_indexes(self) -> List[int]:
+        # Circuit内のパラメータのうち，Circuitを構成できる最小のパラメータのインデックスを返す
+        pos = []
+        for param in self._learning_parameter_list:
+            pos.append(param.positions_in_circuit[0].gate_pos)
+        return np.array(pos)
 
     def get_input_params_indexes(self) -> List[int]:
-        input_param_mask = list(
-            map(lambda gate: 1 if gate == _GateTypes.Input else None, self._gate_list)
-        )
-        return list(filter(lambda i: input_param_mask[i] != None, range(self.n_parameters)))
+        pos = []
+        for param in self._input_parameter_list:
+            pos.append(param.pos)
+        return np.array(pos)
+        # input_param_mask = list(
+        #     map(lambda gate: 1 if gate == _GateTypes.Input else None, self._gate_list)
+        # )
+        # return list(filter(lambda i: input_param_mask[i] != None, range(self.n_parameters)))
 
     # def get_input_params(self) -> List[float]:
     #     parametric_gates = list(filter(lambda x:isinstance(x[0],ParametricQuantumGate),self.circuit.gates_and_params))
@@ -298,25 +336,101 @@ class LearningCircuit:
         bound_parameters = self.generate_bound_params(x, parameters)
         return self.circuit.bind_parameters(bound_parameters)
 
-    def generate_bound_params(
-        self, x: NDArray[np.float64], learning_params: NDArray[np.float64]
-    ) -> NDArray[np.float64]:
-        bound_parameters = []
-        input_index = 0
-        parameter_index = 0
-        # TODO share_with未実装
-        if len(learning_params) != self.n_learning_params:
-            raise ValueError("Invalid number of learning parameters")
-        for i in range(self.n_parameters):
-            gate_type = self._gate_list[i]
-            if gate_type == _GateTypes.Input:
-                input_function = self.input_functions.get(input_index)
-                bound_parameters.append(input_function(x))
-                input_index += 1
-            if gate_type == _GateTypes.Learning:
-                bound_parameters.append(learning_params[parameter_index])
-                parameter_index += 1
+    # def generate_bound_params(
+    #     self, x: NDArray[np.float64], learning_params: NDArray[np.float64]
+    # ) -> NDArray[np.float64]:
+    #     bound_parameters = []
+    #     input_index = 0
+    #     parameter_index = 0
+    #     # TODO share_with未実装
+    #     if len(learning_params) != self.n_learning_params:
+    #         raise ValueError("Invalid number of learning parameters")
+    #     for i in range(self.n_parameters):
+    #         gate_type = self._gate_list[i]
+    #         if gate_type == _GateTypes.Input:
+    #             input_function = self.input_functions.get(input_index)
+    #             bound_parameters.append(input_function(x))
+    #             input_index += 1
+    #         if gate_type == _GateTypes.Learning:
+    #             bound_parameters.append(learning_params[parameter_index])
+    #             parameter_index += 1
+    #     return bound_parameters
+
+    def generate_bound_params(self, x: NDArray[np.float64], theta: NDArray[np.float64]):
+        bound_parameters = np.zeros(self.parameter_count)
+        # Learning parameters
+        for param in self._learning_parameter_list:
+            param_value = theta[param.parameter_id]
+            param.value = param_value
+            for pos in param.positions_in_circuit:
+                bound_parameters[pos.gate_pos] = param_value
+        # Input parameters
+        for param in self._input_parameter_list:
+            # Input parameter is updated here, not update_parameters(),
+            # because input parameter is determined with the input data `x`.
+            if param.companion_parameter_id is None:
+                # If `companion_parameter_id` is `None`, `func` does not need a learning parameter.
+                angle = param.func(x)
+            else:
+                theta: _LearningParameter = self._learning_parameter_list[
+                    param.companion_parameter_id
+                ]
+                angle = param.func(theta.value, x)
+                theta.value = angle
+            bound_parameters[param.pos] = angle
+
         return bound_parameters
+
+    def backprop_innner_product(
+        self, x: NDArray[np.float64], theta: NDArray[np.float64], state: QulacsQuantumState
+    ) -> NDArray[np.float64]:
+        """
+        backprop(self, x: List[float],  state)->List[Float]
+        qulacsに回路を変換しinner_productでbackpropします。
+        """
+        params = self.generate_bound_params(x, theta)
+        (qulacs_circuit, param_mapper) = convert_parametric_circuit(self.circuit)
+        for i, v in enumerate(param_mapper(params)):
+            qulacs_circuit.set_parameter(i, v)
+        ret = qulacs_circuit.backprop_inner_product(state)
+        ans = np.zeros(self.learning_params_count)
+        for param in self._learning_parameter_list:
+            if not param.is_input:
+                for pos in param.positions_in_circuit:
+                    ans[param.parameter_id] += ret[pos.gate_pos] * (pos.coef or 1.0)
+
+        return ans
+
+    def to_batched(
+        self, data: NDArray[np.float64], theta: NDArray[np.float64]
+    ) -> Tuple[UnboundParametricQuantumCircuit, NDArray[np.float64]]:
+        """
+        scaluq(quri-parts-scaluq)に流すためのMethod
+        data: (size, n_features)
+        theta: (n_params)
+
+        Returns:
+            (circuit, batched_params): (UnboundParametricQuantumCircuit, (size, parameter_count))
+        """
+        batched_params = np.zeros((len(data), self.parameter_count))
+        # Learning parameters
+        for param in self._learning_parameter_list:
+            param.value = theta[param.parameter_id]
+            for pos in param.positions_in_circuit:
+                batched_params[:, pos.gate_pos] = param.value
+        # Input parameters
+        for i, x in enumerate(data):
+            for param in self._input_parameter_list:
+                if param.companion_parameter_id is None:
+                    angle = param.func(x)
+                else:
+                    theta: _LearningParameter = self._learning_parameter_list[
+                        param.companion_parameter_id
+                    ]
+                    angle = param.func(theta.value, x)
+                    theta.value = angle
+                batched_params[i, param.pos] = angle
+        return self.circuit, batched_params
 
 
 def preprocess_x(x: NDArray[np.float64], i: int) -> float:

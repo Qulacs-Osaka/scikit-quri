@@ -4,7 +4,7 @@ from functools import reduce
 from typing import Optional, List
 from .circuit import LearningCircuit
 from numpy.typing import NDArray
-from quri_parts.circuit import QuantumGate,CZ, CNOT
+from quri_parts.circuit import QuantumGate, CZ, CNOT
 
 
 def create_qcl_ansatz(
@@ -178,30 +178,33 @@ def create_ibm_embedding_circuit(n_qubit: int) -> LearningCircuit:
         circuit.add_CNOT_gate(i, j)
     return circuit
 
+
 def create_dqn_cl(n_qubit: int, c_depth: int, s_qubit: int) -> LearningCircuit:
     # from https://arxiv.org/abs/2112.15002
     def preprocess_x(x: np.ndarray, i: int) -> float:
         xa = x[i % len(x)]
         clamped = min(1, max(-1, xa))
         return clamped
+
     circuit = LearningCircuit(n_qubit)
     for i in range(n_qubit):
-        circuit.add_input_RY_gate(i, lambda x,i=i: preprocess_x(x,i))
+        circuit.add_input_RY_gate(i, lambda x, i=i: preprocess_x(x, i))
         circuit.add_parametric_RY_gate(i)
-    
+
     for _ in range(c_depth):
         for i in range(n_qubit):
             # 元の論文ではすべての組に対して張っていたっぽいが、それはゲート数が多すぎるだろ
-            circuit.add_gate(CZ(i,(i+1)%n_qubit))
+            circuit.add_gate(CZ(i, (i + 1) % n_qubit))
         for i in range(s_qubit, n_qubit - 1):
-            circuit.add_gate(CNOT(i,(i+1)%n_qubit))
-        circuit.add_gate(CNOT(n_qubit-1,s_qubit))
+            circuit.add_gate(CNOT(i, (i + 1) % n_qubit))
+        circuit.add_gate(CNOT(n_qubit - 1, s_qubit))
         for i in range(n_qubit):
             circuit.add_parametric_RX_gate(i)
             circuit.add_parametric_RY_gate(i)
             circuit.add_parametric_RX_gate(i)
-    
+
     return circuit
+
 
 def create_dqn_cl_no_cz(n_qubit: int, c_depth: int) -> LearningCircuit:
     # from https://arxiv.org/abs/2112.15002
@@ -209,21 +212,23 @@ def create_dqn_cl_no_cz(n_qubit: int, c_depth: int) -> LearningCircuit:
         xa = x[i % len(x)]
         clamped = min(1, max(-1, xa))
         return clamped
+
     circuit = LearningCircuit(n_qubit)
 
     for i in range(n_qubit):
-        circuit.add_input_RY_gate(i, lambda x,i=i: preprocess_x(x,i))
+        circuit.add_input_RY_gate(i, lambda x, i=i: preprocess_x(x, i))
         circuit.add_parametric_RY_gate(i)
-    
+
     for _ in range(c_depth):
         for i in range(n_qubit):
-            circuit.add_gate(CNOT(i, (i+1)%n_qubit))
+            circuit.add_gate(CNOT(i, (i + 1) % n_qubit))
             circuit.add_parametric_RX_gate(i)
             circuit.add_parametric_RY_gate(i)
             circuit.add_parametric_RX_gate(i)
-        circuit.add_gate(CNOT(n_qubit-1,0))
-    
+        circuit.add_gate(CNOT(n_qubit - 1, 0))
+
     return circuit
+
 
 def create_qcnn_ansatz(n_qubit: int, seed: Optional[int] = 0) -> LearningCircuit:
     """
@@ -244,25 +249,27 @@ def create_qcnn_ansatz(n_qubit: int, seed: Optional[int] = 0) -> LearningCircuit
         id = circuit.add_parametric_RZ_gate(index)
         ids.append(id)
         return ids
-    
-    def _two_qubit_unitary(circuit: LearningCircuit, targets: List[int], pauli_ids: List[int]) -> LearningCircuit:
+
+    def _two_qubit_unitary(
+        circuit: LearningCircuit, targets: List[int], pauli_ids: List[int]
+    ) -> LearningCircuit:
         circuit.add_parametric_multi_Pauli_rotation_gate(targets, pauli_ids)
         return circuit
-    
-    def two_qubit_unitary(circuit: LearningCircuit, src:int, dest: int) -> LearningCircuit:
+
+    def two_qubit_unitary(circuit: LearningCircuit, src: int, dest: int) -> LearningCircuit:
         one_qubit_unitary(circuit, src)
         one_qubit_unitary(circuit, dest)
         targets = [src, dest]
-        pauli_xx_ids = [1,1]
+        pauli_xx_ids = [1, 1]
         circuit = _two_qubit_unitary(circuit, targets, pauli_xx_ids)
-        pauli_yy_ids = [2,2]
+        pauli_yy_ids = [2, 2]
         circuit = _two_qubit_unitary(circuit, targets, pauli_yy_ids)
-        pauli_zz_ids = [3,3]
+        pauli_zz_ids = [3, 3]
         circuit = _two_qubit_unitary(circuit, targets, pauli_zz_ids)
         one_qubit_unitary(circuit, src)
         one_qubit_unitary(circuit, dest)
         return circuit
-    
+
     def conv_circuit(circuit: LearningCircuit, src: int, dest: int) -> LearningCircuit:
         return two_qubit_unitary(circuit, src, dest)
 
@@ -274,11 +281,11 @@ def create_qcnn_ansatz(n_qubit: int, seed: Optional[int] = 0) -> LearningCircuit
         circuit.add_parametric_RY_gate(dest, share_with=ids[1], share_with_coef=-1)
         circuit.add_parametric_RX_gate(dest, share_with=ids[0], share_with_coef=-1)
         return circuit
-    
+
     circuit = LearningCircuit(n_qubit)
     for i in range(n_qubit):
-        circuit.add_input_RX_gate(i, lambda x:x)
-    
+        circuit.add_input_RX_gate(i, lambda x: x)
+
     # cluster state
     for i in range(n_qubit):
         circuit.add_H_gate(i)
@@ -286,7 +293,7 @@ def create_qcnn_ansatz(n_qubit: int, seed: Optional[int] = 0) -> LearningCircuit
         next_bit = (this_bit + 1) if this_bit < n_qubit - 1 else 0
         circuit.add_CNOT_gate(this_bit, next_bit)
         circuit.add_Z_gate(next_bit)
-    
+
     targets = []
 
     def tree(ns: List[int]) -> dict:
@@ -296,7 +303,7 @@ def create_qcnn_ansatz(n_qubit: int, seed: Optional[int] = 0) -> LearningCircuit
         node = {}
         node["ns"] = ns
         left = tree(ns[: n // 2])
-        right = tree(ns[n - (n//2):])
+        right = tree(ns[n - (n // 2) :])
         if left is not None and right is not None:
             targets.append([max(left["ns"]), max(right["ns"])])
         return node
@@ -305,5 +312,5 @@ def create_qcnn_ansatz(n_qubit: int, seed: Optional[int] = 0) -> LearningCircuit
     for t in targets:
         circuit = conv_circuit(circuit, t[0], t[1])
         circuit = pooling_circuit(circuit, t[0], t[1])
-    
+
     return circuit
