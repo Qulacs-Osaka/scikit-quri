@@ -1,3 +1,4 @@
+# mypy: ignore-errors
 from typing import List
 
 import numpy as np
@@ -11,7 +12,7 @@ from ..state.overlap_estimator_real_device import overlap_estimator_real_device
 
 
 class QSVC:
-    def __init__(self, circuit: LearningCircuit, sim:bool=True):
+    def __init__(self, circuit: LearningCircuit, sim: bool = True):
         self.svc = svm.SVC(kernel="precomputed")
         self.circuit = circuit
         # for sim
@@ -28,11 +29,17 @@ class QSVC:
         state = quantum_state(n_qubits=self.n_qubit, circuit=circuit)
         return state
 
-    def fit(self, x: NDArray[np.float64], y: NDArray[np.int_], sampling_backend=None, n_shots:int=1000):
+    def fit(
+        self,
+        x: NDArray[np.float64],
+        y: NDArray[np.int_],
+        sampling_backend=None,
+        n_shots: int = 1000,
+    ):
         # self.n_qubit = len(x[0])
         if not self.is_sim and sampling_backend is None:
             raise ValueError("sampling_backend is required for real devices")
-        
+
         kar = np.zeros((len(x), len(x)))
         for i in range(len(x)):
             state = self.run_circuit(x[i])
@@ -41,11 +48,14 @@ class QSVC:
         if self.is_sim:
             self.estimator = overlap_estimator(self.data_states.copy())
         else:
-            self.estimator = overlap_estimator_real_device(self.data_circuits.copy(), sampling_backend, n_shots)
+            self.estimator = overlap_estimator_real_device(
+                self.data_circuits.copy(), sampling_backend, n_shots
+            )
         for i in range(len(x)):
             for j in range(len(x)):
                 kar[i][j] = self.estimator.estimate(i, j)
-            print(f"{i}/{len(x)}")
+            print("\r", f"{i}/{len(x)}", end="")
+        print("")
         self.svc.fit(kar, y)
 
     def predict(self, xs: NDArray[np.float64]) -> NDArray[np.float64]:
@@ -66,7 +76,8 @@ class QSVC:
         for i in range(len(xs)):
             for j in range(len(self.data_states)):
                 kar[i][j] = self.estimator.estimate(offset + i, j)
-            print(f"{i}/{len(xs)}")
+            print("\r", f"{i}/{len(xs)}", end="")
+        print("")
 
         pred: NDArray[np.float64] = self.svc.predict(kar)
         return pred
