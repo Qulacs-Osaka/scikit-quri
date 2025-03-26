@@ -407,11 +407,11 @@ class LearningCircuit:
     ) -> Tuple[UnboundParametricQuantumCircuit, NDArray[np.float64]]:
         """
         scaluq(quri-parts-scaluq)に流すためのMethod
-        data: (size, n_features)
+        data: (n_data, n_features)
         theta: (n_params)
 
         Returns:
-            (circuit, batched_params): (UnboundParametricQuantumCircuit, (size, parameter_count))
+            (circuit, batched_params): (UnboundParametricQuantumCircuit, NDArray[n_data, params])
         """
         batched_params = np.zeros((len(data), self.parameter_count))
         # Learning parameters
