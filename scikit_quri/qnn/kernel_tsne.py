@@ -349,7 +349,7 @@ class quantum_kernel_tsne:
         # fidelity計算
         start = time.perf_counter()
         fidelity = self.calc_fidelity(X_train, X_train, self.pqs_f_helper)
-        print(f"elapsed time:{time.perf_counter()-start}")
+        print(f"elapsed time:{time.perf_counter() - start}")
         cost_f = partial(self.cost_f, p_prob=p_probs, fidelity=fidelity)
         # d=2次元に落とすので2倍
         alpha = np.random.rand(n_data * 2)

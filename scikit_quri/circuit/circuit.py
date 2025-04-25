@@ -235,7 +235,11 @@ class LearningCircuit:
             raise ValueError("Invalid target axis")
 
     def _add_parametric_R_gate_inner(
-        self, index: int, target: _Axis, share_with: Optional[int], share_with_coef: Optional[float]
+        self,
+        index: int,
+        target: _Axis,
+        share_with: Optional[int],
+        share_with_coef: Optional[float],
     ) -> int:
         new_gate_pos = self._new_parameter_position()
 
@@ -282,6 +286,41 @@ class LearningCircuit:
     ) -> Parameter:
         return self.circuit.add_ParametricPauliRotation_gate(targets, pauli_ids)
 
+    def add_parametric_input_RX_gate(
+        self, index: int, input_func: InputFuncWithParam = lambda theta, x: x[0]
+    ) -> None:
+        self._add_parametric_input_R_gate_inner(index, _Axis.X, input_func)
+
+    def add_parametric_input_RY_gate(
+        self, index: int, input_func: InputFuncWithParam = lambda theta, x: x[0]
+    ) -> None:
+        self._add_parametric_input_R_gate_inner(index, _Axis.Y, input_func)
+
+    def add_parametric_input_RZ_gate(
+        self, index: int, input_func: InputFuncWithParam = lambda theta, x: x[0]
+    ) -> None:
+        self._add_parametric_input_R_gate_inner(index, _Axis.Z, input_func)
+
+    def _add_parametric_input_R_gate_inner(
+        self, index: int, target: _Axis, input_func: InputFuncWithParam
+    ) -> None:
+        new_gate_pos = self._new_parameter_position()
+        learning_parameter = _LearningParameter(len(self._learning_parameter_list), 0.0, True)
+        learning_parameter.append_position(new_gate_pos, None)
+        self._learning_parameter_list.append(learning_parameter)
+        self._input_parameter_list.append(
+            _InputParameter(new_gate_pos, input_func, learning_parameter.parameter_id)
+        )
+
+        if target == _Axis.X:
+            self.add_parametric_RX_gate(index)
+        elif target == _Axis.Y:
+            self.add_parametric_RY_gate(index)
+        elif target == _Axis.Z:
+            self.add_parametric_RZ_gate(index)
+        else:
+            raise NotImplementedError
+
     @property
     def parameter_count(self) -> int:
         return self.circuit.parameter_count
@@ -325,7 +364,7 @@ class LearningCircuit:
     #     parametric_gates = list(filter(lambda x:isinstance(x[0],ParametricQuantumGate),self.circuit.gates_and_params))
     #     print(parametric_gates[0][1])
     #     return [self.input_functions[i] for i in self.get_input_params_indexes()]
-
+    @deprecated("Use bind_input_and_parameters instead")
     def update_parameters(
         self, parameters: NDArray[np.float64]
     ) -> ImmutableBoundParametricQuantumCircuit:
@@ -364,7 +403,8 @@ class LearningCircuit:
             param_value = theta[param.parameter_id]
             param.value = param_value
             for pos in param.positions_in_circuit:
-                bound_parameters[pos.gate_pos] = param_value
+                coef = pos.coef if pos.coef is not None else 1.0
+                bound_parameters[pos.gate_pos] = param_value * coef
         # Input parameters
         for param in self._input_parameter_list:
             # Input parameter is updated here, not update_parameters(),

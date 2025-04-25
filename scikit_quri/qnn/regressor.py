@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import NDArray
-from quri_parts.algo.optimizer import Adam
+from quri_parts.algo.optimizer import Adam, Optimizer
 from quri_parts.core.estimator import (
     ConcurrentParametricQuantumEstimator,
     Estimatable,
@@ -44,7 +44,7 @@ class QNNRegressor:
     ansatz: LearningCircuit
     estimator: ConcurrentQuantumEstimator[QulacsStateT]
     gradient_estimator: ConcurrentParametricQuantumEstimator[QulacsParametricStateT]
-    optimizer: Adam
+    optimizer: Optimizer
     operator: Estimatable
 
     x_norm_range: float = field(default=1.0)
@@ -197,12 +197,15 @@ class QNNRegressor:
         # for MSE
         y_pred = self._predict_inner(x_scaled, params)
         y_pred_grads = self._estimate_grad(x_scaled, params)
-
-        grads = 2 * (y_pred - y_scaled) * y_pred_grads
-        grads = np.mean(grads, axis=0)
-
-        grads = np.asarray([g.real for g in grads])
-        # print(f"{grads=}")
+        grads = np.zeros(len(self.ansatz.get_learning_param_indexes()))
+        diff = y_pred - y_scaled
+        for i in range(len(diff)):
+            # (self.n_outputs, params)
+            grad: np.ndarray = 2 * diff[i][:, np.newaxis] * y_pred_grads[i, :, :]
+            # (params)
+            grad = grad.mean(axis=0)
+            grads += grad
+        grads /= len(diff)
 
         return grads
 
@@ -219,15 +222,21 @@ class QNNRegressor:
         Returns:
             grads: Gradients of the cost function.
         """
-        grads = []
         learning_params_indexes = self.ansatz.get_learning_param_indexes()
+        grads = []
         for x in x_scaled:
             circuit_params = self.ansatz.generate_bound_params(x, params)
             circuit = quantum_state(n_qubits=self.n_qubits, circuit=self.ansatz.circuit)
-            estimate = self.gradient_estimator(self.operator, circuit, circuit_params)
+            _grad = np.zeros((self.n_outputs, len(learning_params_indexes)), dtype=np.float64)
+            # obsのi qubitにx[i]が対応
+
+            for i, operator in enumerate(self.operator):
+                # concurrentにgradientを計算
+                estimate = self.gradient_estimator(operator, circuit, circuit_params)
+                _grad[i, :] = np.array(estimate.values)[learning_params_indexes].real
             # input用のparamsを取り除く
-            grad = np.array(estimate.values)[learning_params_indexes]
-            grads.append([g.real for g in grad])
+            grads.append(_grad)
+        # return grads / len(x_scaled)
         return np.asarray(grads)
 
     def _predict_inner(
@@ -243,7 +252,6 @@ class QNNRegressor:
         Returns:
             res: Predicted outcome.
         """
-        res = []
         circuit_states: List[QulacsStateT] = []
 
         for x in x_scaled:
@@ -251,8 +259,10 @@ class QNNRegressor:
             param_circuit_state = quantum_state(n_qubits=self.n_qubits, circuit=self.ansatz.circuit)
             circuit_state = param_circuit_state.bind_parameters(circuit_params)
             circuit_states.append(circuit_state)
-
-        estimates = self.estimator(self.operator, circuit_states)
-        res = [[e.value.real * self.y_exp_ratio] for e in estimates]
-
-        return np.asarray(res)
+        res = np.zeros((len(circuit_states), self.n_outputs), dtype=np.float64)
+        for i, operator in enumerate(self.operator):
+            # Operatorが1じゃない時は，stateの数と，operatorの数が一致しないといけない
+            estimates = self.estimator(operator, circuit_states)
+            res[:, i] = np.array([e.value.real for e in estimates])
+        res *= self.y_exp_ratio
+        return res
