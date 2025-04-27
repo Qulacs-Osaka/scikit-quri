@@ -46,7 +46,7 @@ def generate_data(bits: int, random_seed: int = 0):
 
 
 @pytest.mark.parametrize(("solver", "maxiter"), [(Adam(), 20)])
-@pytest.mark.skip("This test takes too long time to finish")
+# @pytest.mark.skip("This test takes too long time to finish")
 def test_qcnn(solver: Optimizer, maxiter: int):
     n_qubit = 8
     random_seed = 0
@@ -57,14 +57,10 @@ def test_qcnn(solver: Optimizer, maxiter: int):
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
     num_class = 2
-    ops = []
-    for i in range(num_class):
-        op = Operator({pauli_label(f"Z {i}"): 1.0})
-        ops.append(op)
-    qcl = QNNClassifier(circuit, num_class, estimator, gradient_estimator, solver, ops)
+    qcl = QNNClassifier(circuit, num_class, estimator, gradient_estimator, solver)
 
     x_train, y_train, x_test, y_test = generate_data(n_qubit)
     qcl.fit(x_train, y_train, maxiter)
-    y_pred = qcl.predict(x_test)
+    y_pred = qcl.predict(x_test).argmax(axis=1)
     score = f1_score(y_test, y_pred, average="weighted")
     assert score > 0.9

@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import NDArray
-from quri_parts.algo.optimizer import Adam, Optimizer
+from quri_parts.algo.optimizer import Optimizer
 from quri_parts.core.estimator import (
     ConcurrentParametricQuantumEstimator,
     Estimatable,
@@ -13,6 +13,7 @@ from quri_parts.core.estimator import (
 from quri_parts.algo.optimizer import OptimizerStatus
 from quri_parts.core.state import quantum_state
 from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
+from quri_parts.core.operator import Operator, pauli_label
 from scikit_quri.circuit import LearningCircuit
 from typing import List
 
@@ -45,7 +46,8 @@ class QNNRegressor:
     estimator: ConcurrentQuantumEstimator[QulacsStateT]
     gradient_estimator: ConcurrentParametricQuantumEstimator[QulacsParametricStateT]
     optimizer: Optimizer
-    operator: Estimatable
+
+    operator: List[Estimatable] = field(default=None)
 
     x_norm_range: float = field(default=1.0)
     y_norm_range: float = field(default=0.7)
@@ -94,6 +96,11 @@ class QNNRegressor:
             y_scaled = y_train
 
         self.n_outputs = y_scaled.shape[1]
+        # operator設定
+        operators = []
+        for i in range(self.n_outputs):
+            operators.append(Operator({pauli_label(f"Z {i}"): 1.0}))
+        self.operator = operators
 
         self.x_train = x_scaled
         self.y_train = y_scaled

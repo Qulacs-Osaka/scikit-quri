@@ -18,6 +18,7 @@ from typing import List, Optional, Dict, Tuple
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import log_loss
 from quri_parts.core.state import quantum_state
+from quri_parts.core.operator import Operator, pauli_label
 from functools import partial
 # ! Will remove
 
@@ -29,7 +30,8 @@ class QNNClassifier:
     estimator: ConcurrentQuantumEstimator[QulacsStateT]
     gradient_estimator: GradientEstimator[_ParametricStateT]
     optimizer: Adam
-    operator: List[Estimatable]
+
+    operator: List[Estimatable] = field(default=None)
 
     x_norm_range: float = field(default=1.0)
     y_norm_range: float = field(default=0.7)
@@ -89,6 +91,12 @@ class QNNClassifier:
             x_scaled = self.scale_x_scaler.fit_transform(x_train)
         else:
             x_scaled = x_train
+
+        # operator設定
+        operators = []
+        for i in range(self.num_class):
+            operators.append(Operator({pauli_label(f"Z {i}"): 1.0}))
+        self.operator = operators
 
         parameter_count = self.ansatz.learning_params_count
         if self.trained_param is None:

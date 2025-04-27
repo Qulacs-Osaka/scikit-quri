@@ -63,16 +63,12 @@ def test_noisy_two_vars_two_outputs(solver: Optimizer, maxiter: int) -> None:
     depth = 3
     time_step = 0.5
     n_outputs = 2
-    ops = []
-    for i in range(n_outputs):
-        op = Operator({pauli_label(f"Z {i}"): 1.0})
-        ops.append(op)
     estimator = create_qulacs_vector_concurrent_estimator()
     gradient_estimator = create_numerical_gradient_estimator(
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
     circuit = create_qcl_ansatz(n_qubit, depth, time_step, 0)
-    qnn = QNNRegressor(n_qubit, circuit, estimator, gradient_estimator, solver, ops)
+    qnn = QNNRegressor(n_qubit, circuit, estimator, gradient_estimator, solver)
     qnn.fit(x_train, y_train, maxiter)
 
     x_test, y_test = generate_noisy_data(x_min, x_max, (num_x, 2), two_vars_two_outputs)
@@ -94,17 +90,13 @@ def test_noisy_sine_two_vars(solver: Optimizer, maxiter: int) -> None:
     n_qubit = 4
     depth = 3
     time_step = 0.5
-    ops = []
     n_outputs = 1
-    for i in range(n_outputs):
-        op = Operator({pauli_label(f"Z {i}"): 1.0})
-        ops.append(op)
     circuit = create_qcl_ansatz(n_qubit, depth, time_step, 0)
     estimator = create_qulacs_vector_concurrent_estimator()
     gradient_estimator = create_numerical_gradient_estimator(
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
-    qnn = QNNRegressor(n_qubit, circuit, estimator, gradient_estimator, solver, ops)
+    qnn = QNNRegressor(n_qubit, circuit, estimator, gradient_estimator, solver)
     qnn.fit(x_train, y_train, maxiter)
 
     x_test, y_test = generate_noisy_data(x_min, x_max, (num_x, 2), sine_two_vars)
@@ -139,17 +131,13 @@ def test_noisy_sine(solver: Optimizer, maxiter: int) -> None:
     depth = 3
     time_step = 0.5
     n_outputs = 1
-    ops = []
-    for i in range(n_outputs):
-        op = Operator({pauli_label(f"Z {i}"): 1.0})
-        ops.append(op)
     circuit = create_qcl_ansatz(n_qubit, depth, time_step, 0)
     estimator = create_qulacs_vector_concurrent_estimator()
     gradient_estimator = create_numerical_gradient_estimator(
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
     circuit = create_qcl_ansatz(n_qubit, depth, time_step, 0)
-    qnn = QNNRegressor(n_qubit, circuit, estimator, gradient_estimator, solver, ops)
+    qnn = QNNRegressor(n_qubit, circuit, estimator, gradient_estimator, solver)
     qnn.fit(x_train, y_train, maxiter)
 
     x_test, y_test = generate_noisy_data(x_min, x_max, (num_x, 1), sine)

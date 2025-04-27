@@ -50,15 +50,11 @@ def load_dataset(
 
 def create_classifier(n_features, circuit, locality):
     # Observables are hard-coded in QNNClassifier, so overwrite here.
-    ops = []
-    for i in range(2):
-        op = Operator({pauli_label(f"Z {i}"): 1.0})
-        ops.append(op)
     estimator = create_qulacs_vector_concurrent_estimator()
     gradient_estimator = create_numerical_gradient_estimator(
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
-    classifier = QNNClassifier(circuit, 2, estimator, gradient_estimator, Adam(), ops)
+    classifier = QNNClassifier(circuit, 2, estimator, gradient_estimator, Adam())
     classifier.observables = [Observable(n_features) for _ in range(n_features)]
     for i in range(n_features):
         if i < locality:
