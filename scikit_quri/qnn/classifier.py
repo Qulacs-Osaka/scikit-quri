@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import NDArray
-from quri_parts.algo.optimizer import Adam
+from quri_parts.algo.optimizer import Optimizer
 from quri_parts.core.estimator import (
     ConcurrentQuantumEstimator,
     Estimatable,
@@ -25,13 +25,49 @@ from functools import partial
 
 @dataclass
 class QNNClassifier:
+    """Class to solve classification problems by quantum neural networks
+    The prediction is made by making a vector which predicts one-hot encoding of labels.
+    The prediction is made by
+    1. taking expectation values of Pauli Z operator of each qubit <Z_i>,
+    2. taking softmax function of the vector (<Z_0>, <Z_1>, ..., <Z_{n-1}>).
+
+    Args:
+        ansatz: Circuit to use in the learning.
+        num_class: The number of classes; the number of qubits to measure. must be n_qubits >= num_class .
+        estimator: Estimator to use. It must be a concurrent estimator.
+        gradient_estimator: Gradient estimator to use. 
+        optimizer: Solver to use.
+    
+    Example:
+        >>> from scikit_quri.qnn.classifier import QNNClassifier
+        >>> from scikit_quri.circuit import create_qcl_ansatz
+        >>> from quri_parts.core.estimator.gradient import (
+        >>>     create_numerical_gradient_estimator,
+        >>> )
+        >>> from quri_parts.qulacs.estimator import (
+        >>>     create_qulacs_vector_concurrent_estimator,
+        >>>     create_qulacs_vector_concurrent_parametric_estimator,
+        >>> )
+        >>> from quri_parts.algo.optimizer import Adam
+        >>> num_class = 3
+        >>> nqubit = 5
+        >>> c_depth = 3
+        >>> time_step = 0.5
+        >>> circuit = create_qcl_ansatz(nqubit, c_depth, time_step, 0)
+        >>> adam = Adam()
+        >>> estimator = create_qulacs_vector_concurrent_estimator()
+        >>> gradient_estimator = create_numerical_gradient_estimator(
+        >>>    create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
+        >>> )
+        >>> qnn = QNNClassifier(circuit, num_class, estimator, gradient_estimator, adam)
+    """
     ansatz: LearningCircuit
     num_class: int
     estimator: ConcurrentQuantumEstimator[QulacsStateT]
     gradient_estimator: GradientEstimator[_ParametricStateT]
-    optimizer: Adam
+    optimizer: Optimizer
 
-    operator: List[Estimatable] = field(default=None)
+    operator: List[Estimatable] = field(default_factory=list)
 
     x_norm_range: float = field(default=1.0)
     y_norm_range: float = field(default=0.7)
@@ -41,7 +77,7 @@ class QNNClassifier:
     n_outputs: int = field(default=1)
     y_exp_ratio: float = field(default=2.2)
 
-    trained_param: Sequence[float] = field(default=None)
+    trained_param: List[float] = field(default_factory=list)
 
     n_qubit: int = field(init=False)
 

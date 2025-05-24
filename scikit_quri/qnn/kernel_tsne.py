@@ -17,7 +17,6 @@ import time
 import matplotlib.pyplot as plt
 from scipy.spatial import distance
 from quri_parts.algo.optimizer import OptimizerStatus
-from scipy.misc import derivative
 
 EPS_abs = 1e-12
 
