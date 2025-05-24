@@ -44,25 +44,57 @@ GradientEstimatorType: TypeAlias = ConcurrentParametricQuantumEstimator[QulacsPa
 
 @dataclass
 class QNNRegressor:
-    n_qubits: int
+    """
+    Class to solve regression problems with quantum neural networks.
+    The out is taken as expectation values of ``Pauli Z`` operators acting on the first qubit. i.e., output is ``<Z_0>``.
+
+    Args:
+        ansatz: Circuit to use in the learning.
+        estimator: Estimator to use. use :py:func:`~quri_parts.qulacs.estimator.create_qulacs_vector_concurrent_estimator` method.
+        gradient_estimator: Gradient estimator to use. use :py:func:`~quri_parts.core.estimator.gradient.create_parameter_shift_gradient_estimator` or :py:func:`~quri_parts.core.estimator.gradient.create_parameter_shift_gradient_estimator` method.
+        optimizer: Optimizer to use. use :py:class:`~quri_parts.algo.optimizer.Adam` or :py:class:`~quri_parts.algo.optimizer.LBFGS` method.
+    
+    Example:
+        >>> from quri_parts.qulacs.estimator import (
+        >>>     create_qulacs_vector_concurrent_estimator,
+        >>>     create_qulacs_vector_concurrent_parametric_estimator,
+        >>> )
+        >>> from quri_parts.core.estimator.gradient import (
+        >>>     create_numerical_gradient_estimator,
+        >>> )
+        >>> n_qubit = 3
+        >>> depth = 3
+        >>> time_step = 0.5
+        >>> estimator = create_qulacs_vector_concurrent_estimator()
+        >>> gradient_estimator = create_numerical_gradient_estimator(
+        >>>     create_qulacs_vector_concurrent_parametric_estimator()
+        >>> )
+        >>> circuit = create_qcl_ansatz(n_qubit, depth, time_step, 0)
+        >>> circuit = create_qcl_ansatz(n_qubit, depth, time_step, 0)
+        >>> qnn = QNNRegressor(n_qubit, circuit, estimator, gradient_estimator, solver)
+        >>> qnn.fit(x_train, y_train, maxiter)
+        >>> y_pred = qnn.predict(x_test)
+    """
     ansatz: LearningCircuit
     estimator: EstimatorType
     gradient_estimator: GradientEstimatorType
     optimizer: Optimizer
 
-    operator: List[Estimatable] = field(default=None)
+    operator: List[Estimatable] = field(default_factory=list)
 
     x_norm_range: float = field(default=1.0)
     y_norm_range: float = field(default=0.7)
 
+    n_qubit: int = field(init=False)
     do_x_scale: bool = field(default=True)
     do_y_scale: bool = field(default=True)
     n_outputs: int = field(default=1)
     y_exp_ratio: float = field(default=2.2)
 
-    trained_param: Sequence[float] = field(default=None)
+    trained_param: List[float] = field(default_factory=list)
 
     def __post_init__(self) -> None:
+        self.n_qubit = self.ansatz.n_qubits
         if self.do_x_scale:
             self.scale_x_scaler = MinMaxScaler(
                 feature_range=(-self.x_norm_range, self.x_norm_range)
@@ -236,7 +268,7 @@ class QNNRegressor:
         grads = []
         for x in x_scaled:
             circuit_params = self.ansatz.generate_bound_params(x, params)
-            circuit = quantum_state(n_qubits=self.n_qubits, circuit=self.ansatz.circuit)
+            circuit = quantum_state(n_qubits=self.n_qubit, circuit=self.ansatz.circuit)
             _grad = np.zeros((self.n_outputs, len(learning_params_indexes)), dtype=np.float64)
             # obsのi qubitにx[i]が対応
 
@@ -266,7 +298,7 @@ class QNNRegressor:
 
         for x in x_scaled:
             circuit_params = self.ansatz.generate_bound_params(x, params)
-            param_circuit_state = quantum_state(n_qubits=self.n_qubits, circuit=self.ansatz.circuit)
+            param_circuit_state = quantum_state(n_qubits=self.n_qubit, circuit=self.ansatz.circuit)
             circuit_state = param_circuit_state.bind_parameters(circuit_params)
             circuit_states.append(circuit_state)
         res = np.zeros((len(circuit_states), self.n_outputs), dtype=np.float64)

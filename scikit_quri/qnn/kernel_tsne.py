@@ -37,6 +37,7 @@ class pqc_f_helper:
     def get(self, input: NDArray[np.float64]) -> GeneralCircuitQuantumState:
         """
         入力データXに対して，cacheされた量子状態を返す．もしcacheされていない場合は計算してcacheする
+
         Args:
             input: 入力データX
         Returns:
@@ -65,8 +66,8 @@ class overlap_estimator:
         self.qula_states = np.full(len(states), fill_value=None, dtype=object)
 
     def _state_to_qula_state(self, state: GeneralCircuitQuantumState) -> QuantumState:
-        """
-        量子状態をqulacsのstateに変換
+        """量子状態をqulacsのstateに変換
+
         Args:
             state (GeneralCircuitQuantumState): quri-partsの量子状態
         Returns:
@@ -86,8 +87,8 @@ class overlap_estimator:
 
     def estimate(self, i: int, j: int):
         # ? これi,jじゃなくて数値でhash取った方が使いやすそう
-        """
-        与えられた量子状態のi番目とj番目の内積の絶対値の二乗を計算
+        """与えられた量子状態のi番目とj番目の内積の絶対値の二乗を計算
+
         Args:
             i (int): 量子状態のindex(ket)
             j (int): 量子状態のindex(bra)
@@ -118,8 +119,8 @@ class TSNE:
         self.perplexity = perplexity
 
     def calc_probabilities_p(self, X_train: NDArray[np.float64]) -> NDArray[np.float64]:
-        """
-        p行列を計算する
+        """p行列を計算する
+
         Args:
             X_train (NDArray[np.float64]): 入力データ
         Returns:
@@ -132,8 +133,8 @@ class TSNE:
     def calc_probabilities_p_state(
         self, X_train_state: List[GeneralCircuitQuantumState]
     ) -> NDArray[np.float64]:
-        """
-        p行列を計算する
+        """p行列を計算する
+
         Args:
             X_train_state (List[GeneralCircuitQuantumState]): 量子状態に変換した入力データ
         Returns:
@@ -154,8 +155,8 @@ class TSNE:
         return p_probs
 
     def calc_probabilities_q(self, c_data: NDArray[np.float64]) -> NDArray[np.float64]:
-        """
-        q行列を計算する
+        """q行列を計算する
+
         Args:
             c_data (NDArray[np.float64]): 入力データ(論文ではy)
         Returns:
@@ -266,8 +267,8 @@ class quantum_kernel_tsne:
         self.pqs_f_helper = pqc_f_helper(self.pqs_f)
 
     def calc_loss(self, p_prob: NDArray[np.float64], q_prob: NDArray[np.float64]):
-        """
-        最適化するためのlossを計算
+        """最適化するためのlossを計算
+
         Args:
             p_prob (NDArray[np.float64]): p_ij
             q_prob (NDArray[np.float64]): q_ij
@@ -321,8 +322,8 @@ class quantum_kernel_tsne:
         return loss
 
     def generate_X_train_state(self, X_train: NDArray[np.float64]):
-        """
-        X_train(NDAarray[np.float64])から量子状態のリストを生成
+        """X_train(NDAarray[np.float64])から量子状態のリストを生成
+
         Args:
             X_train (NDArray[np.float64]):64入力データ
         Returns:
@@ -385,8 +386,8 @@ class quantum_kernel_tsne:
         self.plot(y, y_label, "after")
 
     def transform(self, X_test: NDArray[np.float64]) -> NDArray[np.float64]:
-        """
-        学習したαを使ってyを計算
+        """学習したαを使ってyを計算
+
         Args:
             X_test (NDArray[np.float64]): テストデータ
         Returns:
@@ -399,15 +400,15 @@ class quantum_kernel_tsne:
     def calc_y(
         self, fidelity: NDArray[np.float64], alpha: NDArray[np.float64]
     ) -> NDArray[np.float64]:
-        """
-        fidelityとαからyを計算
+        """fidelityとαからyを計算
+
         Args:
             fidelity: ``|<φi|φj>|^2`` (n_data, n_data)
             alpha: α (n_data, 2)
         """
         return fidelity @ alpha
 
-    # ``|φi,Θ>``を計算
+    # ``|φi,Θ>`` を計算
     def input_quantum_state(
         self,
         input: NDArray[np.float64],
@@ -424,8 +425,8 @@ class quantum_kernel_tsne:
         )
         return circuit_state
 
-    # Parallelに``|<φi|φj>|^2``計算するための関数
-    # 対称性を持つので、j<=iの場合は計算しない
+    # Parallelに``|<φi|φj>|^2`` 計算するための関数
+    # 対称性を持つので、``j<=i`` の場合は計算しない
     # TODO parallelize
     # ? Cacheできそう
     def _calc_fidelity(self, j, data, data_tr, estimator: overlap_estimator):
@@ -447,7 +448,7 @@ class quantum_kernel_tsne:
 
     def calc_fidelity(self, data, data_tr, pqs_f_helper: pqc_f_helper):
         """
-        data==data_trの場合，fidelity(``|<φi|φj>|``^2)を計算
+        data==data_trの場合，fidelity( ``|<φi|φj>|^2`` ) を計算
         """
         if not np.array_equal(data, data_tr):
             raise ValueError("data and data_tr must be the same")
@@ -465,7 +466,7 @@ class quantum_kernel_tsne:
 
     def calc_fidelity_all(self, data, data_tr, pqs_f_helper: pqc_f_helper):
         """
-        data != data_trの場合，fidelity(``|<φi|φj>|``^2)を計算
+        data != data_trの場合，fidelity( ``|<φi|φj>|^2`` )を計算
         """
         n_data = len(data)
         n_data_tr = len(data_tr)
@@ -482,8 +483,8 @@ class quantum_kernel_tsne:
         return fidelities
 
     def plot(self, y: NDArray[np.float64], y_label: NDArray[np.int64], title: str):
-        """
-        yをplotする
+        """yをplotする
+
         Args:
             y (NDArray[np.float64]): 低次元表現
             y_label (NDArray[np.int64]): ラベル

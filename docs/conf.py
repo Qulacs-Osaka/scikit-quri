@@ -6,8 +6,7 @@
 
 import os
 import sys
-# sys.path.insert(0, os.path.abspath('../scikit_quri'))
-# print(sys.path)
+#  sphinx-apidoc -f  -o . ..
 sys.path.insert(0, os.path.abspath('../'))
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -27,6 +26,7 @@ extensions = [
     "myst_nb",
 ]
 autodoc_typehints = "description" 
+autodoc_member_order = 'bysource'
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None), 

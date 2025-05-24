@@ -27,7 +27,7 @@ GradientEstimatorType: TypeAlias = GradientEstimator[_ParametricStateT]
 
 @dataclass
 class QNNClassifier:
-    """Class to solve classification problems by quantum neural networks
+    """Class to solve classification problems by quantum neural networks.
     The prediction is made by making a vector which predicts one-hot encoding of labels.
     The prediction is made by
     1. taking expectation values of Pauli Z operator of each qubit ``<Z_i>``,
@@ -38,7 +38,7 @@ class QNNClassifier:
         num_class: The number of classes; the number of qubits to measure. must be n_qubits >= num_class .
         estimator: Estimator to use. It must be a concurrent estimator.
         gradient_estimator: Gradient estimator to use. 
-        optimizer: Solver to use.
+        optimizer: Solver to use. use :py:class:`~quri_parts.algo.optimizer.Adam` or :py:class:`~quri_parts.algo.optimizer.LBFGS` method.
     
     Example:
         >>> from scikit_quri.qnn.classifier import QNNClassifier
@@ -62,6 +62,8 @@ class QNNClassifier:
         >>>    create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
         >>> )
         >>> qnn = QNNClassifier(circuit, num_class, estimator, gradient_estimator, adam)
+        >>> qnn.fit(x_train, y_train, maxiter)
+        >>> y_pred = qnn.predict(x_test).argmax(axis=1)
     """
     ansatz: LearningCircuit
     num_class: int
@@ -94,7 +96,7 @@ class QNNClassifier:
                 feature_range=(-self.x_norm_range, self.x_norm_range)
             )
 
-    def softmax(self, x: NDArray[np.float64], axis=None) -> NDArray[np.float64]:
+    def _softmax(self, x: NDArray[np.float64], axis=None) -> NDArray[np.float64]:
         x_max = np.amax(x, axis=axis, keepdims=True)
         exp_x_shifted = np.exp(x - x_max)
         return exp_x_shifted / np.sum(exp_x_shifted, axis=axis, keepdims=True)
@@ -120,8 +122,16 @@ class QNNClassifier:
         self,
         x_train: NDArray[np.float64],
         y_train: NDArray[np.int_],
-        maxiter: Optional[int] = 100,
+        maxiter: int = 100,
     ):
+        """
+        Args:
+            x_train: List of training data inputs whose shape is (n_samples, n_features).
+            y_train: List of labels to fit. Labels must be represented as integers. Shape is (n_samples,).
+            maxiter: The number of maximum iterations for the optimizer.
+        Returns:
+            None
+        """
         if x_train.ndim == 1:
             x_train = x_train.reshape(-1, 1)
 
@@ -163,6 +173,13 @@ class QNNClassifier:
         self.trained_param = optimizer_state.params
 
     def predict(self, x_test: NDArray[np.float64]) -> NDArray[np.float64]:
+        """Predict outcome for each input data in ``x_test``. This method returns the predicted outcome as a vector of probabilities for each class.
+        Args:
+            x_test: Input data whose shape is ``(n_samples, n_features)``.
+        Returns:
+            y_pred: Predicted outcome whose shape is ``(n_samples, num_class)``.
+        
+        """
         if self.trained_param is None:
             raise ValueError("Model is not trained.")
 
@@ -221,7 +238,7 @@ class QNNClassifier:
         y_pred = self._predict_inner(x_scaled, params)
         # Case of log_logg
         # softmax
-        y_pred_sm = self.softmax(y_pred, axis=1)
+        y_pred_sm = self._softmax(y_pred, axis=1)
         loss = log_loss(y_train, y_pred_sm)
         # print(f"{params[:4]=}")
         return loss
@@ -234,7 +251,7 @@ class QNNClassifier:
     ) -> float:
         # start = time.perf_counter()
         y_pred = self._predict_inner(x_scaled, params)
-        y_pred_sm = self.softmax(y_pred, axis=1)
+        y_pred_sm = self._softmax(y_pred, axis=1)
         raw_grads = self._estimate_grad(x_scaled, params)
         # print(f"{raw_grads.shape=}")
         grads = np.zeros(self.ansatz.learning_params_count)

@@ -17,6 +17,7 @@ from quri_parts.qulacs.estimator import (
 )
 from quri_parts.core.estimator.gradient import (
     create_numerical_gradient_estimator,
+    create_parameter_shift_gradient_estimator
 )
 from quri_parts.core.operator import Operator, pauli_label
 from scikit_quri.qnn import QNNRegressor
@@ -131,7 +132,6 @@ def test_noisy_sine(solver: Optimizer, maxiter: int) -> None:
     depth = 3
     time_step = 0.5
     n_outputs = 1
-    circuit = create_qcl_ansatz(n_qubit, depth, time_step, 0)
     estimator = create_qulacs_vector_concurrent_estimator()
     gradient_estimator = create_numerical_gradient_estimator(
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10

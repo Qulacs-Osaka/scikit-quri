@@ -3,12 +3,16 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-scikit-quri documentation
-=========================
+Welcome to scikit-quri's documentation!
+=======================================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+`scikit-quri <https://github.com/Qulacs-Osaka/scikit-quri>`_ is a library for quantum neural network.
+This library is based on `scikit-qulacs <https://github.com/Qulacs-Osaka/scikit-qulacs>`_ and named after `quri-parts <https://github.com/QunaSys/quri-parts>`_.
+`quri-parts <https://github.com/QunaSys/quri-parts>`_ is an open source library suite for creating and executing quantum algorithms on various quantum computers and simulators.
+
+This library implements the following features.
+
+- AAA
 
 
 .. toctree::
