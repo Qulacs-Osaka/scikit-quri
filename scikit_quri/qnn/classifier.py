@@ -20,16 +20,18 @@ from sklearn.metrics import log_loss
 from quri_parts.core.state import quantum_state
 from quri_parts.core.operator import Operator, pauli_label
 from functools import partial
-# ! Will remove
+from typing_extensions import TypeAlias
 
+EstimatorType: TypeAlias = ConcurrentQuantumEstimator[QulacsStateT]
+GradientEstimatorType: TypeAlias = GradientEstimator[_ParametricStateT]
 
 @dataclass
 class QNNClassifier:
     """Class to solve classification problems by quantum neural networks
     The prediction is made by making a vector which predicts one-hot encoding of labels.
     The prediction is made by
-    1. taking expectation values of Pauli Z operator of each qubit <Z_i>,
-    2. taking softmax function of the vector (<Z_0>, <Z_1>, ..., <Z_{n-1}>).
+    1. taking expectation values of Pauli Z operator of each qubit ``<Z_i>``,
+    2. taking softmax function of the vector (``<Z_0>, <Z_1>, ..., <Z_{n-1}>``).
 
     Args:
         ansatz: Circuit to use in the learning.
@@ -63,8 +65,8 @@ class QNNClassifier:
     """
     ansatz: LearningCircuit
     num_class: int
-    estimator: ConcurrentQuantumEstimator[QulacsStateT]
-    gradient_estimator: GradientEstimator[_ParametricStateT]
+    estimator: EstimatorType
+    gradient_estimator: GradientEstimatorType
     optimizer: Optimizer
 
     operator: List[Estimatable] = field(default_factory=list)

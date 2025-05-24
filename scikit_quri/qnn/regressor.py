@@ -17,10 +17,13 @@ from quri_parts.core.operator import Operator, pauli_label
 from scikit_quri.circuit import LearningCircuit
 from typing import List
 
-# ! Will remove
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 
+from typing_extensions import TypeAlias
+
+EstimatorType: TypeAlias = ConcurrentQuantumEstimator[QulacsStateT]
+GradientEstimatorType: TypeAlias = ConcurrentParametricQuantumEstimator[QulacsParametricStateT]
 # class mimMaxScaler:
 #     def __init__(self,feature_range:tuple[int,int]=(0, 1)):
 #         self.feature_range = feature_range
@@ -43,8 +46,8 @@ from sklearn.metrics import mean_squared_error
 class QNNRegressor:
     n_qubits: int
     ansatz: LearningCircuit
-    estimator: ConcurrentQuantumEstimator[QulacsStateT]
-    gradient_estimator: ConcurrentParametricQuantumEstimator[QulacsParametricStateT]
+    estimator: EstimatorType
+    gradient_estimator: GradientEstimatorType
     optimizer: Optimizer
 
     operator: List[Estimatable] = field(default=None)

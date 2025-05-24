@@ -92,7 +92,7 @@ class overlap_estimator:
             i (int): 量子状態のindex(ket)
             j (int): 量子状態のindex(bra)
         Returns:
-            float: |<φi|φj>|^2
+            float: ``|<φi|φj>|^2``
         """
         ket = self.qula_states[i]
         # qulacsのstateを使いまわす
@@ -324,7 +324,7 @@ class quantum_kernel_tsne:
         """
         X_train(NDAarray[np.float64])から量子状態のリストを生成
         Args:
-            X_train (NDArray[np.float64]): 入力データ
+            X_train (NDArray[np.float64]):64入力データ
         Returns:
             X_train_state (List[GeneralCircuitQuantumState]): 量子状態のリスト
         """
@@ -402,12 +402,12 @@ class quantum_kernel_tsne:
         """
         fidelityとαからyを計算
         Args:
-            fidelity: |<φi|φj>|^2 (n_data, n_data)
+            fidelity: ``|<φi|φj>|^2`` (n_data, n_data)
             alpha: α (n_data, 2)
         """
         return fidelity @ alpha
 
-    # |φi,Θ>を計算
+    # ``|φi,Θ>``を計算
     def input_quantum_state(
         self,
         input: NDArray[np.float64],
@@ -424,7 +424,7 @@ class quantum_kernel_tsne:
         )
         return circuit_state
 
-    # Parallelに|<φi|φj>|^2計算するための関数
+    # Parallelに``|<φi|φj>|^2``計算するための関数
     # 対称性を持つので、j<=iの場合は計算しない
     # TODO parallelize
     # ? Cacheできそう
@@ -447,7 +447,7 @@ class quantum_kernel_tsne:
 
     def calc_fidelity(self, data, data_tr, pqs_f_helper: pqc_f_helper):
         """
-        data==data_trの場合，fidelity(|<φi|φj>|^2)を計算
+        data==data_trの場合，fidelity(``|<φi|φj>|``^2)を計算
         """
         if not np.array_equal(data, data_tr):
             raise ValueError("data and data_tr must be the same")
@@ -465,7 +465,7 @@ class quantum_kernel_tsne:
 
     def calc_fidelity_all(self, data, data_tr, pqs_f_helper: pqc_f_helper):
         """
-        data != data_trの場合，fidelity(|<φi|φj>|^2)を計算
+        data != data_trの場合，fidelity(``|<φi|φj>|``^2)を計算
         """
         n_data = len(data)
         n_data_tr = len(data_tr)
@@ -481,12 +481,12 @@ class quantum_kernel_tsne:
         print()
         return fidelities
 
-    def plot(self, y: NDArray[np.float64], y_label: NDArray[np.int_], title: str):
+    def plot(self, y: NDArray[np.float64], y_label: NDArray[np.int64], title: str):
         """
         yをplotする
         Args:
             y (NDArray[np.float64]): 低次元表現
-            y_label (NDArray[np.int_]): ラベル
+            y_label (NDArray[np.int64]): ラベル
             title (str): タイトル
         """
         for i in np.unique(y_label):

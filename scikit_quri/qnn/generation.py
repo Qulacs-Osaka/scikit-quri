@@ -14,6 +14,9 @@ from scikit_quri.circuit import LearningCircuit
 
 
 class QNNGenerator:
+    """
+    BBBB
+    """
     def __init__(
         self,
         circuit: LearningCircuit,

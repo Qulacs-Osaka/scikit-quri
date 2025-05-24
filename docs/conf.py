@@ -6,11 +6,13 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../..'))
+# sys.path.insert(0, os.path.abspath('../scikit_quri'))
+# print(sys.path)
+sys.path.insert(0, os.path.abspath('../'))
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'scikit-quri'
+project = 'scikit_quri'
 copyright = '2021, Qulacs-Osaka'
 author = 'Qulacs-Osaka'
 
@@ -24,12 +26,12 @@ extensions = [
     "sphinx.ext.intersphinx",
     "myst_nb",
 ]
-autodoc_typehints = "signature" 
-autodoc_typehints_format = "short" 
+autodoc_typehints = "description" 
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None), 
     'numpy': ('https://numpy.org/doc/stable/', None), 
+    "quri-parts": ("https://quri-parts.qunasys.com/api/", None)
 }
 
 mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"
