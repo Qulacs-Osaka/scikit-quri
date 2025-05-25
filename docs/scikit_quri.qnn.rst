@@ -12,6 +12,14 @@ scikit\_quri.qnn.classifier module
    :undoc-members:
    :show-inheritance:
 
+scikit\_quri.qnn.regressor module
+---------------------------------
+
+.. automodule:: scikit_quri.qnn.regressor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 scikit\_quri.qnn.generation module
 ----------------------------------
 
@@ -28,13 +36,6 @@ scikit\_quri.qnn.kernel\_tsne module
    :undoc-members:
    :show-inheritance:
 
-scikit\_quri.qnn.regressor module
----------------------------------
-
-.. automodule:: scikit_quri.qnn.regressor
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 Module contents
 ---------------

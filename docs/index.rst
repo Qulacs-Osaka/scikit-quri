@@ -10,10 +10,6 @@ Welcome to scikit-quri's documentation!
 This library is based on `scikit-qulacs <https://github.com/Qulacs-Osaka/scikit-qulacs>`_ and named after `quri-parts <https://github.com/QunaSys/quri-parts>`_.
 `quri-parts <https://github.com/QunaSys/quri-parts>`_ is an open source library suite for creating and executing quantum algorithms on various quantum computers and simulators.
 
-This library implements the following features.
-
-- AAA
-
 
 .. toctree::
    :maxdepth: 2
