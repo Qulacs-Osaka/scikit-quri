@@ -413,11 +413,11 @@ class LearningCircuit:
                 # If `companion_parameter_id` is `None`, `func` does not need a learning parameter.
                 angle = param.func(x)
             else:
-                theta: _LearningParameter = self._learning_parameter_list[
+                l_theta: _LearningParameter = self._learning_parameter_list[
                     param.companion_parameter_id
                 ]
-                angle = param.func(theta.value, x)
-                theta.value = angle
+                angle = param.func(l_theta.value, x)
+                l_theta.value = angle
             bound_parameters[param.pos] = angle
 
         return bound_parameters

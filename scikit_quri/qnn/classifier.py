@@ -81,7 +81,7 @@ class QNNClassifier:
     n_outputs: int = field(default=1)
     y_exp_ratio: float = field(default=2.2)
 
-    trained_param: List[float] = field(default_factory=list)
+    trained_param: Optional[List[float]] = field(default=None)
 
     n_qubit: int = field(init=False)
 

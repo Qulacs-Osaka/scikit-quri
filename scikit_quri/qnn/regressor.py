@@ -8,22 +8,23 @@ from quri_parts.algo.optimizer import Optimizer
 from quri_parts.core.estimator import (
     ConcurrentParametricQuantumEstimator,
     Estimatable,
+    GradientEstimator,
     ConcurrentQuantumEstimator,
 )
+from quri_parts.core.estimator.gradient import _ParametricStateT
 from quri_parts.algo.optimizer import OptimizerStatus
 from quri_parts.core.state import quantum_state
 from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
 from quri_parts.core.operator import Operator, pauli_label
 from scikit_quri.circuit import LearningCircuit
-from typing import List
+from typing import List, Optional
 
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 
 from typing_extensions import TypeAlias
-
 EstimatorType: TypeAlias = ConcurrentQuantumEstimator[QulacsStateT]
-GradientEstimatorType: TypeAlias = ConcurrentParametricQuantumEstimator[QulacsParametricStateT]
+GradientEstimatorType: TypeAlias = GradientEstimator[_ParametricStateT]
 # class mimMaxScaler:
 #     def __init__(self,feature_range:tuple[int,int]=(0, 1)):
 #         self.feature_range = feature_range
@@ -91,7 +92,7 @@ class QNNRegressor:
     n_outputs: int = field(default=1)
     y_exp_ratio: float = field(default=2.2)
 
-    trained_param: List[float] = field(default_factory=list)
+    trained_param: Optional[List[float]] = field(default=None)
 
     def __post_init__(self) -> None:
         self.n_qubit = self.ansatz.n_qubits
