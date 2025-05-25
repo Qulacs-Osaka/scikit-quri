@@ -1,7 +1,7 @@
 # mypy: ignore-errors
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Callable, List, Optional, Self, Tuple, Union, Sequence
+from typing import Callable, List, Optional, Tuple, Union, Sequence
 
 import numpy as np
 from numpy.typing import NDArray

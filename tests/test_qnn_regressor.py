@@ -2,7 +2,6 @@ from typing import Callable, Optional, Tuple
 
 import numpy as np
 import pytest
-import pyfbi
 
 from numpy.random import default_rng
 from numpy.typing import NDArray
@@ -70,17 +69,13 @@ def test_noisy_two_vars_two_outputs(solver: Optimizer, maxiter: int) -> None:
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
     circuit = create_qcl_ansatz(n_qubit, depth, time_step, 0)
-    with pyfbi.watch(global_watch=True):
-        qnn = QNNRegressor(circuit, estimator, gradient_estimator, solver)
-        qnn.fit(x_train, y_train, maxiter)
+    qnn = QNNRegressor(circuit, estimator, gradient_estimator, solver)
+    qnn.fit(x_train, y_train, maxiter)
 
-        x_test, y_test = generate_noisy_data(x_min, x_max, (num_x, 2), two_vars_two_outputs)
-        y_pred = qnn.predict(x_test)
-        loss = mean_squared_error(y_pred, y_test)
-        assert loss < 0.11
-    pyfbi.dump(
-        "./profiles/test_noisy_two_vars_two_outputs_profile",
-    )
+    x_test, y_test = generate_noisy_data(x_min, x_max, (num_x, 2), two_vars_two_outputs)
+    y_pred = qnn.predict(x_test)
+    loss = mean_squared_error(y_pred, y_test)
+    assert loss < 0.11
 
 
 def sine_two_vars(x: NDArray[np.float64]) -> NDArray[np.float64]:
