@@ -48,4 +48,4 @@ serve_cov: cov
 
 .PHONY: html
 html:
-	poetry run $(MAKE) -c docs html
+	poetry run $(MAKE) -C docs html
