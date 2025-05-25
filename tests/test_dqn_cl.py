@@ -19,6 +19,7 @@ from quri_parts.core.estimator.gradient import (
 )
 from quri_parts.core.operator import Operator, pauli_label
 from scikit_quri.circuit import LearningCircuit
+
 # This script aims to reproduce Ⅳ.B Binary classification in https://arxiv.org/pdf/2112.15002.pdf.
 from typing import List, Optional, Dict, Tuple
 
@@ -50,7 +51,7 @@ def load_dataset(
     return x_train, x_test, y_train, y_test
 
 
-def create_classifier(n_features:int, circuit: LearningCircuit, locality:int):
+def create_classifier(n_features: int, circuit: LearningCircuit, locality: int):
     # Observables are hard-coded in QNNClassifier, so overwrite here.
     estimator = create_qulacs_vector_concurrent_estimator()
     gradient_estimator = create_numerical_gradient_estimator(
@@ -63,7 +64,9 @@ def create_classifier(n_features:int, circuit: LearningCircuit, locality:int):
         else:
             pass
             # operators.append(Operator({pauli_label(f"I {i}"): 1.0}))
-    classifier = QNNClassifier(circuit, 2, estimator, gradient_estimator, Adam(),operator=operators)
+    classifier = QNNClassifier(
+        circuit, 2, estimator, gradient_estimator, Adam(), operator=operators
+    )
     return classifier
 
 

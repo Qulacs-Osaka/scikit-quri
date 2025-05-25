@@ -288,7 +288,7 @@ def create_qcnn_ansatz(n_qubit: int, seed: Optional[int] = 0) -> LearningCircuit
 
     circuit = LearningCircuit(n_qubit)
     for i in range(n_qubit):
-        circuit.add_input_RX_gate(i, lambda x: x)
+        circuit.add_input_RX_gate(i, lambda x: x[0])
 
     # cluster state
     for i in range(n_qubit):
@@ -300,10 +300,10 @@ def create_qcnn_ansatz(n_qubit: int, seed: Optional[int] = 0) -> LearningCircuit
 
     targets = []
 
-    def tree(ns: List[int]) -> dict:
+    def tree(ns: List[int]) -> Optional[dict]:
         n = len(ns)
         if n <= 0:
-            return
+            return None
         node = {}
         node["ns"] = ns
         left = tree(ns[: n // 2])

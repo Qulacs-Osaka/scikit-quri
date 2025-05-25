@@ -26,6 +26,7 @@ class QNNGenerator:
         gauss_sigma: The sigma value for Gaussian kernel.
         fitting_qubit: The number of qubits to be used for fitting.
     """
+
     def __init__(
         self,
         circuit: LearningCircuit,
