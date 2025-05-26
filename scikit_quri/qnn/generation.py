@@ -14,6 +14,19 @@ from scikit_quri.circuit import LearningCircuit
 
 
 class QNNGenerator:
+    """
+    Class to generation problems by quantum neural networks.
+    This class is only working with a simulator. depending on qulacs.
+    It is not working with real quantum computers.
+
+    Args:
+        circuit: The learning circuit to be used.
+        solver: The optimizer to be used for training.
+        kernel_type: The type of kernel to be used. exp_hamming is not implemented yet.
+        gauss_sigma: The sigma value for Gaussian kernel.
+        fitting_qubit: The number of qubits to be used for fitting.
+    """
+
     def __init__(
         self,
         circuit: LearningCircuit,

@@ -2,6 +2,7 @@ from typing import Callable, Optional, Tuple
 
 import numpy as np
 import pytest
+
 from numpy.random import default_rng
 from numpy.typing import NDArray
 from sklearn.metrics import mean_squared_error
@@ -17,6 +18,7 @@ from quri_parts.qulacs.estimator import (
 )
 from quri_parts.core.estimator.gradient import (
     create_numerical_gradient_estimator,
+    create_parameter_shift_gradient_estimator,
 )
 from quri_parts.core.operator import Operator, pauli_label
 from scikit_quri.qnn import QNNRegressor
@@ -62,13 +64,12 @@ def test_noisy_two_vars_two_outputs(solver: Optimizer, maxiter: int) -> None:
     n_qubit = 4
     depth = 3
     time_step = 0.5
-    n_outputs = 2
     estimator = create_qulacs_vector_concurrent_estimator()
     gradient_estimator = create_numerical_gradient_estimator(
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
     circuit = create_qcl_ansatz(n_qubit, depth, time_step, 0)
-    qnn = QNNRegressor(n_qubit, circuit, estimator, gradient_estimator, solver)
+    qnn = QNNRegressor(circuit, estimator, gradient_estimator, solver)
     qnn.fit(x_train, y_train, maxiter)
 
     x_test, y_test = generate_noisy_data(x_min, x_max, (num_x, 2), two_vars_two_outputs)
@@ -90,13 +91,12 @@ def test_noisy_sine_two_vars(solver: Optimizer, maxiter: int) -> None:
     n_qubit = 4
     depth = 3
     time_step = 0.5
-    n_outputs = 1
     circuit = create_qcl_ansatz(n_qubit, depth, time_step, 0)
     estimator = create_qulacs_vector_concurrent_estimator()
     gradient_estimator = create_numerical_gradient_estimator(
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
-    qnn = QNNRegressor(n_qubit, circuit, estimator, gradient_estimator, solver)
+    qnn = QNNRegressor(circuit, estimator, gradient_estimator, solver)
     qnn.fit(x_train, y_train, maxiter)
 
     x_test, y_test = generate_noisy_data(x_min, x_max, (num_x, 2), sine_two_vars)
@@ -117,7 +117,7 @@ def sine(x: NDArray[np.float64]) -> NDArray[np.float64]:
             Adam(
                 ftol=2e-4,
             ),
-            777,
+            20,
         ),
     ],
 )
@@ -131,13 +131,12 @@ def test_noisy_sine(solver: Optimizer, maxiter: int) -> None:
     depth = 3
     time_step = 0.5
     n_outputs = 1
-    circuit = create_qcl_ansatz(n_qubit, depth, time_step, 0)
     estimator = create_qulacs_vector_concurrent_estimator()
     gradient_estimator = create_numerical_gradient_estimator(
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
     circuit = create_qcl_ansatz(n_qubit, depth, time_step, 0)
-    qnn = QNNRegressor(n_qubit, circuit, estimator, gradient_estimator, solver)
+    qnn = QNNRegressor(circuit, estimator, gradient_estimator, solver)
     qnn.fit(x_train, y_train, maxiter)
 
     x_test, y_test = generate_noisy_data(x_min, x_max, (num_x, 1), sine)

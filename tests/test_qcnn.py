@@ -45,6 +45,15 @@ def generate_data(bits: int, random_seed: int = 0):
     )
 
 
+"""
+tests/test_qcnn.py: 55040 warnings
+  circuit.py:421: DeprecationWarning: Conversion of an array with ndim > 0 to a scalar is deprecated, and will error in future. Ensure you extract a single element from your array before performing this operation. (Deprecated NumPy 1.25.)
+    bound_parameters[param.pos] = angle
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+"""
+
+
 @pytest.mark.parametrize(("solver", "maxiter"), [(Adam(), 20)])
 # @pytest.mark.skip("This test takes too long time to finish")
 def test_qcnn(solver: Optimizer, maxiter: int):

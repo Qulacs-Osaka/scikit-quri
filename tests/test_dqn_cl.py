@@ -13,12 +13,15 @@ from quri_parts.qulacs.estimator import (
     create_qulacs_vector_concurrent_estimator,
     create_qulacs_vector_concurrent_parametric_estimator,
 )
+from quri_parts.core.estimator import Estimatable
 from quri_parts.core.estimator.gradient import (
     create_numerical_gradient_estimator,
 )
 from quri_parts.core.operator import Operator, pauli_label
+from scikit_quri.circuit import LearningCircuit
 
 # This script aims to reproduce Ⅳ.B Binary classification in https://arxiv.org/pdf/2112.15002.pdf.
+from typing import List, Optional, Dict, Tuple
 
 locality = 2
 
@@ -48,19 +51,22 @@ def load_dataset(
     return x_train, x_test, y_train, y_test
 
 
-def create_classifier(n_features, circuit, locality):
+def create_classifier(n_features: int, circuit: LearningCircuit, locality: int):
     # Observables are hard-coded in QNNClassifier, so overwrite here.
     estimator = create_qulacs_vector_concurrent_estimator()
     gradient_estimator = create_numerical_gradient_estimator(
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
-    classifier = QNNClassifier(circuit, 2, estimator, gradient_estimator, Adam())
-    classifier.observables = [Observable(n_features) for _ in range(n_features)]
+    operators: List[Estimatable] = []
     for i in range(n_features):
         if i < locality:
-            classifier.observables[i].add_operator(1.0, f"Z {i}")
+            operators.append(Operator({pauli_label(f"Z {i}"): 1.0}))
         else:
-            classifier.observables[i].add_operator(1.0, f"I {i}")
+            pass
+            # operators.append(Operator({pauli_label(f"I {i}"): 1.0}))
+    classifier = QNNClassifier(
+        circuit, 2, estimator, gradient_estimator, Adam(), operator=operators
+    )
     return classifier
 
 

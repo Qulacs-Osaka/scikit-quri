@@ -12,6 +12,7 @@ def create_qcl_ansatz(
     n_qubit: int, c_depth: int, time_step: float = 0.5, seed: Optional[int] = 0
 ) -> LearningCircuit:
     """Create a circuit used in this page: https://dojo.qulacs.org/ja/latest/notebooks/5.2_Quantum_Circuit_Learning.html
+
     Args:
         n_qubit: number of qubits
         c_depth: circuit depth
@@ -52,6 +53,7 @@ def _create_time_evol_gate(
     n_qubit, time_step=0.77, rng: Generator = None, seed: Optional[int] = 0
 ) -> QuantumGate:
     """create a hamiltonian dynamics with transverse field ising model with random interaction and random magnetic field
+
     Args:
         n_qubit: number of qubits
         time_step: evolution time
@@ -148,6 +150,7 @@ def create_farhi_neven_ansatz(
 
 def create_ibm_embedding_circuit(n_qubit: int) -> LearningCircuit:
     """create circuit proposed in https://arxiv.org/abs/1802.06002.
+
     Args:
         n_qubits: number of qubits
     """
@@ -232,8 +235,8 @@ def create_dqn_cl_no_cz(n_qubit: int, c_depth: int) -> LearningCircuit:
 
 
 def create_qcnn_ansatz(n_qubit: int, seed: Optional[int] = 0) -> LearningCircuit:
-    """
-    Creates circuit used in https://www.tensorflow.org/quantum/tutorials/qcnn?hl=en, Section 1.
+    """Creates circuit used in https://www.tensorflow.org/quantum/tutorials/qcnn?hl=en, Section 1.
+
     Args:
         n_qubit: number of qubits. must be even.
         seed: seed for random numbers. used for determining the interaction strength of the hamiltonian simulation
@@ -285,7 +288,7 @@ def create_qcnn_ansatz(n_qubit: int, seed: Optional[int] = 0) -> LearningCircuit
 
     circuit = LearningCircuit(n_qubit)
     for i in range(n_qubit):
-        circuit.add_input_RX_gate(i, lambda x: x)
+        circuit.add_input_RX_gate(i, lambda x: x[0])
 
     # cluster state
     for i in range(n_qubit):
@@ -297,10 +300,10 @@ def create_qcnn_ansatz(n_qubit: int, seed: Optional[int] = 0) -> LearningCircuit
 
     targets = []
 
-    def tree(ns: List[int]) -> dict:
+    def tree(ns: List[int]) -> Optional[dict]:
         n = len(ns)
         if n <= 0:
-            return
+            return None
         node = {}
         node["ns"] = ns
         left = tree(ns[: n // 2])

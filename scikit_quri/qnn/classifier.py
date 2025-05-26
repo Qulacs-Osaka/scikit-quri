@@ -4,13 +4,14 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import NDArray
-from quri_parts.algo.optimizer import Adam
+from quri_parts.algo.optimizer import Optimizer, Params, Adam
 from quri_parts.core.estimator import (
     ConcurrentQuantumEstimator,
     Estimatable,
     GradientEstimator,
 )
 from quri_parts.core.estimator.gradient import _ParametricStateT
+from quri_parts.core.state import ParametricCircuitQuantumState
 from quri_parts.algo.optimizer import OptimizerStatus
 from quri_parts.qulacs import QulacsStateT
 from scikit_quri.circuit import LearningCircuit
@@ -20,18 +21,60 @@ from sklearn.metrics import log_loss
 from quri_parts.core.state import quantum_state
 from quri_parts.core.operator import Operator, pauli_label
 from functools import partial
-# ! Will remove
+from typing_extensions import TypeAlias
+
+EstimatorType: TypeAlias = ConcurrentQuantumEstimator[QulacsStateT]
+GradientEstimatorType: TypeAlias = GradientEstimator[_ParametricStateT]
 
 
 @dataclass
 class QNNClassifier:
+    """Class to solve classification problems by quantum neural networks.
+    The prediction is made by making a vector which predicts one-hot encoding of labels.
+    The prediction is made by
+    1. taking expectation values of Pauli Z operator of each qubit ``<Z_i>``,
+    2. taking softmax function of the vector (``<Z_0>, <Z_1>, ..., <Z_{n-1}>``).
+
+    Args:
+        ansatz: Circuit to use in the learning.
+        num_class: The number of classes; the number of qubits to measure. must be n_qubits >= num_class .
+        estimator: Estimator to use. It must be a concurrent estimator.
+        gradient_estimator: Gradient estimator to use.
+        optimizer: Solver to use. use :py:class:`~quri_parts.algo.optimizer.Adam` or :py:class:`~quri_parts.algo.optimizer.LBFGS` method.
+
+    Example:
+        >>> from scikit_quri.qnn.classifier import QNNClassifier
+        >>> from scikit_quri.circuit import create_qcl_ansatz
+        >>> from quri_parts.core.estimator.gradient import (
+        >>>     create_numerical_gradient_estimator,
+        >>> )
+        >>> from quri_parts.qulacs.estimator import (
+        >>>     create_qulacs_vector_concurrent_estimator,
+        >>>     create_qulacs_vector_concurrent_parametric_estimator,
+        >>> )
+        >>> from quri_parts.algo.optimizer import Adam
+        >>> num_class = 3
+        >>> nqubit = 5
+        >>> c_depth = 3
+        >>> time_step = 0.5
+        >>> circuit = create_qcl_ansatz(nqubit, c_depth, time_step, 0)
+        >>> adam = Adam()
+        >>> estimator = create_qulacs_vector_concurrent_estimator()
+        >>> gradient_estimator = create_numerical_gradient_estimator(
+        >>>    create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
+        >>> )
+        >>> qnn = QNNClassifier(circuit, num_class, estimator, gradient_estimator, adam)
+        >>> qnn.fit(x_train, y_train, maxiter)
+        >>> y_pred = qnn.predict(x_test).argmax(axis=1)
+    """
+
     ansatz: LearningCircuit
     num_class: int
-    estimator: ConcurrentQuantumEstimator[QulacsStateT]
-    gradient_estimator: GradientEstimator[_ParametricStateT]
-    optimizer: Adam
+    estimator: EstimatorType
+    gradient_estimator: GradientEstimatorType
+    optimizer: Optimizer
 
-    operator: List[Estimatable] = field(default=None)
+    operator: List[Estimatable] = field(default_factory=list)
 
     x_norm_range: float = field(default=1.0)
     y_norm_range: float = field(default=0.7)
@@ -41,7 +84,7 @@ class QNNClassifier:
     n_outputs: int = field(default=1)
     y_exp_ratio: float = field(default=2.2)
 
-    trained_param: Sequence[float] = field(default=None)
+    trained_param: Optional[Params] = field(default=None)
 
     n_qubit: int = field(init=False)
 
@@ -56,7 +99,7 @@ class QNNClassifier:
                 feature_range=(-self.x_norm_range, self.x_norm_range)
             )
 
-    def softmax(self, x: NDArray[np.float64], axis=None) -> NDArray[np.float64]:
+    def _softmax(self, x: NDArray[np.float64], axis=None) -> NDArray[np.float64]:
         x_max = np.amax(x, axis=axis, keepdims=True)
         exp_x_shifted = np.exp(x - x_max)
         return exp_x_shifted / np.sum(exp_x_shifted, axis=axis, keepdims=True)
@@ -64,7 +107,7 @@ class QNNClassifier:
     def _cost(
         self,
         x_train: NDArray[np.float64],
-        y_train: NDArray[np.int_],
+        y_train: NDArray[np.int64],
         params: NDArray[np.float64],
     ):
         if x_train.ndim == 1:
@@ -81,9 +124,17 @@ class QNNClassifier:
     def fit(
         self,
         x_train: NDArray[np.float64],
-        y_train: NDArray[np.int_],
-        maxiter: Optional[int] = 100,
+        y_train: NDArray[np.int64],
+        maxiter: int = 100,
     ):
+        """
+        Args:
+            x_train: List of training data inputs whose shape is (n_samples, n_features).
+            y_train: List of labels to fit. Labels must be represented as integers. Shape is (n_samples,).
+            maxiter: The number of maximum iterations for the optimizer.
+        Returns:
+            None
+        """
         if x_train.ndim == 1:
             x_train = x_train.reshape(-1, 1)
 
@@ -106,10 +157,10 @@ class QNNClassifier:
         # print(f"{init_params=}")
         optimizer_state = self.optimizer.get_init_state(init_params)
 
-        # cost_func = lambda params: self.cost_func(x_scaled, y_train, params)
-        cost_func = partial(self.cost_func, x_scaled=x_scaled, y_train=y_train)
-        # grad_func = lambda params: self.cost_func_grad(x_scaled, y_train, params)
-        grad_func = partial(self.cost_func_grad, x_scaled=x_scaled, y_train=y_train)
+        cost_func = lambda params: self.cost_func(x_scaled, y_train, params)
+        # cost_func = partial(self.cost_func, x_scaled=x_scaled, y_train=y_train)
+        grad_func = lambda params: self.cost_func_grad(x_scaled, y_train, params)
+        # grad_func = partial(self.cost_func_grad, x_scaled=x_scaled, y_train=y_train)
         c = 0
         while maxiter > c:
             optimizer_state = self.optimizer.step(optimizer_state, cost_func, grad_func)
@@ -125,6 +176,13 @@ class QNNClassifier:
         self.trained_param = optimizer_state.params
 
     def predict(self, x_test: NDArray[np.float64]) -> NDArray[np.float64]:
+        """Predict outcome for each input data in ``x_test``. This method returns the predicted outcome as a vector of probabilities for each class.
+        Args:
+            x_test: Input data whose shape is ``(n_samples, n_features)``.
+        Returns:
+            y_pred: Predicted outcome whose shape is ``(n_samples, num_class)``.
+
+        """
         if self.trained_param is None:
             raise ValueError("Model is not trained.")
 
@@ -160,15 +218,16 @@ class QNNClassifier:
         # 入力ごとのcircuit_state生成
         for x in x_scaled:
             circuit_params = self.ansatz.generate_bound_params(x, params)
-            circuit_state = quantum_state(
+            param_circuit_state: ParametricCircuitQuantumState = quantum_state(
                 n_qubits=self.n_qubit, circuit=self.ansatz.circuit
-            ).bind_parameters(circuit_params)
+            )
+            circuit_state = param_circuit_state.bind_parameters(circuit_params)
             circuit_states.append(circuit_state)
 
         for i in range(self.num_class):
             # print("\r", f"pred_inner:{i}/{self.num_class}", end="")
             op = self.operator[i]
-            estimates = self.estimator(op, circuit_states)
+            estimates = self.estimator([op], circuit_states)
             estimates = [e.value.real * self.y_exp_ratio for e in estimates]
             res[:, i] = estimates.copy()
         self.predict_inner_cache[(x_scaled.tobytes(), params.tobytes())] = res
@@ -176,27 +235,24 @@ class QNNClassifier:
 
     def cost_func(
         self,
-        params: NDArray[np.float64],
         x_scaled: NDArray[np.float64],
-        y_train: NDArray[np.int_],
+        y_train: NDArray[np.int64],
+        params: NDArray[np.float64],
     ) -> float:
         y_pred = self._predict_inner(x_scaled, params)
         # Case of log_logg
         # softmax
-        y_pred_sm = self.softmax(y_pred, axis=1)
-        loss = log_loss(y_train, y_pred_sm)
+        y_pred_sm = self._softmax(y_pred, axis=1)
+        loss = float(log_loss(y_train, y_pred_sm))
         # print(f"{params[:4]=}")
         return loss
 
     def cost_func_grad(
-        self,
-        params: NDArray[np.float64],
-        x_scaled: NDArray[np.float64],
-        y_train: NDArray[np.float64],
-    ) -> float:
+        self, x_scaled: NDArray[np.float64], y_train: NDArray[np.int64], params: Params
+    ) -> NDArray[np.float64]:
         # start = time.perf_counter()
         y_pred = self._predict_inner(x_scaled, params)
-        y_pred_sm = self.softmax(y_pred, axis=1)
+        y_pred_sm = self._softmax(y_pred, axis=1)
         raw_grads = self._estimate_grad(x_scaled, params)
         # print(f"{raw_grads.shape=}")
         grads = np.zeros(self.ansatz.learning_params_count)

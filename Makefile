@@ -2,6 +2,8 @@ PYTEST := poetry run pytest
 FORMATTER := poetry run ruff format
 LINTER := poetry run ruff check
 TYPE_CHECKER := poetry run mypy
+SPHINX_APIDOC := poetry run sphinx-apidoc
+
 
 PROJECT_DIR := scikit_quri
 TEST_DIR := tests
@@ -43,3 +45,7 @@ cov_ci:
 .PHONY: serve_cov
 serve_cov: cov
 	poetry run python -m http.server --directory htmlcov $(PORT)
+
+.PHONY: html
+html:
+	poetry run $(MAKE) -C docs html

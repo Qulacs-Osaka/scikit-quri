@@ -1,7 +1,7 @@
 # mypy: ignore-errors
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Callable, List, Optional, Self, Tuple, Union
+from typing import Callable, List, Optional, Tuple, Union, Sequence
 
 import numpy as np
 from numpy.typing import NDArray
@@ -396,8 +396,10 @@ class LearningCircuit:
     #             parameter_index += 1
     #     return bound_parameters
 
-    def generate_bound_params(self, x: NDArray[np.float64], theta: NDArray[np.float64]):
-        bound_parameters = np.zeros(self.parameter_count)
+    def generate_bound_params(
+        self, x: NDArray[np.float64], theta: NDArray[np.float64]
+    ) -> Sequence[float]:
+        bound_parameters = [0.0 for _ in range(self.parameter_count)]
         # Learning parameters
         for param in self._learning_parameter_list:
             param_value = theta[param.parameter_id]
@@ -411,13 +413,14 @@ class LearningCircuit:
             # because input parameter is determined with the input data `x`.
             if param.companion_parameter_id is None:
                 # If `companion_parameter_id` is `None`, `func` does not need a learning parameter.
-                angle = param.func(x)
+                angle: float = param.func(x)
             else:
-                theta: _LearningParameter = self._learning_parameter_list[
+                l_theta: _LearningParameter = self._learning_parameter_list[
                     param.companion_parameter_id
                 ]
-                angle = param.func(theta.value, x)
-                theta.value = angle
+                angle = param.func(l_theta.value, x)
+                print(f"{angle=}")
+                l_theta.value = angle
             bound_parameters[param.pos] = angle
 
         return bound_parameters

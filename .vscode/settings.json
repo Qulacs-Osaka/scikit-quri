@@ -1,7 +1,9 @@
 {
     "cSpell.words": [
-        "cdist",
-        "tsne"
+      "cdist",
+      "quri",
+      "scikit",
+      "tsne"
     ],
     "[python]": {
     "editor.formatOnSave": true,
