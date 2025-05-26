@@ -14,7 +14,8 @@ cd scikit-quri
 poetry install
 ```
 # Documentation
-[Samples](https://github.com/Qulacs-Osaka/scikit-quri/tree/main/samples)
+API Documentation: [scikit-quri documentation](https://qulacs-osaka.github.io/scikit-quri/)  
+[Sample notebooks](https://github.com/Qulacs-Osaka/scikit-quri/tree/main/samples)
 
 # Sample Code
 ```python
