@@ -29,8 +29,7 @@ class QKRR:
 
     def run_circuit(self, x: NDArray[np.float64]):
         # ここにはparametrizeされたcircuitは入ってこないはず...
-        # circuit = self.circuit.bind_input_and_parameters(x,[])
-        circuit = self.circuit.bind_input_and_parameters(x, [])
+        circuit = self.circuit.bind_input_and_parameters(x, np.array([]))
         state = quantum_state(n_qubits=self.n_qubit, circuit=circuit)
         return state
 
@@ -80,6 +79,9 @@ class QKRR:
         :param xs: inputs to make predictions
         :return: List[int], predicted values of y
         """
+        if self.kernel_ridge_tuned is None:
+            raise ValueError("run fit() before predict")
+
         kar = np.zeros((len(xs), len(self.data_states)))
         new_status = []
         for i in range(len(xs)):
@@ -90,5 +92,5 @@ class QKRR:
         for i in range(len(xs)):
             for j in range(len(self.data_states)):
                 kar[i][j] = self.estimator.estimate(offset + i, j)
-        prid: NDArray[np.float64] = self.kernel_ridge_tuned.predict(kar)
-        return prid
+        pred: NDArray[np.float64] = self.kernel_ridge_tuned.predict(kar)
+        return pred

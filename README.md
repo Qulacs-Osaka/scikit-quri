@@ -3,7 +3,7 @@ scikit-quri is a library for quantum neural network. This library is based on [q
 
 # Requirements
 - pip
-- Python >= 3.9
+- Python >= 3.10
 
 # Installation
 ### Build from Source

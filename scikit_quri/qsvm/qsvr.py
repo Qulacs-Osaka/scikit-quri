@@ -18,11 +18,11 @@ class QSVR:
 
     def run_circuit(self, x: NDArray[np.float64]):
         # ここにはparametrizeされたcircuitは入ってこないはず...
-        circuit = self.circuit.bind_input_and_parameters(x, [])
+        circuit = self.circuit.bind_input_and_parameters(x, np.array([]))
         state = quantum_state(n_qubits=self.n_qubit, circuit=circuit)
         return state
 
-    def fit(self, x: NDArray[np.float64], y: NDArray[np.int_]):
+    def fit(self, x: NDArray[np.float64], y: NDArray[np.float64]):
         # self.n_qubit = len(x[0])
         kar = np.zeros((len(x), len(x)))
         for i in range(len(x)):

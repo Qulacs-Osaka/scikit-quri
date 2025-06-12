@@ -1,14 +1,26 @@
-# mypy: ignore-errors
-from typing import List
+from typing import List, Optional, TypeGuard
 
 import numpy as np
 from numpy.typing import NDArray
 from ..circuit import LearningCircuit
 from sklearn import svm
-from quri_parts.core.state import QuantumState, quantum_state
+from quri_parts.core.state import (
+    QuantumState,
+    quantum_state,
+    ParametricCircuitQuantumState,
+    GeneralCircuitQuantumState,
+)
 from quri_parts.circuit import QuantumCircuit
+from quri_parts.backend import SamplingBackend
 from ..state.overlap_estimator import overlap_estimator
 from ..state.overlap_estimator_real_device import overlap_estimator_real_device
+
+
+# sampling_backendのTypeGuardを定義
+def is_real_device(
+    sampling_backend: Optional[SamplingBackend], is_sim: bool
+) -> TypeGuard[SamplingBackend]:
+    return not is_sim
 
 
 class QSVC:
@@ -23,9 +35,9 @@ class QSVC:
         self.is_sim = sim
         self.estimator = None
 
-    def run_circuit(self, x: NDArray[np.float64]):
+    def run_circuit(self, x: NDArray[np.float64]) -> GeneralCircuitQuantumState:
         # ここにはparametrizeされたcircuitは入ってこないはず...
-        circuit = self.circuit.bind_input_and_parameters(x, [])
+        circuit = self.circuit.bind_input_and_parameters(x, np.array([]))
         state = quantum_state(n_qubits=self.n_qubit, circuit=circuit)
         return state
 
@@ -33,10 +45,9 @@ class QSVC:
         self,
         x: NDArray[np.float64],
         y: NDArray[np.int_],
-        sampling_backend=None,
+        sampling_backend: Optional[SamplingBackend] = None,
         n_shots: int = 1000,
     ):
-        # self.n_qubit = len(x[0])
         if not self.is_sim and sampling_backend is None:
             raise ValueError("sampling_backend is required for real devices")
 
@@ -45,12 +56,14 @@ class QSVC:
             state = self.run_circuit(x[i])
             self.data_states.append(state)
             self.data_circuits.append(state.circuit.get_mutable_copy())
-        if self.is_sim:
-            self.estimator = overlap_estimator(self.data_states.copy())
-        else:
+
+        if is_real_device(sampling_backend, self.is_sim):
             self.estimator = overlap_estimator_real_device(
                 self.data_circuits.copy(), sampling_backend, n_shots
             )
+        else:
+            self.estimator = overlap_estimator(self.data_states.copy())
+
         for i in range(len(x)):
             for j in range(len(x)):
                 kar[i][j] = self.estimator.estimate(i, j)

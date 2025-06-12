@@ -13,4 +13,5 @@
       "source.organizeImports": "explicit"
     }
   },
+  "makefile.configureOnOpen": false,
 }
