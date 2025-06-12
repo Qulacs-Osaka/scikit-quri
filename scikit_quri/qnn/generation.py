@@ -45,14 +45,19 @@ class QNNGenerator:
 
         self.observables = [pauli_label(f"Z{i}") for i in range(self.n_qubit)]
 
-    def fit(self, train_data: NDArray[np.float64], maxiter: Optional[int] = None):
+    def fit(self, train_data: NDArray[np.float64], maxiter: int = 100):
+        """
+        Params:
+            train_data: The training data to be used for fitting.
+            maxiter: The maximum number of iterations for the optimizer. Default is 100.
+        """
         train_scaled = np.zeros(2**self.fitting_qubit)
         for i in train_data:
             train_scaled[i] += 1 / len(train_data)
         return self.fit_direct_distribution(train_scaled, maxiter)
 
     def fit_direct_distribution(
-        self, train_scaled: NDArray[np.float64], maxiter: Optional[int] = None
+        self, train_scaled: NDArray[np.float64], maxiter: int
     ) -> Tuple[float, List[float]]:
         theta_init = 2 * np.pi * np.random.random(self.circuit.learning_params_count)
         optimizer_state = self.solver.get_init_state(theta_init)
@@ -100,7 +105,7 @@ class QNNGenerator:
         return (data_per, state)
 
     def _predict_inner(self) -> QuantumState:
-        circuit = self.circuit.bind_input_and_parameters([0], self.theta)
+        circuit = self.circuit.bind_input_and_parameters(np.array([0]), np.array(self.theta))
         state = quantum_state(n_qubits=self.n_qubit, circuit=circuit)
         return state
 

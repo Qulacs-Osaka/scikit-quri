@@ -50,7 +50,7 @@ def create_qcl_ansatz(
 
 
 def _create_time_evol_gate(
-    n_qubit, time_step=0.77, rng: Generator = None, seed: Optional[int] = 0
+    n_qubit, time_step=0.77, rng: Optional[Generator] = None, seed: Optional[int] = 0
 ) -> QuantumGate:
     """create a hamiltonian dynamics with transverse field ising model with random interaction and random magnetic field
 
@@ -83,7 +83,7 @@ def _create_time_evol_gate(
     return time_evol_gate
 
 
-def _make_hamiltonian(n_qubit, rng: Generator = None, seed: Optional[int] = 0):
+def _make_hamiltonian(n_qubit, rng: Optional[Generator] = None, seed: Optional[int] = 0):
     if rng is None:
         rng = default_rng(seed)
     X_mat = np.array([[0, 1], [1, 0]])

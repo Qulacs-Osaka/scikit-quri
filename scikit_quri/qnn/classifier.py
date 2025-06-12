@@ -11,16 +11,15 @@ from quri_parts.core.estimator import (
     GradientEstimator,
 )
 from quri_parts.core.estimator.gradient import _ParametricStateT
-from quri_parts.core.state import ParametricCircuitQuantumState
+from quri_parts.core.state import ParametricCircuitQuantumState, quantum_state
 from quri_parts.algo.optimizer import OptimizerStatus
 from quri_parts.qulacs import QulacsStateT
 from scikit_quri.circuit import LearningCircuit
 from typing import List, Optional, Dict, Tuple
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import log_loss
-from quri_parts.core.state import quantum_state
 from quri_parts.core.operator import Operator, pauli_label
-from functools import partial
+from quri_parts.circuit import ParametricQuantumCircuitProtocol
 from typing_extensions import TypeAlias
 
 EstimatorType: TypeAlias = ConcurrentQuantumEstimator[QulacsStateT]
@@ -96,7 +95,7 @@ class QNNClassifier:
         self.n_qubit = self.ansatz.n_qubits
         if self.do_x_scale:
             self.scale_x_scaler = MinMaxScaler(
-                feature_range=(-self.x_norm_range, self.x_norm_range)
+                feature_range=(-self.x_norm_range, self.x_norm_range)  # type: ignore
             )
 
     def _softmax(self, x: NDArray[np.float64], axis=None) -> NDArray[np.float64]:
@@ -218,8 +217,10 @@ class QNNClassifier:
         # 入力ごとのcircuit_state生成
         for x in x_scaled:
             circuit_params = self.ansatz.generate_bound_params(x, params)
-            param_circuit_state: ParametricCircuitQuantumState = quantum_state(
-                n_qubits=self.n_qubit, circuit=self.ansatz.circuit
+            circuit: ParametricQuantumCircuitProtocol = self.ansatz.circuit
+            # !overrideがやばすぎてType Annotationが通らない
+            param_circuit_state: ParametricCircuitQuantumState = quantum_state(  # type: ignore
+                n_qubits=self.n_qubit, circuit=circuit
             )
             circuit_state = param_circuit_state.bind_parameters(circuit_params)
             circuit_states.append(circuit_state)

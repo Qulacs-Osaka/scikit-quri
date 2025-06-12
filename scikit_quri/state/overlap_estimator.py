@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Sequence
 from quri_parts.core.state import GeneralCircuitQuantumState, QuantumState
 import numpy as np
 from numpy.typing import NDArray
@@ -18,7 +18,7 @@ class overlap_estimator:
     (n_data:500のとき,x60 faster)
     """
 
-    def __init__(self, states: List[GeneralCircuitQuantumState]):
+    def __init__(self, states: List[QuantumState]):
         """
         Args:
             states (List[GeneralCircuitQuantumState]): 量子状態のリスト

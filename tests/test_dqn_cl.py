@@ -2,6 +2,7 @@ import csv
 from typing import Tuple
 
 import numpy as np
+from numpy.typing import NDArray
 from qulacs import Observable
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
@@ -28,7 +29,7 @@ locality = 2
 
 def load_dataset(
     file_path: str, ignore_kind: int, test_ratio: float
-) -> Tuple[np.array, np.array, np.array, np.array]:
+) -> Tuple[NDArray[np.float64], NDArray[np.float64], NDArray[np.int64], NDArray[np.int64]]:
     """Load dataset from specified path.
 
     Args:
