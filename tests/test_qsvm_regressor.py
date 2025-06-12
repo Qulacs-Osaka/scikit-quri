@@ -15,7 +15,9 @@ def func_to_learn(x) -> float:
     return np.sin(x[0] * x[1] * 2)
 
 
-def generate_noisy_sine(x_min: float, x_max: float, num_x: int) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
+def generate_noisy_sine(
+    x_min: float, x_max: float, num_x: int
+) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     seed = 0
     random.seed(seed)
     random_state = RandomState(seed)
