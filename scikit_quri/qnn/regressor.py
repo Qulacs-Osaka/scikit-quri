@@ -22,28 +22,28 @@ from scikit_quri.circuit import LearningCircuit
 from typing import List, Optional
 
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.metrics import mean_squared_error
+# from sklearn.metrics import mean_squared_error
 
 from typing_extensions import TypeAlias
 
 EstimatorType: TypeAlias = ConcurrentQuantumEstimator[QulacsStateT]
 GradientEstimatorType: TypeAlias = GradientEstimator[_ParametricStateT]
-# class mimMaxScaler:
-#     def __init__(self,feature_range:tuple[int,int]=(0, 1)):
-#         self.feature_range = feature_range
 
-#     def fit(self,X:NDArray[np.float64]):
-#         self.data_min = X.min(axis=0)
-#         self.data_max = X.max(axis=0)
 
-#     def transform(self,X:NDArray[np.float64]):
-#         X_std = (X - self.data_min) / (self.data_max - self.data_min)
-#         X_scaled = X_std * (self.feature_range[1] - self.feature_range[0]) + self.feature_range[0]
-#         return X_scaled
+def mean_squared_error(y_true: NDArray[np.float64], y_pred: NDArray[np.float64]) -> float:
+    """
+    Calculate the mean squared error between true and predicted values.
 
-#     def fit_transform(self,X:NDArray[np.float64]):
-#         self.fit(X)
-#         return self.transform(X)
+    Parameters:
+        y_true: True values.
+        y_pred: Predicted values.
+
+    Returns:
+        mse: Mean squared error.
+    """
+    if y_true.shape != y_pred.shape:
+        raise ValueError("Shapes of y_true and y_pred must match.")
+    return float(np.mean((y_true - y_pred) ** 2))
 
 
 @dataclass
@@ -102,11 +102,11 @@ class QNNRegressor:
         self.n_qubit = self.ansatz.n_qubits
         if self.do_x_scale:
             self.scale_x_scaler = MinMaxScaler(
-                feature_range=(-self.x_norm_range, self.x_norm_range)
+                feature_range=(-self.x_norm_range, self.x_norm_range)  # type: ignore
             )
         if self.do_y_scale:
             self.scale_y_scaler = MinMaxScaler(
-                feature_range=(-self.y_norm_range, self.y_norm_range)
+                feature_range=(-self.y_norm_range, self.y_norm_range)  # type: ignore
             )
 
     def fit(self, x_train: NDArray[np.float64], y_train: NDArray[np.float64], maxiter=20) -> None:
@@ -266,15 +266,15 @@ class QNNRegressor:
         for x in x_scaled:
             circuit_params = self.ansatz.generate_bound_params(x, params)
             circuit = quantum_state(n_qubits=self.n_qubit, circuit=self.ansatz.circuit)
-            _grad = np.zeros((self.n_outputs, len(learning_params_indexes)), dtype=np.float64)
+            grad = np.zeros((self.n_outputs, len(learning_params_indexes)), dtype=np.float64)
             # obsのi qubitにx[i]が対応
 
             for i, operator in enumerate(self.operator):
                 # concurrentにgradientを計算
                 estimate = self.gradient_estimator(operator, circuit, circuit_params)
-                _grad[i, :] = np.array(estimate.values)[learning_params_indexes].real
-            # input用のparamsを取り除く
-            grads.append(_grad)
+                _grad: NDArray[np.complex64] = np.array(estimate.values)[learning_params_indexes]
+                grad[i, :] = _grad.real
+            grads.append(grad)
         # return grads / len(x_scaled)
         return np.asarray(grads)
 
@@ -293,7 +293,8 @@ class QNNRegressor:
 
         for x in x_scaled:
             circuit_params = self.ansatz.generate_bound_params(x, params)
-            param_circuit_state: ParametricCircuitQuantumState = quantum_state(
+            # Classifier参照
+            param_circuit_state: ParametricCircuitQuantumState = quantum_state(  # type: ignore
                 n_qubits=self.n_qubit, circuit=self.ansatz.circuit
             )
             circuit_state = param_circuit_state.bind_parameters(circuit_params)
