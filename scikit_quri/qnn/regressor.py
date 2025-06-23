@@ -1,22 +1,19 @@
 # mypy: ignore-errors
-from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import NDArray
 from quri_parts.algo.optimizer import Optimizer, Params
 from quri_parts.core.estimator import (
-    ConcurrentParametricQuantumEstimator,
     Estimatable,
     GradientEstimator,
     ConcurrentQuantumEstimator,
 )
-from quri_parts.circuit import ParametricQuantumCircuitProtocol
 from quri_parts.core.state import ParametricCircuitQuantumState
 from quri_parts.core.estimator.gradient import _ParametricStateT
 from quri_parts.algo.optimizer import OptimizerStatus
 from quri_parts.core.state import quantum_state
-from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
+from quri_parts.qulacs import QulacsStateT
 from quri_parts.core.operator import Operator, pauli_label
 from scikit_quri.circuit import LearningCircuit
 from typing import List, Optional

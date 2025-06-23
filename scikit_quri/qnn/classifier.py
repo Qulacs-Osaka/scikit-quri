@@ -1,10 +1,9 @@
 # mypy: ignore-errors
-from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import NDArray
-from quri_parts.algo.optimizer import Optimizer, Params, Adam
+from quri_parts.algo.optimizer import Optimizer, Params
 from quri_parts.core.estimator import (
     ConcurrentQuantumEstimator,
     Estimatable,

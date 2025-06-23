@@ -1,5 +1,5 @@
 # mypy: ignore-errors
-from typing import Callable, overload, List
+from typing import Callable, List
 from ..circuit.circuit import LearningCircuit
 from numpy.typing import NDArray
 import numpy as np

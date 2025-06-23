@@ -1,6 +1,6 @@
 # mypy: ignore-errors
 from functools import partial
-from typing import List, Literal, Optional, Tuple
+from typing import List, Literal, Tuple
 
 import numpy as np
 from numpy.typing import NDArray

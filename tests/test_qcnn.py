@@ -14,7 +14,6 @@ from quri_parts.qulacs.estimator import (
 from quri_parts.core.estimator.gradient import (
     create_numerical_gradient_estimator,
 )
-from quri_parts.core.operator import Operator, pauli_label
 
 
 def generate_data(bits: int, random_seed: int = 0):

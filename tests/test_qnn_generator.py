@@ -77,7 +77,7 @@ def test_bar_stripe():
     n_qubit = 9
     depth = 22
     circuit = create_farhi_neven_ansatz(n_qubit, depth)
-    qnn = QNNGenerator(circuit, "same", 0, 9)
+    qnn = QNNGenerator(circuit, LBFGS(), "same", 0, 9)
 
     prob_list = np.zeros(512)
     for i in range(8):
@@ -110,7 +110,7 @@ def test_bar_stripe_hamming():
     n_qubit = 9
     depth = 13
     circuit = create_farhi_neven_ansatz(n_qubit, depth)
-    qnn = QNNGenerator(circuit, "exp_hamming", 0.07, 9)
+    qnn = QNNGenerator(circuit, LBFGS(), "exp_hamming", 0.07, 9)
 
     prob_list = np.zeros(512)
     for i in range(8):

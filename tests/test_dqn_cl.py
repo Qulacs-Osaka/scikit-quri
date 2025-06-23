@@ -3,7 +3,6 @@ from typing import Tuple
 
 import numpy as np
 from numpy.typing import NDArray
-from qulacs import Observable
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
 
@@ -22,7 +21,7 @@ from quri_parts.core.operator import Operator, pauli_label
 from scikit_quri.circuit import LearningCircuit
 
 # This script aims to reproduce Ⅳ.B Binary classification in https://arxiv.org/pdf/2112.15002.pdf.
-from typing import List, Optional, Dict, Tuple
+from typing import List
 
 locality = 2
 

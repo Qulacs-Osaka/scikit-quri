@@ -1,2 +1,2 @@
-from .qsvc import QSVC
-from .qsvr import QSVR
+from .qsvc import QSVC as QSVC
+from .qsvr import QSVR as QSVR

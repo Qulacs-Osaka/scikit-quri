@@ -1,1 +1,1 @@
-from .qkrr import QKRR
+from .qkrr import QKRR as QKRR

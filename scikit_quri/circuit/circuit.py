@@ -33,7 +33,7 @@ InputFuncWithParam = Callable[[float, NDArray[np.float64]], float]
 @dataclass
 class _PositionDetail:
     """Manage a parameter of `ParametricQuantumCircuit.positions_in_circuit`.
-    This class manages indexe and coefficients (optional) of gate.
+    This class manages indexes and coefficients (optional) of gate.
     Args:
         gate_pos: Indices of a parameter in LearningCircuit._circuit.
         coef: Coefficient of a parameter in LearningCircuit._circuit. It's a optional.
@@ -83,7 +83,7 @@ class _LearningParameter:
         positions_in_circuit: Indices and coefficient of a parameter in LearningCircuit._circuit.
         parameter_id: Index at array of learning parameter(theta).
         value: Current `parameter_id`-th parameter of LearningCircuit._circuit.
-        is_input: Whethter this parameter is used with a input parameter.
+        is_input: Whether this parameter is used with a input parameter.
     """
 
     positions_in_circuit: List[_PositionDetail]
@@ -385,7 +385,7 @@ class LearningCircuit:
                 # If `companion_parameter_id` is `None`, `func` does not need a learning parameter.
                 angle: float = param.func(x)
             elif not_needed_learning_parameter_guard(param.func, param.companion_parameter_id):
-                # companion_paramter_idの型を補完するために設置
+                # companion_parameter_idの型を補完するために設置
                 if param.companion_parameter_id is None:
                     # * unreachable
                     continue

@@ -14,7 +14,6 @@ from quri_parts.qulacs.estimator import (
 from quri_parts.core.estimator.gradient import (
     create_numerical_gradient_estimator,
 )
-from quri_parts.core.operator import Operator, pauli_label
 
 
 @pytest.mark.parametrize(("solver", "maxiter"), [(Adam(ftol=1e-2), 777), (LBFGS(), 8)])

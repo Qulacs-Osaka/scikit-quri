@@ -7,7 +7,6 @@ from sklearn import svm
 from quri_parts.core.state import (
     QuantumState,
     quantum_state,
-    ParametricCircuitQuantumState,
     GeneralCircuitQuantumState,
 )
 from quri_parts.circuit import QuantumCircuit

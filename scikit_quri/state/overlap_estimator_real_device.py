@@ -1,9 +1,6 @@
 from typing import List
-from quri_parts.core.state import GeneralCircuitQuantumState, quantum_state
 from quri_parts.circuit import QuantumCircuit
-import numpy as np
-from quri_parts.core.state import GeneralCircuitQuantumState
-from quri_parts.circuit.inverse import inverse_circuit, inverse_gate
+from quri_parts.circuit.inverse import inverse_circuit
 from quri_parts.backend import SamplingBackend
 from quri_parts.core.sampling import create_sampler_from_sampling_backend
 
