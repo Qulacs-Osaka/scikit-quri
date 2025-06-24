@@ -1,5 +1,6 @@
 # mypy: ignore-errors
 from dataclasses import dataclass, field
+import cProfile
 
 import numpy as np
 from numpy.typing import NDArray
@@ -9,10 +10,14 @@ from quri_parts.core.estimator import (
     Estimatable,
     GradientEstimator,
 )
+from quri_parts.qulacs.circuit.compiled_circuit import (
+    _QulacsCircuit,
+)
 from quri_parts.core.estimator.gradient import _ParametricStateT
-from quri_parts.core.state import ParametricCircuitQuantumState, quantum_state
+from quri_parts.core.state import ParametricCircuitQuantumState, quantum_state, GeneralCircuitQuantumState
 from quri_parts.algo.optimizer import OptimizerStatus
 from quri_parts.qulacs import QulacsStateT
+from quri_parts.qulacs.circuit.compiled_circuit import compile_circuit
 from scikit_quri.circuit import LearningCircuit
 from typing import List, Optional, Dict, Tuple
 from sklearn.preprocessing import MinMaxScaler
@@ -23,7 +28,23 @@ from typing_extensions import TypeAlias
 
 EstimatorType: TypeAlias = ConcurrentQuantumEstimator[QulacsStateT]
 GradientEstimatorType: TypeAlias = GradientEstimator[_ParametricStateT]
+# ===================
+import cProfile
+import pstats
 
+
+def profile(func):
+    def _f(*args, **kwargs):
+        pr = cProfile.Profile()
+        pr.enable()
+        print("\n<<<---")
+        res = func(*args, **kwargs)
+        p = pstats.Stats(pr)
+        p.strip_dirs().sort_stats('cumtime').print_stats(20)
+        print("\n--->>>")
+        return res
+    return _f
+# =======================
 
 @dataclass
 class QNNClassifier:
@@ -119,6 +140,7 @@ class QNNClassifier:
         cost = self.cost_func(x_scaled, y_train, params)
         return cost
 
+    @profile
     def fit(
         self,
         x_train: NDArray[np.float64],
@@ -215,15 +237,11 @@ class QNNClassifier:
         circuit_states = []
         # 入力ごとのcircuit_state生成
         for x in x_scaled:
-            circuit_params = self.ansatz.generate_bound_params(x, params)
-            circuit: ParametricQuantumCircuitProtocol = self.ansatz.circuit
-            # !overrideがやばすぎてType Annotationが通らない
-            param_circuit_state: ParametricCircuitQuantumState = quantum_state(  # type: ignore
-                n_qubits=self.n_qubit, circuit=circuit
-            )
-            circuit_state = param_circuit_state.bind_parameters(circuit_params)
-            circuit_states.append(circuit_state)
-
+            binded_circuit = self.ansatz.bind_input_and_parameters(x, params)
+            qulacs_circuit = compile_circuit(binded_circuit)
+            qulacs_state = GeneralCircuitQuantumState(
+                n_qubits=self.n_qubit, circuit=qulacs_circuit)
+            circuit_states.append(qulacs_state)
         for i in range(self.num_class):
             # print("\r", f"pred_inner:{i}/{self.num_class}", end="")
             op = self.operator[i]
@@ -231,6 +249,8 @@ class QNNClassifier:
             estimates = [e.value.real * self.y_exp_ratio for e in estimates]
             res[:, i] = estimates.copy()
         self.predict_inner_cache[(x_scaled.tobytes(), params.tobytes())] = res
+        # profiler.disable()
+        # profiler.print_stats(sort="time")
         return res
 
     def cost_func(
@@ -285,3 +305,4 @@ class QNNClassifier:
                 _grads.append([g.real for g in grad])
             grads.append(_grads)
         return np.asarray(grads)
+
