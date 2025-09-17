@@ -21,6 +21,7 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.9.8,<3.12"
 quri-parts = {version = "^0.22.0", extras = ["qulacs"]}
+quri-parts-oqtopus = "^1.0.0"
 scikit-learn = "^1.4.0"
 matplotlib = "^3.8.4"
 pandas = "^2.2.3"
