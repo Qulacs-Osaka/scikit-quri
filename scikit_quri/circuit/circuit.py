@@ -495,7 +495,8 @@ class LearningCircuit:
             gate = parametric_gates[i]
             axis = self.get_axis_from_name(gate.name)
 
-            observable = self.calc_gradient_observable(axis, i, operator)
+            index = gate.target_indices[0]
+            observable = self.calc_gradient_observable(axis, index, operator)
 
             # Run estimation job with Oqtopus backend
             job = backend.estimate(
