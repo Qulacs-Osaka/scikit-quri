@@ -10,10 +10,11 @@ test_case_enable = [
     False,
     False,
     False,
-    True,
+    False,
+    False,
 ]
 
-enable_oqtopus = True
+enable_oqtopus = False
 
 
 # //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
@@ -194,7 +195,7 @@ print()
 # p_RX(1, pi/2) p_RY(1, pi/2) p_RZ(1, pi/2)
 # p_RX(2, pi/2) p_RY(2, pi/2) p_RZ(2, pi/2)
 # Observable: X0 + Y1 + Z2
-# expected =
+# expected = [0.0, 0.0, 0.0, -1.0, -0.0, -1.0, 0.0, 0.0, 0.0]
 
 print("Case 4")
 if test_case_enable[3]:
@@ -239,6 +240,119 @@ if test_case_enable[3]:
     # //〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
     # OQTOPUS device
     if enable_oqtopus:
+        pass
+        # circuit = LearningCircuit(n_qubits)
+        # circuit.add_parametric_RX_gate(0)
+        # circuit.add_parametric_RY_gate(0)
+        # circuit.add_parametric_RZ_gate(0)
+        # circuit.add_parametric_RX_gate(1)
+        # circuit.add_parametric_RY_gate(1)
+        # circuit.add_parametric_RZ_gate(1)
+        # circuit.add_parametric_RX_gate(2)
+        # circuit.add_parametric_RY_gate(2)
+        # circuit.add_parametric_RZ_gate(2)
+
+        # x = np.array([])
+        # operator = Operator(
+        #     {
+        #         pauli_label("X0"): 1.0,
+        #         pauli_label("Y1"): 1.0,
+        #         pauli_label("Z2"): 1.0,
+        #     }
+        # )
+
+        # ans = circuit.backprop(x, params, operator, shots=2024)
+        # print("OQTOPUS device:", array_f4(ans))
+
+print()
+
+# //ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+# 18 qubit
+# p_RX(0, pi/2) p_RY(0, pi/2) p_RZ(0, pi/2)
+# p_RX(1, pi/2) p_RZ(1, pi/2) p_RY(1, pi/2)
+# p_RY(2, pi/2) p_RZ(2, pi/2) p_RX(2, pi/2)
+# p_RY(3, pi/2) p_RX(3, pi/2) p_RZ(3, pi/2)
+# p_RZ(4, pi/2) p_RX(4, pi/2) p_RY(4, pi/2)
+# p_RZ(5, pi/2) p_RY(5, pi/2) p_RX(5, pi/2)
+#
+# p_RX(6, pi/2) p_RY(6, pi/2) p_RZ(6, pi/2)
+# p_RX(7, pi/2) p_RZ(7, pi/2) p_RY(7, pi/2)
+# p_RY(8, pi/2) p_RZ(8, pi/2) p_RX(8, pi/2)
+# p_RY(9, pi/2) p_RX(9, pi/2) p_RZ(9, pi/2)
+# p_RZ(10, pi/2) p_RX(10, pi/2) p_RY(10, pi/2)
+# p_RZ(11, pi/2) p_RY(11, pi/2) p_RX(11, pi/2)
+#
+# p_RX(12, pi/2) p_RY(12, pi/2) p_RZ(12, pi/2)
+# p_RX(13, pi/2) p_RZ(13, pi/2 ) p_RY(13, pi/2)
+# p_RY(14, pi/2) p_RZ(14, pi/2) p_RX(14, pi/2)
+# p_RY(15, pi/2) p_RX(15, pi/2) p_RZ(15, pi/2)
+# p_RZ(16, pi/2) p_RX(16, pi/2) p_RY(16, pi/2)
+# p_RZ(17, pi/2) p_RY(17, pi/2) p_RX(17, pi/2)
+#
+# Observable: X0 + X1 + X2 + X3 + X4 + X5 +
+#             Y6 + Y7 + Y8 + Y9 + Y10 + Y11 +
+#             Z12 + Z13 + Z14 + Z15 + Z16 + Z17
+
+print("Case 5")
+if test_case_enable[4]:
+    n_qubits = 18
+    params = np.array([pi / 2] * 54)
+
+    # //〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
+    # Simulator
+    c = ParametricQuantumCircuit(n_qubits)
+
+    for i in range(3):
+        c.add_parametric_RX_gate(i, params[i * 3 + 0])
+        c.add_parametric_RY_gate(i, params[i * 3 + 1])
+        c.add_parametric_RZ_gate(i, params[i * 3 + 2])
+        #
+        c.add_parametric_RX_gate(i, params[i * 3 + 3])
+        c.add_parametric_RZ_gate(i, params[i * 3 + 4])
+        c.add_parametric_RY_gate(i, params[i * 3 + 5])
+        #
+        c.add_parametric_RY_gate(i, params[i * 3 + 6])
+        c.add_parametric_RZ_gate(i, params[i * 3 + 7])
+        c.add_parametric_RX_gate(i, params[i * 3 + 8])
+        #
+        c.add_parametric_RY_gate(i, params[i * 3 + 9])
+        c.add_parametric_RX_gate(i, params[i * 3 + 10])
+        c.add_parametric_RZ_gate(i, params[i * 3 + 11])
+        #
+        c.add_parametric_RZ_gate(i, params[i * 3 + 12])
+        c.add_parametric_RX_gate(i, params[i * 3 + 13])
+        c.add_parametric_RY_gate(i, params[i * 3 + 14])
+        #
+        c.add_parametric_RZ_gate(i, params[i * 3 + 15])
+        c.add_parametric_RY_gate(i, params[i * 3 + 16])
+        c.add_parametric_RX_gate(i, params[i * 3 + 17])
+
+    obs = Observable(n_qubits)
+    for i in range(6):
+        obs.add_operator(1.0, f"X {i}")
+    for i in range(6, 12):
+        obs.add_operator(1.0, f"Y {i}")
+    for i in range(12, 18):
+        obs.add_operator(1.0, f"Z {i}")
+
+    print(obs)
+
+    ans = c.backprop(obs)
+
+    # print("Simulator:", array_f4(ans))
+    ans_f4 = array_f4(ans)
+    print(ans_f4[0:17])
+    print(ans_f4[18:35])
+    print(ans_f4[36:53])
+    # ans_f4_reshaped = np.array(ans_f4).reshape(-1, 3)
+    # for i in range(len(ans_f4_reshaped)):
+    #     print(f"{ans_f4_reshaped[i]}")
+    #     if i % 6 == 5:
+    #         print()
+
+    # //〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
+    # OQTOPUS device
+    if enable_oqtopus:
         circuit = LearningCircuit(n_qubits)
         circuit.add_parametric_RX_gate(0)
         circuit.add_parametric_RY_gate(0)
@@ -263,3 +377,23 @@ if test_case_enable[3]:
         print("OQTOPUS device:", array_f4(ans))
 
 print()
+
+
+# //ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+
+c = ParametricQuantumCircuit(1)
+c.add_parametric_RX_gate(0, pi / 2)
+c.add_parametric_RY_gate(0, pi / 2)
+c.add_parametric_RZ_gate(0, pi / 2)
+
+# op = Observable(1)
+# op.add_operator(1.0, "X 0")
+# print(array_f4(c.backprop(op)))
+
+# op = Observable(1)
+# op.add_operator(1.0, "Y 0")
+# print(array_f4(c.backprop(op)))
+
+op = Observable(1)
+op.add_operator(1.0, "Z 0")
+print(array_f4(c.backprop(op)))
