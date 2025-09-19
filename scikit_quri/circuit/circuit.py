@@ -9,6 +9,7 @@ from quri_parts.backend import SamplingBackend, SamplingCounts, SamplingJob, Sam
 from quri_parts.circuit import (
     Parameter,
     ParametricQuantumGate,
+    QuantumCircuit,
     QuantumGate,
     UnboundParametricQuantumCircuit,
 )
@@ -423,10 +424,11 @@ class LearningCircuit:
     def calc_gradient_observable(
         self,
         generator: _Axis,
-        index: int,
+        qubit_index: int,
         hamiltonian: Operator,
     ) -> Operator:
         """Calculate the gradient observable.
+        O_j = i[G_j, H]
 
         Args:
             generator (_Axis): The axis of the generator.
@@ -437,12 +439,12 @@ class LearningCircuit:
             Operator: The gradient observable operator.
         """
         simbol = {_Axis.X: "X", _Axis.Y: "Y", _Axis.Z: "Z"}[generator]
-        generator_operator = Operator({pauli_label(f"{simbol}{index}"): 0.5})
+        generator_operator = Operator({pauli_label(f"{simbol}{qubit_index}"): 0.5})
         observable = 1j * commutator(generator_operator, hamiltonian)
         return observable
 
-    def get_axis_from_name(self, name: str) -> _Axis:
-        match name:
+    def get_gate_axis(self, gate: QuantumGate) -> _Axis:
+        match gate.name:
             case "ParametricRX":
                 return _Axis.X
             case "ParametricRY":
@@ -450,7 +452,7 @@ class LearningCircuit:
             case "ParametricRZ":
                 return _Axis.Z
             case _:
-                raise NotImplementedError("Unknown gate type found: ", name)
+                raise NotImplementedError("Unknown gate type found: ", gate.name)
 
     def backprop(
         self,
@@ -477,26 +479,36 @@ class LearningCircuit:
             - https://scrapbox.io/mu5-quantum/%E5%AE%9F%E6%A9%9FBackpropagation
         """
 
-        # Convert UnboundQC to BoundQC
-        _circuit = self.bind_input_and_parameters(x, theta)
-
         # Use Oqtopus real backend
         backend = OqtopusEstimationBackend(OqtopusConfig.from_file("default"))
+        ans = np.array([])
 
-        # Extract parametric gates to use for get generators
-        parametric_gates = [
-            gate for gate in self.circuit.gates if isinstance(gate, ParametricQuantumGate)
-        ]
-        parametric_gate_count = len(parametric_gates)
-        ans = np.zeros(parametric_gate_count)
+        for i in range(len(self.circuit.gates)):
+            gate = self.circuit.gates[i]
+            if not isinstance(gate, ParametricQuantumGate):
+                continue
+            axis = self.get_gate_axis(gate)
 
-        # Estimate gradient for each parameter
-        for i in range(parametric_gate_count):
-            gate = parametric_gates[i]
-            axis = self.get_axis_from_name(gate.name)
+            # target_gates = self.circuit.gates[0 : i + 1]
+            # target_gates_seq: Sequence[QuantumGate] = cast(Sequence[QuantumGate], target_gates)
+            # _circuit = QuantumCircuit(self.circuit.qubit_count, gates=target_gates_seq)
+            _circuit = QuantumCircuit(self.circuit.qubit_count)
+            # for i in range(len(self.circuit.gates_and_params)):
+            #     g, p = self.circuit.gates_and_params[i]
+            #     g_cast = cast(QuantumGate, g)
+            #     _circuit.add_gate(g_cast)
+            #     if p is not None:
+            #         param_value = p.value
+            #         for param in self._learning_parameter_list:
+            #             for pos in param.positions_in_circuit:
+            #                 if pos.gate_pos == i:
+            #                     param_value = theta[param.parameter_id] * (pos.coef or 1.0)
+            #         _circuit.set_parameter(i, param_value)
+            for g in self.circuit.gates[0 : i + 1]:
+                _circuit.add_gate(g)
 
-            index = gate.target_indices[0]
-            observable = self.calc_gradient_observable(axis, index, operator)
+            qubit_index = gate.target_indices[0]
+            observable = self.calc_gradient_observable(axis, qubit_index, operator)
 
             # Run estimation job with Oqtopus backend
             job = backend.estimate(
@@ -505,8 +517,9 @@ class LearningCircuit:
                 device_id=device_id,
                 shots=shots,
             )
-            result = job.result()
-            ans[i] = result.exp_value
+            exp_value = job.result().exp_value
+            exp_value = exp_value if exp_value is not None else 0.0
+            ans = np.append(ans, exp_value)
 
         return ans
 
