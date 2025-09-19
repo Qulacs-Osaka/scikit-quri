@@ -9,6 +9,7 @@ from quri_parts.backend import SamplingBackend, SamplingCounts, SamplingJob, Sam
 from quri_parts.circuit import (
     Parameter,
     ParametricQuantumGate,
+    QuantumCircuit,
     QuantumGate,
     UnboundParametricQuantumCircuit,
 )
@@ -441,8 +442,8 @@ class LearningCircuit:
         observable = 1j * commutator(generator_operator, hamiltonian)
         return observable
 
-    def get_axis_from_name(self, name: str) -> _Axis:
-        match name:
+    def get_gate_axis(self, gate: QuantumGate) -> _Axis:
+        match gate.name:
             case "ParametricRX":
                 return _Axis.X
             case "ParametricRY":
@@ -450,7 +451,7 @@ class LearningCircuit:
             case "ParametricRZ":
                 return _Axis.Z
             case _:
-                raise NotImplementedError("Unknown gate type found: ", name)
+                raise NotImplementedError("Unknown gate type found: ", gate.name)
 
     def backprop(
         self,
@@ -493,7 +494,7 @@ class LearningCircuit:
         # Estimate gradient for each parameter
         for i in range(parametric_gate_count):
             gate = parametric_gates[i]
-            axis = self.get_axis_from_name(gate.name)
+            axis = self.get_gate_axis(gate)
 
             index = gate.target_indices[0]
             observable = self.calc_gradient_observable(axis, index, operator)
@@ -507,6 +508,31 @@ class LearningCircuit:
             )
             result = job.result()
             ans[i] = result.exp_value
+
+        # ーーーーー
+        p_index = 0
+        for i in range(len(self.circuit.gates)):
+            gate = self.circuit.gates[i]
+            if not isinstance(gate, ParametricQuantumGate):
+                continue
+            target_gates = self.circuit.gates[0 : i + 1]
+            axis = self.get_gate_axis(gate)
+            target_gates_seq: Sequence[QuantumGate] = cast(Sequence[QuantumGate], target_gates)
+            _circuit = QuantumCircuit(self.circuit.qubit_count, gates=target_gates_seq)
+
+            index = gate.target_indices[0]
+            observable = self.calc_gradient_observable(axis, index, operator)
+
+            # Run estimation job with Oqtopus backend
+            job = backend.estimate(
+                _circuit,
+                operator=observable,
+                device_id=device_id,
+                shots=shots,
+            )
+            result = job.result()
+            ans[p_index] = result.exp_value
+            p_index += 1
 
         return ans
 
