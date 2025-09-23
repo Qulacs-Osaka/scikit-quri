@@ -317,13 +317,12 @@ document.write(`
   <h1>Source code for scikit_quri.backend.sim_estimator</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.base_estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEstimator</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.qulacs.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">create_qulacs_vector_concurrent_estimator</span>
-<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.qulacs.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_qulacs_vector_concurrent_estimator</span>
+
 
 <div class="viewcode-block" id="SimEstimator"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.sim_estimator.SimEstimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SimEstimator</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;quri-parts-qulacsを用いて期待値を計算するSimulation用Estimator Class</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;quri-parts-qulacsを用いて期待値を計算するSimulation用Estimator Class&quot;&quot;&quot;</span>
+
 <div class="viewcode-block" id="SimEstimator.estimate"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.sim_estimator.SimEstimator.estimate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operators</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
         <span class="n">estimator</span> <span class="o">=</span> <span class="n">create_qulacs_vector_concurrent_estimator</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">estimator</span><span class="p">(</span><span class="n">operators</span><span class="p">,</span> <span class="n">states</span><span class="p">)</span></div></div>
