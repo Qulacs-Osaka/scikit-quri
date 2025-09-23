@@ -2697,6 +2697,41 @@ quri-parts-core = "*"
 typing-extensions = ">=4.1.1,<5.0.0"
 
 [[package]]
+name = "quri-parts-openqasm"
+version = "0.23.0"
+description = "A support library for using OpenQASM 3 with QURI Parts"
+optional = false
+python-versions = "<4.0.0,>=3.9.8"
+groups = ["main"]
+files = [
+    {file = "quri_parts_openqasm-0.23.0-py3-none-any.whl", hash = "sha256:0e8a3319c2962fec5e82941af44d075334547260f3b517a6b0e9aa3911fbefd4"},
+    {file = "quri_parts_openqasm-0.23.0.tar.gz", hash = "sha256:6fdc9457731662bbd5ff2f7a017fe55770927c9d2c4676da2ad63e7f2776fc59"},
+]
+
+[package.dependencies]
+quri-parts-circuit = "*"
+
+[[package]]
+name = "quri-parts-oqtopus"
+version = "1.0.3"
+description = "QURI Parts OQTOPUS is a library for executing programs on quantum computers via the OQTOPUS Cloud interface."
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "quri_parts_oqtopus-1.0.3-py3-none-any.whl", hash = "sha256:eae1e90eea23a08583a4d1dfacdf8675890cbd7d2a4ff418013998fed146567d"},
+    {file = "quri_parts_oqtopus-1.0.3.tar.gz", hash = "sha256:e678ae4bd31939f8ac17722387a0973e6fa0434a57e442ceba61b1874ccb3d87"},
+]
+
+[package.dependencies]
+certifi = "*"
+quri-parts-circuit = ">=0.20.3"
+quri-parts-core = ">=0.20.3"
+quri-parts-openqasm = ">=0.20.3"
+six = ">=1.17.0"
+urllib3 = "*"
+
+[[package]]
 name = "quri-parts-qulacs"
 version = "0.22.0"
 description = "A plugin to use Qulacs with QURI Parts"
@@ -3630,4 +3665,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.12"
-content-hash = "9e79aaca27c93b574574fbfa68196131fe898964777cd550088f2879010b1e51"
+content-hash = "0b3ab0fd5b1aedc7494dc9edeac81bab848d5bdb223614db3a1f012d4647628c"
