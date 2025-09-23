@@ -3,22 +3,23 @@ from typing import Sequence, Iterable, Optional
 from quri_parts_oqtopus.backend import OqtopusConfig, OqtopusEstimationBackend
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.operator import Operator, PauliLabel
-from quri_parts.core.estimator import (
-    Estimatable,
-    Estimate
-)
+from quri_parts.core.estimator import Estimatable, Estimate
+
 
 class OqtopusEstimator(BaseEstimator):
     """quri-parts-oqtopusを用いて実機で期待値を計算するEstimator Class
-    実行には`~/.oqtopus`の設定が必要  
+    実行には`~/.oqtopus`の設定が必要
     https://quri-parts-oqtopus.readthedocs.io/en/stable/usage/getting_started/#prepare-oqtopus-configuration-file
-    
+
     Args:
         device_id: 実行するデバイスのID
         shots: ショット数. Defaults to 1000.
         config: OqtopusのConfig. Defaults to None.
     """
-    def __init__(self, device_id: str, shots: int = 1000, config: Optional[OqtopusConfig] = None) -> None:
+
+    def __init__(
+        self, device_id: str, shots: int = 1000, config: Optional[OqtopusConfig] = None
+    ) -> None:
         self.backend = OqtopusEstimationBackend(config=config)
         self.device_id = device_id
         self.shots = shots
@@ -32,7 +33,7 @@ class OqtopusEstimator(BaseEstimator):
         Args:
             operators: 期待値を計算する演算子のリスト
             states: 期待値を計算する状態のリスト
-        
+
         Returns:
             operatorsとstatesの組み合わせに対する期待値のリスト
 
@@ -52,8 +53,7 @@ class OqtopusEstimator(BaseEstimator):
 
         if num_ops > 1 and num_states > 1 and num_ops != num_states:
             raise ValueError(
-                f"Number of operators ({num_ops}) does not match"
-                f"number of states ({num_states})."
+                f"Number of operators ({num_ops}) does not matchnumber of states ({num_states})."
             )
 
         if num_states == 1:
@@ -63,16 +63,18 @@ class OqtopusEstimator(BaseEstimator):
         else:
             if num_ops == 1:
                 operators = [next(iter(operators))] * num_states
-            circuits = [state.circuit for state in states] 
+            circuits = [state.circuit for state in states]
             return self._estimate_concurrently(operators, circuits)
 
-    def _estimate_concurrently(self, operators: Sequence[Estimatable], circuits: Sequence[NonParametricQuantumCircuit]) -> Iterable[Estimate[complex]]:
+    def _estimate_concurrently(
+        self, operators: Sequence[Estimatable], circuits: Sequence[NonParametricQuantumCircuit]
+    ) -> Iterable[Estimate[complex]]:
         """
         operatorsとcircuitsの1対1の組み合わせに対して期待値を計算する
         Args:
             operators: 期待値を計算する演算子のリスト
             circuits: 期待値を計算する量子回路のリスト
-        
+
         Returns:
             operatorsとcircuitsの組み合わせに対する期待値のリスト
         Raises:
@@ -83,7 +85,9 @@ class OqtopusEstimator(BaseEstimator):
             # EstimatableをOperatorに統一する
             if isinstance(operator, PauliLabel):
                 operator = Operator({operator: 1.0})
-            job = self.backend.estimate(circuit, operator=operator, device_id=self.device_id, shots=self.shots)
+            job = self.backend.estimate(
+                circuit, operator=operator, device_id=self.device_id, shots=self.shots
+            )
             result = job.result()
             exp_real = result.exp_value
             # * success以外の場合、例外を投げるため、exp_valueがNoneになることはない
