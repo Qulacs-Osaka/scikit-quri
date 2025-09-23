@@ -6,15 +6,15 @@ from sklearn.model_selection import train_test_split
 
 from scikit_quri.circuit import create_qcl_ansatz
 from scikit_quri.qnn import QNNClassifier
+from scikit_quri.backend import SimEstimator
+
 from quri_parts.algo.optimizer import Adam, LBFGS, Optimizer
 from quri_parts.qulacs.estimator import (
-    create_qulacs_vector_concurrent_estimator,
     create_qulacs_vector_concurrent_parametric_estimator,
 )
 from quri_parts.core.estimator.gradient import (
     create_numerical_gradient_estimator,
 )
-from quri_parts.core.operator import Operator, pauli_label
 
 
 @pytest.mark.parametrize(("solver", "maxiter"), [(Adam(ftol=1e-2), 777), (LBFGS(), 8)])
@@ -34,7 +34,7 @@ def test_classify_iris(solver: Optimizer, maxiter: int) -> None:
     time_step = 0.5
     num_class = 3
     circuit = create_qcl_ansatz(nqubit, c_depth, time_step, 0)
-    estimator = create_qulacs_vector_concurrent_estimator()
+    estimator = SimEstimator()
     gradient_estimator = create_numerical_gradient_estimator(
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
