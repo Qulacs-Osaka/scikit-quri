@@ -155,8 +155,9 @@
     <div class="bd-toc-item navbar-nav active">
         <p aria-level="2" class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current nav bd-sidenav">
-<li class="toctree-l1 current active has-children"><a class="reference internal" href="modules.html">scikit-quri</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="modules.html">scikit_quri</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
 <li class="toctree-l2 current active has-children"><a class="reference internal" href="scikit_quri.html">scikit_quri package</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="scikit_quri.backend.html">scikit_quri.backend package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.circuit.html">scikit_quri.circuit package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.qkrr.html">scikit_quri.qkrr package</a></li>
 <li class="toctree-l3 current active"><a class="current reference internal" href="#">scikit_quri.qnn package</a></li>
@@ -361,11 +362,104 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit-quri-qnn-classifier-module">scikit_quri.qnn.classifier module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit-quri-qnn-regressor-module">scikit_quri.qnn.regressor module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit-quri-qnn-generation-module">scikit_quri.qnn.generation module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit-quri-qnn-kernel-tsne-module">scikit_quri.qnn.kernel_tsne module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.qnn.classifier">scikit_quri.qnn.classifier module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier"><code class="docutils literal notranslate"><span class="pre">QNNClassifier</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.ansatz"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.ansatz</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.num_class"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.num_class</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.estimator"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.estimator</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.gradient_estimator"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.gradient_estimator</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.optimizer"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.optimizer</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.operator"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.operator</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.x_norm_range"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.x_norm_range</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.y_norm_range"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.y_norm_range</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.do_x_scale"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.do_x_scale</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.do_y_scale"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.do_y_scale</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.n_outputs"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.n_outputs</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.y_exp_ratio"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.y_exp_ratio</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.trained_param"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.trained_param</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.n_qubit"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.n_qubit</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.predict_inner_cache"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.predict_inner_cache</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.fit"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.fit()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.predict"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.predict()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.cost_func"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.cost_func()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.cost_func_grad"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.cost_func_grad()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.qnn.generation">scikit_quri.qnn.generation module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator"><code class="docutils literal notranslate"><span class="pre">QNNGenerator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.fit"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.fit()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.fit_direct_distribution"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.fit_direct_distribution()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.predict"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.predict()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.conving"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.conving()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.cost_func"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.cost_func()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.qnn.kernel_tsne">scikit_quri.qnn.kernel_tsne module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.pqc_f_helper"><code class="docutils literal notranslate"><span class="pre">pqc_f_helper</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.pqc_f_helper.get"><code class="docutils literal notranslate"><span class="pre">pqc_f_helper.get()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator"><code class="docutils literal notranslate"><span class="pre">overlap_estimator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator.calc_all_qula_states"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.calc_all_qula_states()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator.estimate"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE"><code class="docutils literal notranslate"><span class="pre">TSNE</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p"><code class="docutils literal notranslate"><span class="pre">TSNE.calc_probabilities_p()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p_state"><code class="docutils literal notranslate"><span class="pre">TSNE.calc_probabilities_p_state()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_q"><code class="docutils literal notranslate"><span class="pre">TSNE.calc_probabilities_q()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.joint_probabilities"><code class="docutils literal notranslate"><span class="pre">TSNE.joint_probabilities()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.binary_search_perplexity"><code class="docutils literal notranslate"><span class="pre">TSNE.binary_search_perplexity()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.kldiv"><code class="docutils literal notranslate"><span class="pre">TSNE.kldiv()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.cdist"><code class="docutils literal notranslate"><span class="pre">TSNE.cdist()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.init"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.init()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_loss"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.calc_loss()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_grad"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.calc_grad()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.cost_f"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.cost_f()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.generate_X_train_state"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.generate_X_train_state()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.train"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.train()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.transform"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.transform()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_y"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.calc_y()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.input_quantum_state"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.input_quantum_state()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_fidelity"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.calc_fidelity()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_fidelity_all"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.calc_fidelity_all()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.plot"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.plot()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.qnn.regressor">scikit_quri.qnn.regressor module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.mean_squared_error"><code class="docutils literal notranslate"><span class="pre">mean_squared_error()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor"><code class="docutils literal notranslate"><span class="pre">QNNRegressor</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.ansatz"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.ansatz</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.estimator"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.estimator</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.gradient_estimator"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.gradient_estimator</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.optimizer"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.optimizer</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.operator"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.operator</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.x_norm_range"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.x_norm_range</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.y_norm_range"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.y_norm_range</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.n_qubit"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.n_qubit</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.do_x_scale"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.do_x_scale</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.do_y_scale"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.do_y_scale</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.n_outputs"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.n_outputs</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.y_exp_ratio"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.y_exp_ratio</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.trained_param"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.trained_param</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.fit"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.fit()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.cost_fn"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.cost_fn()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.predict"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.predict()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.grad_fn"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.grad_fn()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.qnn">Module contents</a></li>
 </ul>
             </nav>
         </div>
@@ -382,20 +476,884 @@ document.write(`
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading">#</a></h2>
 </section>
-<section id="scikit-quri-qnn-classifier-module">
-<h2>scikit_quri.qnn.classifier module<a class="headerlink" href="#scikit-quri-qnn-classifier-module" title="Permalink to this heading">#</a></h2>
+<section id="module-scikit_quri.qnn.classifier">
+<span id="scikit-quri-qnn-classifier-module"></span><h2>scikit_quri.qnn.classifier module<a class="headerlink" href="#module-scikit_quri.qnn.classifier" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.classifier.</span></span><span class="sig-name descname"><span class="pre">QNNClassifier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ansatz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_class</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gradient_estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_norm_range=1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_norm_range=0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_x_scale=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_y_scale=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_outputs=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_exp_ratio=2.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trained_param=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predict_inner_cache=&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/classifier.html#QNNClassifier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class to solve classification problems by quantum neural networks.
+The prediction is made by making a vector which predicts one-hot encoding of labels.
+The prediction is made by
+1. taking expectation values of Pauli Z operator of each qubit <code class="docutils literal notranslate"><span class="pre">&lt;Z_i&gt;</span></code>,
+2. taking softmax function of the vector (<code class="docutils literal notranslate"><span class="pre">&lt;Z_0&gt;,</span> <span class="pre">&lt;Z_1&gt;,</span> <span class="pre">...,</span> <span class="pre">&lt;Z_{n-1}&gt;</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ansatz</strong> (<a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit" title="scikit_quri.circuit.circuit.LearningCircuit"><em>LearningCircuit</em></a>) – Circuit to use in the learning.</p></li>
+<li><p><strong>num_class</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – The number of classes; the number of qubits to measure. must be n_qubits &gt;= num_class .</p></li>
+<li><p><strong>estimator</strong> (<a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.base_estimator.BaseEstimator" title="scikit_quri.backend.base_estimator.BaseEstimator"><em>BaseEstimator</em></a>) – Estimator to use. It must be a concurrent estimator.</p></li>
+<li><p><strong>gradient_estimator</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.13)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.13)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><em>Operator</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><em>PauliLabel</em></a><em>]</em><em>, </em><em>_ParametricStateT</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.13)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>]</em><em>]</em><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.estimator.html#quri_parts.core.estimator.Estimates" title="(in QURI Parts)"><em>Estimates</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.13)"><em>complex</em></a><em>]</em><em>]</em>) – Gradient estimator to use.</p></li>
+<li><p><strong>optimizer</strong> (<a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/algo/quri_parts.algo.optimizer.interface.html#quri_parts.algo.optimizer.interface.Optimizer" title="(in QURI Parts)"><em>Optimizer</em></a>) – Solver to use. use <a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/algo/quri_parts.algo.optimizer.html#quri_parts.algo.optimizer.Adam" title="(in QURI Parts)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Adam</span></code></a> or <a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/algo/quri_parts.algo.optimizer.html#quri_parts.algo.optimizer.LBFGS" title="(in QURI Parts)"><code class="xref py py-class docutils literal notranslate"><span class="pre">LBFGS</span></code></a> method.</p></li>
+<li><p><strong>operator</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><em>List</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.13)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><em>Operator</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><em>PauliLabel</em></a><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>x_norm_range</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – </p></li>
+<li><p><strong>y_norm_range</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – </p></li>
+<li><p><strong>do_x_scale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – </p></li>
+<li><p><strong>do_y_scale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – </p></li>
+<li><p><strong>n_outputs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – </p></li>
+<li><p><strong>y_exp_ratio</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – </p></li>
+<li><p><strong>trained_param</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><em>Optional</em></a><em>[</em><em>npt.NDArray</em><em>[</em><em>np.float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>predict_inner_cache</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><em>Dict</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.13)"><em>Tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.13)"><em>bytes</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.13)"><em>bytes</em></a><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.qnn.classifier</span><span class="w"> </span><span class="kn">import</span> <span class="n">QNNClassifier</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_qcl_ansatz</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator.gradient</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">create_numerical_gradient_estimator</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.qulacs.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">create_qulacs_vector_concurrent_estimator</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">create_qulacs_vector_concurrent_parametric_estimator</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.algo.optimizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Adam</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">num_class</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nqubit</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">c_depth</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">time_step</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">circuit</span> <span class="o">=</span> <span class="n">create_qcl_ansatz</span><span class="p">(</span><span class="n">nqubit</span><span class="p">,</span> <span class="n">c_depth</span><span class="p">,</span> <span class="n">time_step</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">adam</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">estimator</span> <span class="o">=</span> <span class="n">create_qulacs_vector_concurrent_estimator</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gradient_estimator</span> <span class="o">=</span> <span class="n">create_numerical_gradient_estimator</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>   <span class="n">create_qulacs_vector_concurrent_parametric_estimator</span><span class="p">(),</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1e-10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qnn</span> <span class="o">=</span> <span class="n">QNNClassifier</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">num_class</span><span class="p">,</span> <span class="n">estimator</span><span class="p">,</span> <span class="n">gradient_estimator</span><span class="p">,</span> <span class="n">adam</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qnn</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">maxiter</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y_pred</span> <span class="o">=</span> <span class="n">qnn</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x_test</span><span class="p">)</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.ansatz">
+<span class="sig-name descname"><span class="pre">ansatz</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit" title="scikit_quri.circuit.circuit.LearningCircuit"><span class="pre">LearningCircuit</span></a></em><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.ansatz" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.num_class">
+<span class="sig-name descname"><span class="pre">num_class</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.num_class" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.estimator">
+<span class="sig-name descname"><span class="pre">estimator</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.base_estimator.BaseEstimator" title="scikit_quri.backend.base_estimator.BaseEstimator"><span class="pre">BaseEstimator</span></a></em><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.estimator" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.gradient_estimator">
+<span class="sig-name descname"><span class="pre">gradient_estimator</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.13)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.13)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><span class="pre">Operator</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><span class="pre">PauliLabel</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">_ParametricStateT</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.13)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.estimator.html#quri_parts.core.estimator.Estimates" title="(in QURI Parts)"><span class="pre">Estimates</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.13)"><span class="pre">complex</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.gradient_estimator" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.optimizer">
+<span class="sig-name descname"><span class="pre">optimizer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/algo/quri_parts.algo.optimizer.interface.html#quri_parts.algo.optimizer.interface.Optimizer" title="(in QURI Parts)"><span class="pre">Optimizer</span></a></em><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.optimizer" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.operator">
+<span class="sig-name descname"><span class="pre">operator</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.13)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><span class="pre">Operator</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><span class="pre">PauliLabel</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.operator" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.x_norm_range">
+<span class="sig-name descname"><span class="pre">x_norm_range</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.x_norm_range" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.y_norm_range">
+<span class="sig-name descname"><span class="pre">y_norm_range</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.7</span></em><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.y_norm_range" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.do_x_scale">
+<span class="sig-name descname"><span class="pre">do_x_scale</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.do_x_scale" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.do_y_scale">
+<span class="sig-name descname"><span class="pre">do_y_scale</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.do_y_scale" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.n_outputs">
+<span class="sig-name descname"><span class="pre">n_outputs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.n_outputs" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.y_exp_ratio">
+<span class="sig-name descname"><span class="pre">y_exp_ratio</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2.2</span></em><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.y_exp_ratio" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.trained_param">
+<span class="sig-name descname"><span class="pre">trained_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><span class="pre">npt.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">np.float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.trained_param" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.n_qubit">
+<span class="sig-name descname"><span class="pre">n_qubit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.n_qubit" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.predict_inner_cache">
+<span class="sig-name descname"><span class="pre">predict_inner_cache</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.13)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.13)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.13)"><span class="pre">bytes</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.13)"><span class="pre">bytes</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><span class="pre">ndarray</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><span class="pre">dtype</span></a><span class="p"><span class="pre">[</span></span><span class="pre">float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.predict_inner_cache" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/classifier.html#QNNClassifier.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.fit" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_train</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – List of training data inputs whose shape is (n_samples, n_features).</p></li>
+<li><p><strong>y_train</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>int64</em><em>]</em><em>]</em>) – List of labels to fit. Labels must be represented as integers. Shape is (n_samples,).</p></li>
+<li><p><strong>maxiter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – The number of maximum iterations for the optimizer.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_test</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/classifier.html#QNNClassifier.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.predict" title="Permalink to this definition">#</a></dt>
+<dd><p>Predict outcome for each input data in <code class="docutils literal notranslate"><span class="pre">x_test</span></code>. This method returns the predicted outcome as a vector of probabilities for each class.
+:param x_test: Input data whose shape is <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">n_features)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Predicted outcome whose shape is <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">num_class)</span></code>.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>y_pred</p>
+</dd>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x_test</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.cost_func">
+<span class="sig-name descname"><span class="pre">cost_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_scaled</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/classifier.html#QNNClassifier.cost_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.cost_func" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_scaled</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>y_train</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>int64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>params</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.classifier.QNNClassifier.cost_func_grad">
+<span class="sig-name descname"><span class="pre">cost_func_grad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_scaled</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/classifier.html#QNNClassifier.cost_func_grad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.classifier.QNNClassifier.cost_func_grad" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_scaled</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>y_train</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>int64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>params</strong> (<em>npt.NDArray</em><em>[</em><em>np.float64</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a>[<em>float64</em>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
-<section id="scikit-quri-qnn-regressor-module">
-<h2>scikit_quri.qnn.regressor module<a class="headerlink" href="#scikit-quri-qnn-regressor-module" title="Permalink to this heading">#</a></h2>
+<section id="module-scikit_quri.qnn.generation">
+<span id="scikit-quri-qnn-generation-module"></span><h2>scikit_quri.qnn.generation module<a class="headerlink" href="#module-scikit_quri.qnn.generation" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="scikit_quri.qnn.generation.QNNGenerator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.generation.</span></span><span class="sig-name descname"><span class="pre">QNNGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gauss_sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitting_qubit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.generation.QNNGenerator" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class to generation problems by quantum neural networks.
+This class is only working with a simulator. depending on qulacs.
+It is not working with real quantum computers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>circuit</strong> (<a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit" title="scikit_quri.circuit.circuit.LearningCircuit"><em>LearningCircuit</em></a>) – The learning circuit to be used.</p></li>
+<li><p><strong>solver</strong> (<a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/algo/quri_parts.algo.optimizer.interface.html#quri_parts.algo.optimizer.interface.Optimizer" title="(in QURI Parts)"><em>Optimizer</em></a>) – The optimizer to be used for training.</p></li>
+<li><p><strong>kernel_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.13)"><em>Literal</em></a><em>[</em><em>'gauss'</em><em>, </em><em>'exp_hamming'</em><em>, </em><em>'same'</em><em>]</em>) – The type of kernel to be used. exp_hamming is not implemented yet.</p></li>
+<li><p><strong>gauss_sigma</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – The sigma value for Gaussian kernel.</p></li>
+<li><p><strong>fitting_qubit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – The number of qubits to be used for fitting.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.generation.QNNGenerator.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.generation.QNNGenerator.fit" title="Permalink to this definition">#</a></dt>
+<dd><dl class="simple">
+<dt>Params:</dt><dd><p>train_data: The training data to be used for fitting.
+maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train_data</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>maxiter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.generation.QNNGenerator.fit_direct_distribution">
+<span class="sig-name descname"><span class="pre">fit_direct_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_scaled</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.fit_direct_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.generation.QNNGenerator.fit_direct_distribution" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train_scaled</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>maxiter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.13)"><em>Tuple</em></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><em>List</em></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.generation.QNNGenerator.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.generation.QNNGenerator.predict" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a>[<em>float64</em>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.generation.QNNGenerator.conving">
+<span class="sig-name descname"><span class="pre">conving</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_diff</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.conving"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.generation.QNNGenerator.conving" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>data_diff</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a>[<em>float64</em>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.generation.QNNGenerator.cost_func">
+<span class="sig-name descname"><span class="pre">cost_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_scaled</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.cost_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.generation.QNNGenerator.cost_func" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>theta</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><em>List</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>]</em>) – </p></li>
+<li><p><strong>train_scaled</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a>[<em>float64</em>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
-<section id="scikit-quri-qnn-generation-module">
-<h2>scikit_quri.qnn.generation module<a class="headerlink" href="#scikit-quri-qnn-generation-module" title="Permalink to this heading">#</a></h2>
+<section id="module-scikit_quri.qnn.kernel_tsne">
+<span id="scikit-quri-qnn-kernel-tsne-module"></span><h2>scikit_quri.qnn.kernel_tsne module<a class="headerlink" href="#module-scikit_quri.qnn.kernel_tsne" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.pqc_f_helper">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.kernel_tsne.</span></span><span class="sig-name descname"><span class="pre">pqc_f_helper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pqs_f</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#pqc_f_helper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.pqc_f_helper" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>入力データXに対して，量子回路を計算してcacheしておくClass</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pqs_f</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.13)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em><em>]</em><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.GeneralCircuitQuantumState" title="(in QURI Parts)"><em>GeneralCircuitQuantumState</em></a><em>]</em>) – </p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.pqc_f_helper.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#pqc_f_helper.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.pqc_f_helper.get" title="Permalink to this definition">#</a></dt>
+<dd><p>入力データXに対して，cacheされた量子状態を返す．もしcacheされていない場合は計算してcacheする</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – 入力データX</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>量子状態</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>GeneralCircuitQuantumState</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.overlap_estimator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.kernel_tsne.</span></span><span class="sig-name descname"><span class="pre">overlap_estimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#overlap_estimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>quri-partsのoverlap_estimatorの代替Class
+(n_data:500のとき,x60 faster)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>states</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><em>List</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.GeneralCircuitQuantumState" title="(in QURI Parts)"><em>GeneralCircuitQuantumState</em></a><em>]</em>) – </p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.overlap_estimator.calc_all_qula_states">
+<span class="sig-name descname"><span class="pre">calc_all_qula_states</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#overlap_estimator.calc_all_qula_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator.calc_all_qula_states" title="Permalink to this definition">#</a></dt>
+<dd><p>cache用に予め全ての量子状態をqulacsのstateに変換</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.overlap_estimator.estimate">
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#overlap_estimator.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator.estimate" title="Permalink to this definition">#</a></dt>
+<dd><p>与えられた量子状態のi番目とj番目の内積の絶対値の二乗を計算</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – 量子状態のindex(ket)</p></li>
+<li><p><strong>j</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – 量子状態のindex(bra)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">|&lt;φi|φj&gt;|^2</span></code></p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)">float</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.kernel_tsne.</span></span><span class="sig-name descname"><span class="pre">TSNE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">perplexity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>基本的なTSNEの実装</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p">
+<span class="sig-name descname"><span class="pre">calc_probabilities_p</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_train</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE.calc_probabilities_p"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p" title="Permalink to this definition">#</a></dt>
+<dd><p>p行列を計算する</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X_train</strong> (<em>NDArray</em><em>[</em><em>np.float64</em><em>]</em>) – 入力データ</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>t-sneのp行列 (X_trainのサイズ, X_trainのサイズ)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>p_probs (NDArray[np.float64])</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p_state">
+<span class="sig-name descname"><span class="pre">calc_probabilities_p_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_train_state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE.calc_probabilities_p_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p_state" title="Permalink to this definition">#</a></dt>
+<dd><p>p行列を計算する</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X_train_state</strong> (<em>List</em><em>[</em><em>GeneralCircuitQuantumState</em><em>]</em>) – 量子状態に変換した入力データ</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>t-sneのp行列 (X_trainのサイズ, X_trainのサイズ)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>p_probs (NDArray[np.float64])</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_q">
+<span class="sig-name descname"><span class="pre">calc_probabilities_q</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE.calc_probabilities_q"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_q" title="Permalink to this definition">#</a></dt>
+<dd><p>q行列を計算する</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>c_data</strong> (<em>NDArray</em><em>[</em><em>np.float64</em><em>]</em>) – 入力データ(論文ではy)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>t-sneのq行列 (c_dataのサイズ, c_dataのサイズ)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>q_probs (NDArray[np.float64])</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE.joint_probabilities">
+<span class="sig-name descname"><span class="pre">joint_probabilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sq_distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perplexity</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE.joint_probabilities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE.joint_probabilities" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sq_distance</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>perplexity</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE.binary_search_perplexity">
+<span class="sig-name descname"><span class="pre">binary_search_perplexity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sq_distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perplexity</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE.binary_search_perplexity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE.binary_search_perplexity" title="Permalink to this definition">#</a></dt>
+<dd><p>二分探索で分散をperplexityにする</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sq_distance</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>perplexity</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE.kldiv">
+<span class="sig-name descname"><span class="pre">kldiv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_probs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_probs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE.kldiv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE.kldiv" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE.cdist">
+<span class="sig-name descname"><span class="pre">cdist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_tr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE.cdist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE.cdist" title="Permalink to this definition">#</a></dt>
+<dd><p>Calculate the distances by Euclidean distance between the data</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>X_tr</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.kernel_tsne.</span></span><span class="sig-name descname"><span class="pre">quantum_kernel_tsne</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">perplexity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">400</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>quantum kernel t-sneで学習するためのClass</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.init">
+<span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pqc_f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.init" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pqc_f</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.13)"><em>Callable</em></a><em>[</em><em>[</em><em>]</em><em>, </em><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit" title="scikit_quri.circuit.circuit.LearningCircuit"><em>LearningCircuit</em></a><em>]</em>) – 量子回路を返す関数</p></li>
+<li><p><strong>theta</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – 量子回路のパラメータ</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_loss">
+<span class="sig-name descname"><span class="pre">calc_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_prob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_prob</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.calc_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_loss" title="Permalink to this definition">#</a></dt>
+<dd><p>最適化するためのlossを計算</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p_prob</strong> (<em>NDArray</em><em>[</em><em>np.float64</em><em>]</em>) – p_ij</p></li>
+<li><p><strong>q_prob</strong> (<em>NDArray</em><em>[</em><em>np.float64</em><em>]</em>) – q_ij</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_grad">
+<span class="sig-name descname"><span class="pre">calc_grad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_prob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fidelity</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.calc_grad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_grad" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>alpha</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>p_prob</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>fidelity</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.cost_f">
+<span class="sig-name descname"><span class="pre">cost_f</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_prob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fidelity</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.cost_f"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.cost_f" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>alpha</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>p_prob</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>fidelity</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.generate_X_train_state">
+<span class="sig-name descname"><span class="pre">generate_X_train_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_train</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.generate_X_train_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.generate_X_train_state" title="Permalink to this definition">#</a></dt>
+<dd><p>X_train(NDAarray[np.float64])から量子状態のリストを生成</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X_train</strong> (<em>NDArray</em><em>[</em><em>np.float64</em><em>]</em>) – 64入力データ</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>量子状態のリスト</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>X_train_state (List[GeneralCircuitQuantumState])</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.train">
+<span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Powell'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.train"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.train" title="Permalink to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X_train</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>y_label</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>int8</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_test</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.transform" title="Permalink to this definition">#</a></dt>
+<dd><p>学習したαを使ってyを計算</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>X_test</strong> (<em>NDArray</em><em>[</em><em>np.float64</em><em>]</em>) – テストデータ</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>低次元表現</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>y (NDArray[np.float64])</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_y">
+<span class="sig-name descname"><span class="pre">calc_y</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fidelity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.calc_y"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_y" title="Permalink to this definition">#</a></dt>
+<dd><p>fidelityとαからyを計算</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fidelity</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – <code class="docutils literal notranslate"><span class="pre">|&lt;φi|φj&gt;|^2</span></code> (n_data, n_data)</p></li>
+<li><p><strong>alpha</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – α (n_data, 2)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a>[<em>float64</em>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.input_quantum_state">
+<span class="sig-name descname"><span class="pre">input_quantum_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pqc_f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.input_quantum_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.input_quantum_state" title="Permalink to this definition">#</a></dt>
+<dd><p>入力データXとpqc_f,thetaを受け取って、量子状態を計算する</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>pqc_f</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.13)"><em>Callable</em></a><em>[</em><em>[</em><em>]</em><em>, </em><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit" title="scikit_quri.circuit.circuit.LearningCircuit"><em>LearningCircuit</em></a><em>]</em>) – </p></li>
+<li><p><strong>theta</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.GeneralCircuitQuantumState" title="(in QURI Parts)"><em>GeneralCircuitQuantumState</em></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_fidelity">
+<span class="sig-name descname"><span class="pre">calc_fidelity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_tr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pqs_f_helper</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.calc_fidelity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_fidelity" title="Permalink to this definition">#</a></dt>
+<dd><p>data==data_trの場合，fidelity( <code class="docutils literal notranslate"><span class="pre">|&lt;φi|φj&gt;|^2</span></code> ) を計算</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pqs_f_helper</strong> (<a class="reference internal" href="#scikit_quri.qnn.kernel_tsne.pqc_f_helper" title="scikit_quri.qnn.kernel_tsne.pqc_f_helper"><em>pqc_f_helper</em></a>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_fidelity_all">
+<span class="sig-name descname"><span class="pre">calc_fidelity_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_tr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pqs_f_helper</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.calc_fidelity_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_fidelity_all" title="Permalink to this definition">#</a></dt>
+<dd><p>data != data_trの場合，fidelity( <code class="docutils literal notranslate"><span class="pre">|&lt;φi|φj&gt;|^2</span></code> )を計算</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pqs_f_helper</strong> (<a class="reference internal" href="#scikit_quri.qnn.kernel_tsne.pqc_f_helper" title="scikit_quri.qnn.kernel_tsne.pqc_f_helper"><em>pqc_f_helper</em></a>) – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.plot" title="Permalink to this definition">#</a></dt>
+<dd><p>yをplotする</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> (<em>NDArray</em><em>[</em><em>np.float64</em><em>]</em>) – 低次元表現</p></li>
+<li><p><strong>y_label</strong> (<em>NDArray</em><em>[</em><em>np.int64</em><em>]</em>) – ラベル</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – タイトル</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
-<section id="scikit-quri-qnn-kernel-tsne-module">
-<h2>scikit_quri.qnn.kernel_tsne module<a class="headerlink" href="#scikit-quri-qnn-kernel-tsne-module" title="Permalink to this heading">#</a></h2>
+<section id="module-scikit_quri.qnn.regressor">
+<span id="scikit-quri-qnn-regressor-module"></span><h2>scikit_quri.qnn.regressor module<a class="headerlink" href="#module-scikit_quri.qnn.regressor" title="Permalink to this heading">#</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.mean_squared_error">
+<span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.regressor.</span></span><span class="sig-name descname"><span class="pre">mean_squared_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_true</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_pred</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/regressor.html#mean_squared_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.regressor.mean_squared_error" title="Permalink to this definition">#</a></dt>
+<dd><p>Calculate the mean squared error between true and predicted values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y_true</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – True values.</p></li>
+<li><p><strong>y_pred</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Predicted values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mean squared error.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>mse</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.regressor.</span></span><span class="sig-name descname"><span class="pre">QNNRegressor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ansatz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gradient_estimator</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator=&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_norm_range=1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_norm_range=0.7</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_x_scale=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_y_scale=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_outputs=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_exp_ratio=2.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trained_param=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/regressor.html#QNNRegressor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class to solve regression problems with quantum neural networks.
+The out is taken as expectation values of <code class="docutils literal notranslate"><span class="pre">Pauli</span> <span class="pre">Z</span></code> operators acting on the first qubit. i.e., output is <code class="docutils literal notranslate"><span class="pre">&lt;Z_0&gt;</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ansatz</strong> (<a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit" title="scikit_quri.circuit.circuit.LearningCircuit"><em>LearningCircuit</em></a>) – Circuit to use in the learning.</p></li>
+<li><p><strong>estimator</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.13)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.13)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.13)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><em>Operator</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><em>PauliLabel</em></a><em>]</em><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.13)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.13)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.CircuitQuantumState" title="(in QURI Parts)"><em>CircuitQuantumState</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state_vector.html#quri_parts.core.state.state_vector.QuantumStateVector" title="(in QURI Parts)"><em>QuantumStateVector</em></a><em>]</em><em>]</em><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.13)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.estimator.html#quri_parts.core.estimator.Estimate" title="(in QURI Parts)"><em>Estimate</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.13)"><em>complex</em></a><em>]</em><em>]</em><em>]</em>) – Estimator to use. use <a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/qulacs/quri_parts.qulacs.estimator.html#quri_parts.qulacs.estimator.create_qulacs_vector_concurrent_estimator" title="(in QURI Parts)"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_qulacs_vector_concurrent_estimator()</span></code></a> method.</p></li>
+<li><p><strong>gradient_estimator</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.13)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.13)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><em>Operator</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><em>PauliLabel</em></a><em>]</em><em>, </em><em>_ParametricStateT</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.13)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>]</em><em>]</em><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.estimator.html#quri_parts.core.estimator.Estimates" title="(in QURI Parts)"><em>Estimates</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.13)"><em>complex</em></a><em>]</em><em>]</em>) – Gradient estimator to use. use <a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.estimator.gradient.html#quri_parts.core.estimator.gradient.create_parameter_shift_gradient_estimator" title="(in QURI Parts)"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_parameter_shift_gradient_estimator()</span></code></a> or <a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.estimator.gradient.html#quri_parts.core.estimator.gradient.create_parameter_shift_gradient_estimator" title="(in QURI Parts)"><code class="xref py py-func docutils literal notranslate"><span class="pre">create_parameter_shift_gradient_estimator()</span></code></a> method.</p></li>
+<li><p><strong>optimizer</strong> (<a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/algo/quri_parts.algo.optimizer.interface.html#quri_parts.algo.optimizer.interface.Optimizer" title="(in QURI Parts)"><em>Optimizer</em></a>) – Optimizer to use. use <a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/algo/quri_parts.algo.optimizer.html#quri_parts.algo.optimizer.Adam" title="(in QURI Parts)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Adam</span></code></a> or <a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/algo/quri_parts.algo.optimizer.html#quri_parts.algo.optimizer.LBFGS" title="(in QURI Parts)"><code class="xref py py-class docutils literal notranslate"><span class="pre">LBFGS</span></code></a> method.</p></li>
+<li><p><strong>operator</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><em>List</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.13)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><em>Operator</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><em>PauliLabel</em></a><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>x_norm_range</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – </p></li>
+<li><p><strong>y_norm_range</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – </p></li>
+<li><p><strong>do_x_scale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – </p></li>
+<li><p><strong>do_y_scale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a>) – </p></li>
+<li><p><strong>n_outputs</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – </p></li>
+<li><p><strong>y_exp_ratio</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a>) – </p></li>
+<li><p><strong>trained_param</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><em>Optional</em></a><em>[</em><em>npt.NDArray</em><em>[</em><em>np.float64</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.qulacs.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">create_qulacs_vector_concurrent_estimator</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">create_qulacs_vector_concurrent_parametric_estimator</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator.gradient</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">create_numerical_gradient_estimator</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n_qubit</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">depth</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">time_step</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">estimator</span> <span class="o">=</span> <span class="n">create_qulacs_vector_concurrent_estimator</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gradient_estimator</span> <span class="o">=</span> <span class="n">create_numerical_gradient_estimator</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">create_qulacs_vector_concurrent_parametric_estimator</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">circuit</span> <span class="o">=</span> <span class="n">create_qcl_ansatz</span><span class="p">(</span><span class="n">n_qubit</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">time_step</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">circuit</span> <span class="o">=</span> <span class="n">create_qcl_ansatz</span><span class="p">(</span><span class="n">n_qubit</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">time_step</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qnn</span> <span class="o">=</span> <span class="n">QNNRegressor</span><span class="p">(</span><span class="n">n_qubit</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">estimator</span><span class="p">,</span> <span class="n">gradient_estimator</span><span class="p">,</span> <span class="n">solver</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">qnn</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">maxiter</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y_pred</span> <span class="o">=</span> <span class="n">qnn</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x_test</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor.ansatz">
+<span class="sig-name descname"><span class="pre">ansatz</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit" title="scikit_quri.circuit.circuit.LearningCircuit"><span class="pre">LearningCircuit</span></a></em><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor.ansatz" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor.estimator">
+<span class="sig-name descname"><span class="pre">estimator</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.13)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.13)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.13)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><span class="pre">Operator</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><span class="pre">PauliLabel</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.13)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.13)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.CircuitQuantumState" title="(in QURI Parts)"><span class="pre">CircuitQuantumState</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state_vector.html#quri_parts.core.state.state_vector.QuantumStateVector" title="(in QURI Parts)"><span class="pre">QuantumStateVector</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.13)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.estimator.html#quri_parts.core.estimator.Estimate" title="(in QURI Parts)"><span class="pre">Estimate</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.13)"><span class="pre">complex</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor.estimator" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor.gradient_estimator">
+<span class="sig-name descname"><span class="pre">gradient_estimator</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.13)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.13)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><span class="pre">Operator</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><span class="pre">PauliLabel</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">_ParametricStateT</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.13)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.estimator.html#quri_parts.core.estimator.Estimates" title="(in QURI Parts)"><span class="pre">Estimates</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.13)"><span class="pre">complex</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor.gradient_estimator" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor.optimizer">
+<span class="sig-name descname"><span class="pre">optimizer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/algo/quri_parts.algo.optimizer.interface.html#quri_parts.algo.optimizer.interface.Optimizer" title="(in QURI Parts)"><span class="pre">Optimizer</span></a></em><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor.optimizer" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor.operator">
+<span class="sig-name descname"><span class="pre">operator</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.13)"><span class="pre">Union</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><span class="pre">Operator</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><span class="pre">PauliLabel</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor.operator" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor.x_norm_range">
+<span class="sig-name descname"><span class="pre">x_norm_range</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor.x_norm_range" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor.y_norm_range">
+<span class="sig-name descname"><span class="pre">y_norm_range</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.7</span></em><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor.y_norm_range" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor.n_qubit">
+<span class="sig-name descname"><span class="pre">n_qubit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor.n_qubit" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor.do_x_scale">
+<span class="sig-name descname"><span class="pre">do_x_scale</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor.do_x_scale" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor.do_y_scale">
+<span class="sig-name descname"><span class="pre">do_y_scale</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor.do_y_scale" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor.n_outputs">
+<span class="sig-name descname"><span class="pre">n_outputs</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor.n_outputs" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor.y_exp_ratio">
+<span class="sig-name descname"><span class="pre">y_exp_ratio</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2.2</span></em><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor.y_exp_ratio" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor.trained_param">
+<span class="sig-name descname"><span class="pre">trained_param</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><span class="pre">Optional</span></a><span class="p"><span class="pre">[</span></span><span class="pre">npt.NDArray</span><span class="p"><span class="pre">[</span></span><span class="pre">np.float64</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor.trained_param" title="Permalink to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor.fit">
+<span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/regressor.html#QNNRegressor.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor.fit" title="Permalink to this definition">#</a></dt>
+<dd><p>Fit the model to the training data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_train</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Input data whose shape is (n_samples, n_features).</p></li>
+<li><p><strong>y_train</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Output data whose shape is (n_samples, n_outputs).</p></li>
+<li><p><strong>batch_size</strong> – The number of samples in each batch.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor.cost_fn">
+<span class="sig-name descname"><span class="pre">cost_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_scaled</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_scaled</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/regressor.html#QNNRegressor.cost_fn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor.cost_fn" title="Permalink to this definition">#</a></dt>
+<dd><p>Calculate the cost function for solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_batched</strong> – Input data whose shape is (batch_size, n_features).</p></li>
+<li><p><strong>y_batched</strong> – Output data whose shape is (batch_size, n_outputs).</p></li>
+<li><p><strong>params</strong> (<em>npt.NDArray</em><em>[</em><em>np.float64</em><em>]</em>) – Parameters for the quantum circuit.</p></li>
+<li><p><strong>x_scaled</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>y_scaled</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Cost function value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>cost</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_test</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/regressor.html#QNNRegressor.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor.predict" title="Permalink to this definition">#</a></dt>
+<dd><p>Predict outcome for each input data in <cite>x_test</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x_test</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Input data whose shape is (batch_size, n_features).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Predicted outcome.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>y_pred</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.regressor.QNNRegressor.grad_fn">
+<span class="sig-name descname"><span class="pre">grad_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_scaled</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_scaled</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/regressor.html#QNNRegressor.grad_fn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.regressor.QNNRegressor.grad_fn" title="Permalink to this definition">#</a></dt>
+<dd><p>Calculate the gradient of the cost function for solver.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x_batched</strong> – Input data whose shape is (batch_size, n_features).</p></li>
+<li><p><strong>y_batched</strong> – Output data whose shape is (batch_size, n_outputs).</p></li>
+<li><p><strong>params</strong> (<em>npt.NDArray</em><em>[</em><em>np.float64</em><em>]</em>) – Parameters for the quantum circuit.</p></li>
+<li><p><strong>x_scaled</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>y_scaled</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.3)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gradient of the cost function.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>grads</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
-<section id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this heading">#</a></h2>
+<section id="module-scikit_quri.qnn">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-scikit_quri.qnn" title="Permalink to this heading">#</a></h2>
 </section>
 </section>
 
@@ -445,11 +1403,104 @@ document.write(`
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit-quri-qnn-classifier-module">scikit_quri.qnn.classifier module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit-quri-qnn-regressor-module">scikit_quri.qnn.regressor module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit-quri-qnn-generation-module">scikit_quri.qnn.generation module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit-quri-qnn-kernel-tsne-module">scikit_quri.qnn.kernel_tsne module</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.qnn.classifier">scikit_quri.qnn.classifier module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier"><code class="docutils literal notranslate"><span class="pre">QNNClassifier</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.ansatz"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.ansatz</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.num_class"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.num_class</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.estimator"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.estimator</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.gradient_estimator"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.gradient_estimator</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.optimizer"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.optimizer</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.operator"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.operator</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.x_norm_range"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.x_norm_range</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.y_norm_range"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.y_norm_range</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.do_x_scale"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.do_x_scale</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.do_y_scale"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.do_y_scale</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.n_outputs"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.n_outputs</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.y_exp_ratio"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.y_exp_ratio</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.trained_param"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.trained_param</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.n_qubit"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.n_qubit</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.predict_inner_cache"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.predict_inner_cache</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.fit"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.fit()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.predict"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.predict()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.cost_func"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.cost_func()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.classifier.QNNClassifier.cost_func_grad"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.cost_func_grad()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.qnn.generation">scikit_quri.qnn.generation module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator"><code class="docutils literal notranslate"><span class="pre">QNNGenerator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.fit"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.fit()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.fit_direct_distribution"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.fit_direct_distribution()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.predict"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.predict()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.conving"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.conving()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.cost_func"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.cost_func()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.qnn.kernel_tsne">scikit_quri.qnn.kernel_tsne module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.pqc_f_helper"><code class="docutils literal notranslate"><span class="pre">pqc_f_helper</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.pqc_f_helper.get"><code class="docutils literal notranslate"><span class="pre">pqc_f_helper.get()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator"><code class="docutils literal notranslate"><span class="pre">overlap_estimator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator.calc_all_qula_states"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.calc_all_qula_states()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator.estimate"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE"><code class="docutils literal notranslate"><span class="pre">TSNE</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p"><code class="docutils literal notranslate"><span class="pre">TSNE.calc_probabilities_p()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p_state"><code class="docutils literal notranslate"><span class="pre">TSNE.calc_probabilities_p_state()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_q"><code class="docutils literal notranslate"><span class="pre">TSNE.calc_probabilities_q()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.joint_probabilities"><code class="docutils literal notranslate"><span class="pre">TSNE.joint_probabilities()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.binary_search_perplexity"><code class="docutils literal notranslate"><span class="pre">TSNE.binary_search_perplexity()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.kldiv"><code class="docutils literal notranslate"><span class="pre">TSNE.kldiv()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.cdist"><code class="docutils literal notranslate"><span class="pre">TSNE.cdist()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.init"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.init()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_loss"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.calc_loss()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_grad"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.calc_grad()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.cost_f"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.cost_f()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.generate_X_train_state"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.generate_X_train_state()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.train"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.train()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.transform"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.transform()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_y"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.calc_y()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.input_quantum_state"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.input_quantum_state()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_fidelity"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.calc_fidelity()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_fidelity_all"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.calc_fidelity_all()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.plot"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.plot()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.qnn.regressor">scikit_quri.qnn.regressor module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.mean_squared_error"><code class="docutils literal notranslate"><span class="pre">mean_squared_error()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor"><code class="docutils literal notranslate"><span class="pre">QNNRegressor</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.ansatz"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.ansatz</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.estimator"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.estimator</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.gradient_estimator"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.gradient_estimator</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.optimizer"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.optimizer</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.operator"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.operator</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.x_norm_range"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.x_norm_range</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.y_norm_range"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.y_norm_range</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.n_qubit"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.n_qubit</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.do_x_scale"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.do_x_scale</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.do_y_scale"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.do_y_scale</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.n_outputs"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.n_outputs</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.y_exp_ratio"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.y_exp_ratio</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.trained_param"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.trained_param</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.fit"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.fit()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.cost_fn"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.cost_fn()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.predict"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.predict()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.regressor.QNNRegressor.grad_fn"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.grad_fn()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.qnn">Module contents</a></li>
 </ul>
   </nav></div>
 
