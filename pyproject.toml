@@ -19,12 +19,13 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.9.8,<3.12"
+python = ">=3.10,<3.12"
 quri-parts = {version = "^0.22.0", extras = ["qulacs"]}
 scikit-learn = "^1.4.0"
 matplotlib = "^3.8.4"
 pandas = "^2.2.3"
 seaborn = "^0.13.2"
+quri-parts-openfermion = "^0.23.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.4"
