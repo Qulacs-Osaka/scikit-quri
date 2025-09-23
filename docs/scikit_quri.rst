@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   scikit_quri.backend
    scikit_quri.circuit
    scikit_quri.qkrr
    scikit_quri.qnn

@@ -15,6 +15,7 @@ from quri_parts.core.state import ParametricCircuitQuantumState, quantum_state
 from quri_parts.algo.optimizer import OptimizerStatus
 from quri_parts.qulacs import QulacsStateT
 from scikit_quri.circuit import LearningCircuit
+from scikit_quri.backend import BaseEstimator
 from typing import List, Optional, Dict, Tuple
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import log_loss
@@ -69,7 +70,7 @@ class QNNClassifier:
 
     ansatz: LearningCircuit
     num_class: int
-    estimator: EstimatorType
+    estimator: BaseEstimator
     gradient_estimator: GradientEstimatorType
     optimizer: Optimizer
 
@@ -92,6 +93,8 @@ class QNNClassifier:
     )
 
     def __post_init__(self) -> None:
+        if not issubclass(type(self.estimator), BaseEstimator):
+            raise TypeError("estimator must be a subclass of BaseEstimator")
         self.n_qubit = self.ansatz.n_qubits
         if self.do_x_scale:
             self.scale_x_scaler = MinMaxScaler(
@@ -228,7 +231,7 @@ class QNNClassifier:
         for i in range(self.num_class):
             # print("\r", f"pred_inner:{i}/{self.num_class}", end="")
             op = self.operator[i]
-            estimates = self.estimator([op], circuit_states)
+            estimates = self.estimator.estimate([op], circuit_states)
             estimates = [e.value.real * self.y_exp_ratio for e in estimates]
             res[:, i] = estimates.copy()
         self.predict_inner_cache[(x_scaled.tobytes(), params.tobytes())] = res
