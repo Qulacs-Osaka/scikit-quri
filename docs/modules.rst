@@ -1,4 +1,4 @@
-scikit-quri
+scikit_quri
 ===========
 
 .. toctree::
