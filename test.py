@@ -257,6 +257,8 @@ if test_case_enable[3]:
 
         # ans = circuit.backprop(x, params, operator, shots=2024)
         # print("OQTOPUS device:", array_f4(ans))
+else:
+    print("Skip")
 
 print()
 
@@ -369,6 +371,8 @@ if test_case_enable[4]:
 
         ans = circuit.backprop(x, params, operator, shots=2024)
         print("OQTOPUS device:", array_f4(ans))
+else:
+    print("Skip")
 
 print()
 
@@ -442,5 +446,7 @@ if test_case_enable[5]:
 
         ans = circuit.backprop(x, params, operator, shots=2024)
         print("OQTOPUS device:", array_f4(ans))
+else:
+    print("Skip")
 
 print()
