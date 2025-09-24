@@ -6,13 +6,7 @@ from quri_parts.core.operator import Operator, pauli_label
 from scikit_quri.circuit import LearningCircuit
 
 # //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-test_case_enable = [
-    False,
-    False,
-    False,
-    False,
-    False,
-]
+test_case_enable = [False, False, False, False, False, True]
 
 enable_oqtopus = False
 
@@ -88,11 +82,11 @@ if test_case_enable[1]:
     c = ParametricQuantumCircuit(n_qubits)
 
     c.add_parametric_RY_gate(0, params[0])
-    # c.add_parametric_RX_gate(1, params[1])
+    c.add_parametric_RX_gate(1, params[1])
 
     obs = Observable(n_qubits)
     obs.add_operator(1.0, "X 0")
-    # obs.add_operator(1.0, "Y 1")
+    obs.add_operator(1.0, "Y 1")
 
     ans = c.backprop(obs)
 
@@ -378,22 +372,75 @@ if test_case_enable[4]:
 
 print()
 
-
 # //ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
+print("Case 6")
+if test_case_enable[5]:
+    n_qubits = 9
+    params = np.array([pi / 4] * 9)
 
-c = ParametricQuantumCircuit(1)
-c.add_parametric_RX_gate(0, pi / 2)
-c.add_parametric_RY_gate(0, pi / 2)
-c.add_parametric_RZ_gate(0, pi / 2)
+    # //〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
+    # Simulator
+    c = ParametricQuantumCircuit(n_qubits)
 
-# op = Observable(1)
-# op.add_operator(1.0, "X 0")
-# print(array_f4(c.backprop(op)))
+    c.add_parametric_RX_gate(0, params[0])
+    c.add_parametric_RY_gate(1, params[1])
+    c.add_parametric_RZ_gate(2, params[2])
+    c.add_parametric_RX_gate(3, params[3])
+    c.add_parametric_RZ_gate(4, params[4])
+    c.add_parametric_RY_gate(5, params[5])
+    c.add_parametric_RY_gate(6, params[6])
+    c.add_parametric_RZ_gate(7, params[7])
+    c.add_parametric_RX_gate(8, params[8])
 
-# op = Observable(1)
-# op.add_operator(1.0, "Y 0")
-# print(array_f4(c.backprop(op)))
+    obs = Observable(n_qubits)
+    obs.add_operator(1.0, "X 0")
+    obs.add_operator(1.0, "X 1")
+    obs.add_operator(1.0, "X 2")
+    obs.add_operator(1.0, "Y 3")
+    obs.add_operator(1.0, "Y 4")
+    obs.add_operator(1.0, "Y 5")
+    obs.add_operator(1.0, "Z 6")
+    obs.add_operator(1.0, "Z 7")
+    obs.add_operator(1.0, "Z 8")
 
-op = Observable(1)
-op.add_operator(1.0, "Z 0")
-print(array_f4(c.backprop(op)))
+    print(obs)
+
+    ans = c.backprop(obs)
+
+    ans_f4 = array_f4(ans)
+    for element in ans_f4:
+        print(f"{element}")
+
+    # //〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
+    # OQTOPUS device
+    if enable_oqtopus:
+        circuit = LearningCircuit(n_qubits)
+        circuit.add_parametric_RX_gate(0)
+        circuit.add_parametric_RY_gate(1)
+        circuit.add_parametric_RZ_gate(2)
+        circuit.add_parametric_RX_gate(3)
+        circuit.add_parametric_RZ_gate(4)
+        circuit.add_parametric_RY_gate(5)
+        circuit.add_parametric_RY_gate(6)
+        circuit.add_parametric_RZ_gate(7)
+        circuit.add_parametric_RX_gate(8)
+
+        x = np.array([])
+        operator = Operator(
+            {
+                pauli_label("X0"): 1.0,
+                pauli_label("X1"): 1.0,
+                pauli_label("X2"): 1.0,
+                pauli_label("Y3"): 1.0,
+                pauli_label("Y4"): 1.0,
+                pauli_label("Y5"): 1.0,
+                pauli_label("Z6"): 1.0,
+                pauli_label("Z7"): 1.0,
+                pauli_label("Z8"): 1.0,
+            }
+        )
+
+        ans = circuit.backprop(x, params, operator, shots=2024)
+        print("OQTOPUS device:", array_f4(ans))
+
+print()

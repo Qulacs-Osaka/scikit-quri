@@ -24,60 +24,78 @@ def commutator(A, B):
 
 
 def expectation_value(psi, Observable):
-    return psi.conj().T @ Observable @ psi
+    return dagger(psi) @ Observable @ psi
 
 
-# hamiltonian = np.kron(X, I) + np.kron(I, Y)
-# print(hamiltonian)
-# print()
-
-# Gj = np.kron(Y, I)
-# ans = 0.5j * (Gj @ hamiltonian - hamiltonian @ Gj)
-# print(ans)
-# print()
-
-# Gj = np.kron(I, X)
-# ans = 0.5j * (Gj @ hamiltonian - hamiltonian @ Gj)
-# print(ans)
-
-# hamiltonian = X
-# Gj = Y
-# ans = 0.5j * (Gj @ hamiltonian - hamiltonian @ Gj)
-# print(ans)
-# print()
+def dagger(U):
+    return U.conj().T
 
 
-# hamiltonian = Y
-# Gj = X
-# ans = 0.5j * (Gj @ hamiltonian - hamiltonian @ Gj)
-# print(ans)
-# print()
+# //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 
-# psi = np.array([1, 0], dtype=complex)
-# U = RZ(pi / 2) @ RY(pi / 2) @ RX(pi / 2)
-# psi_final = U @ psi
-
-# hamiltonian = X
-# Oj = 0.5j * commutator(X, X)
-
-# print(Oj)
-# ans = psi_final.conj().T @ Oj @ psi_final
-# print(ans)
-
-
-hamiltonian = Z
-U = RZ(pi / 2) @ RY(pi / 2) @ RX(pi / 2)
+hamiltonian = X
 psi = np.array([1, 0], dtype=complex)
-psi_final = U @ psi
 
-Oj = 0.5j * commutator(X, Z)
-ans = expectation_value(psi_final, Oj)
-print(ans)
+psi1 = RX(pi / 2) @ psi
+Oj = (
+    dagger(RZ(pi / 2))
+    @ dagger(RY(pi / 2))
+    @ (1j * commutator(0.5 * X, hamiltonian))
+    @ RY(pi / 2)
+    @ RZ(pi / 2)
+)
+ans = expectation_value(psi1, Oj)
+print(f"{dagger(psi1)} \n{Oj} \n{psi1} \n={ans}")
+print()
 
-Oj = 0.5j * commutator(Y, Z)
-ans = expectation_value(psi_final, Oj)
-print(ans)
+psi2 = RY(pi / 2) @ RX(pi / 2) @ psi
+Oj = dagger(RZ(pi / 2)) @ (1j * commutator(0.5 * Y, hamiltonian)) @ RZ(pi / 2)
+ans = expectation_value(psi2, Oj)
+print(f"{dagger(psi2)} \n{Oj} \n{psi2} \n={ans}")
+print()
 
-Oj = 0.5j * commutator(Z, Z)
-ans = expectation_value(psi_final, Oj)
-print(ans)
+psi3 = RZ(pi / 2) @ RY(pi / 2) @ RX(pi / 2) @ psi
+Oj = 1j * commutator(0.5 * Z, hamiltonian)
+ans = expectation_value(psi3, Oj)
+print(f"{dagger(psi3)} \n{Oj} \n{psi3} \n={ans}")
+
+# Oj = 0.5j * commutator(Y, Z)
+# ans = expectation_value(psi_final, Oj)
+# print(ans)
+
+# Oj = 0.5j * commutator(Z, Z)
+# ans = expectation_value(psi_final, Oj)
+# print(ans)
+
+
+def calc_grad(psi, hamiltonian, axis, params):
+    match axis:
+        case "X":
+            U = RX(params[0])
+            Gj = X
+        case "Y":
+            U = RY(params[0])
+            Gj = Y
+        case "Z":
+            U = RZ(params[0])
+            Gj = Z
+        case _:
+            U = I
+            Gj = I
+    psi_final = U @ psi
+    Oj = 0.5j * commutator(Gj, hamiltonian)
+    ans = expectation_value(psi_final, Oj)
+    print(ans)
+
+
+psi = np.array([1, 0], dtype=complex)
+
+# calc_grad(psi, X, "X", [pi / 4])
+# calc_grad(psi, X, "Y", [pi / 4])
+# calc_grad(psi, X, "Z", [pi / 4])
+# calc_grad(psi, Y, "X", [pi / 4])
+# calc_grad(psi, Y, "Y", [pi / 4])
+# calc_grad(psi, Y, "Z", [pi / 4])
+# calc_grad(psi, Z, "X", [pi / 4])
+# calc_grad(psi, Z, "Y", [pi / 4])
+# calc_grad(psi, Z, "Z", [pi / 4])
