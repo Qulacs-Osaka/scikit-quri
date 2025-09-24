@@ -12,7 +12,7 @@ from quri_parts.core.operator import Operator, pauli_label
 from scikit_quri.circuit import LearningCircuit
 
 # //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-test_case_enable = [True, False, False, False, False, False]
+test_case_enable = [False, False, False, False, False, True]
 
 enable_oqtopus = True
 
@@ -104,18 +104,37 @@ if test_case_enable[1]:
 
     # //〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
     # Simulator
-    c = ParametricQuantumCircuit(n_qubits)
+    # c = ParametricQuantumCircuit(n_qubits)
 
-    c.add_parametric_RY_gate(0, params[0])
-    c.add_parametric_RX_gate(1, params[1])
+    # c.add_parametric_RY_gate(0, params[0])
+    # c.add_parametric_RX_gate(1, params[1])
 
-    obs = Observable(n_qubits)
-    obs.add_operator(1.0, "X 0")
-    obs.add_operator(1.0, "Y 1")
+    # obs = Observable(n_qubits)
+    # obs.add_operator(1.0, "X 0")
+    # obs.add_operator(1.0, "Y 1")
 
-    ans = c.backprop(obs)
+    # ans = c.backprop(obs)
 
-    print("Simulator:", array_f4(ans))
+    # print("Simulator:", array_f4(ans))
+
+    # //〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
+    # Qiskit Simulator
+    theta_list = [Parameter("θ0"), Parameter("θ1")]
+    qc = QuantumCircuit(n_qubits)
+    qc.ry(theta_list[0], 0)
+    qc.rx(theta_list[1], 1)
+
+    pauli_list = [
+        ("IX", 1.0),
+        ("YI", 1.0),
+    ]
+    H = SparsePauliOp.from_list(pauli_list)
+
+    estimator = StatevectorEstimator()
+    gradient = ParamShiftEstimatorGradient(estimator)
+    job = gradient.run(circuits=[qc], observables=[H], parameter_values=[params.tolist()])
+    result = job.result()
+    print("Qiskit Simulator:", array_f4(result.gradients[0]))
 
     # //〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
     # OQTOPUS device
@@ -152,34 +171,65 @@ if test_case_enable[2]:
     n_qubits = 3
     params = np.array(
         [
-            pi / 2,
             pi / 4,
-            pi / 2,
             pi / 4,
-            pi / 2,
+            pi / 4,
+            pi / 4,
+            pi / 4,
             pi / 4,
         ]
     )
 
     # //〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
     # Simulator
-    c = ParametricQuantumCircuit(n_qubits)
+    # c = ParametricQuantumCircuit(n_qubits)
 
-    c.add_parametric_RY_gate(0, params[0])
-    c.add_parametric_RZ_gate(0, params[1])
-    c.add_parametric_RX_gate(1, params[2])
-    c.add_parametric_RZ_gate(1, params[3])
-    c.add_parametric_RX_gate(2, params[4])
-    c.add_parametric_RY_gate(2, params[5])
+    # c.add_parametric_RY_gate(0, params[0])
+    # c.add_parametric_RZ_gate(0, params[1])
+    # c.add_parametric_RX_gate(1, params[2])
+    # c.add_parametric_RZ_gate(1, params[3])
+    # c.add_parametric_RX_gate(2, params[4])
+    # c.add_parametric_RY_gate(2, params[5])
 
-    obs = Observable(n_qubits)
-    obs.add_operator(1.0, "X 0")
-    obs.add_operator(1.0, "Y 1")
-    obs.add_operator(1.0, "Z 2")
+    # obs = Observable(n_qubits)
+    # obs.add_operator(1.0, "X 0")
+    # obs.add_operator(1.0, "Y 1")
+    # obs.add_operator(1.0, "Z 2")
 
-    ans = c.backprop(obs)
+    # ans = c.backprop(obs)
 
-    print("Simulator:", array_f4(ans))
+    # print("Simulator:", array_f4(ans))
+
+    # //〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
+    # Qiskit Simulator
+    theta_list = [
+        Parameter("θ0"),
+        Parameter("θ1"),
+        Parameter("θ2"),
+        Parameter("θ3"),
+        Parameter("θ4"),
+        Parameter("θ5"),
+    ]
+    qc = QuantumCircuit(n_qubits)
+    qc.ry(theta_list[0], 0)
+    qc.rz(theta_list[1], 0)
+    qc.rx(theta_list[2], 1)
+    qc.rz(theta_list[3], 1)
+    qc.rx(theta_list[4], 2)
+    qc.ry(theta_list[5], 2)
+
+    pauli_list = [
+        ("IIX", 1.0),
+        ("IYI", 1.0),
+        ("ZII", 1.0),
+    ]
+    H = SparsePauliOp.from_list(pauli_list)
+
+    estimator = StatevectorEstimator()
+    gradient = ParamShiftEstimatorGradient(estimator)
+    job = gradient.run(circuits=[qc], observables=[H], parameter_values=[params.tolist()])
+    result = job.result()
+    print("Qiskit Simulator:", array_f4(result.gradients[0]))
 
     # //〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
     # OQTOPUS device
@@ -409,36 +459,70 @@ if test_case_enable[5]:
 
     # //〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
     # Simulator
-    c = ParametricQuantumCircuit(n_qubits)
+    # c = ParametricQuantumCircuit(n_qubits)
 
-    c.add_parametric_RX_gate(0, params[0])
-    c.add_parametric_RY_gate(1, params[1])
-    c.add_parametric_RZ_gate(2, params[2])
-    c.add_parametric_RX_gate(3, params[3])
-    c.add_parametric_RZ_gate(4, params[4])
-    c.add_parametric_RY_gate(5, params[5])
-    c.add_parametric_RY_gate(6, params[6])
-    c.add_parametric_RZ_gate(7, params[7])
-    c.add_parametric_RX_gate(8, params[8])
+    # c.add_parametric_RX_gate(0, params[0])
+    # c.add_parametric_RY_gate(1, params[1])
+    # c.add_parametric_RZ_gate(2, params[2])
+    # c.add_parametric_RX_gate(3, params[3])
+    # c.add_parametric_RZ_gate(4, params[4])
+    # c.add_parametric_RY_gate(5, params[5])
+    # c.add_parametric_RY_gate(6, params[6])
+    # c.add_parametric_RZ_gate(7, params[7])
+    # c.add_parametric_RX_gate(8, params[8])
 
-    obs = Observable(n_qubits)
-    obs.add_operator(1.0, "X 0")
-    obs.add_operator(1.0, "X 1")
-    obs.add_operator(1.0, "X 2")
-    obs.add_operator(1.0, "Y 3")
-    obs.add_operator(1.0, "Y 4")
-    obs.add_operator(1.0, "Y 5")
-    obs.add_operator(1.0, "Z 6")
-    obs.add_operator(1.0, "Z 7")
-    obs.add_operator(1.0, "Z 8")
+    # obs = Observable(n_qubits)
+    # obs.add_operator(1.0, "X 0")
+    # obs.add_operator(1.0, "X 1")
+    # obs.add_operator(1.0, "X 2")
+    # obs.add_operator(1.0, "Y 3")
+    # obs.add_operator(1.0, "Y 4")
+    # obs.add_operator(1.0, "Y 5")
+    # obs.add_operator(1.0, "Z 6")
+    # obs.add_operator(1.0, "Z 7")
+    # obs.add_operator(1.0, "Z 8")
 
-    print(obs)
+    # print(obs)
 
-    ans = c.backprop(obs)
+    # ans = c.backprop(obs)
 
-    ans_f4 = array_f4(ans)
-    for element in ans_f4:
-        print(f"{element}")
+    # ans_f4 = array_f4(ans)
+    # for element in ans_f4:
+    #     print(f"{element}")
+
+    # //〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
+    # Qiskit Simulator
+    theta_list = [Parameter(f"θ{i}") for i in range(9)]
+
+    qc = QuantumCircuit(n_qubits)
+    qc.rx(theta_list[0], 0)
+    qc.ry(theta_list[1], 1)
+    qc.rz(theta_list[2], 2)
+    qc.rx(theta_list[3], 3)
+    qc.ry(theta_list[4], 4)
+    qc.rz(theta_list[5], 5)
+    qc.rx(theta_list[6], 6)
+    qc.ry(theta_list[7], 7)
+    qc.rz(theta_list[8], 8)
+
+    pauli_list = [
+        ("IIIIIIIIX", 1.0),
+        ("IIIIIIIXI", 1.0),
+        ("IIIIIIXII", 1.0),
+        ("IIIIIYIII", 1.0),
+        ("IIIIYIIII", 1.0),
+        ("IIIYIIIII", 1.0),
+        ("IIIZIIIII", 1.0),
+        ("IIZIIIIII", 1.0),
+        ("ZIIIIIIII", 1.0),
+    ]
+    H = SparsePauliOp.from_list(pauli_list)
+
+    estimator = StatevectorEstimator()
+    gradient = ParamShiftEstimatorGradient(estimator)
+    job = gradient.run(circuits=[qc], observables=[H], parameter_values=[params.tolist()])
+    result = job.result()
+    print("Qiskit Simulator:", array_f4(result.gradients[0]))
 
     # //〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
     # OQTOPUS device
