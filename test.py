@@ -1,14 +1,20 @@
 import numpy as np
 from numpy import pi
+from qiskit import QuantumCircuit
+from qiskit.circuit import Parameter
+from qiskit.primitives import StatevectorEstimator
+from qiskit.quantum_info import SparsePauliOp
+from qiskit_aer import AerSimulator
+from qiskit_algorithms.gradients import ParamShiftEstimatorGradient
 from qulacs import Observable, ParametricQuantumCircuit
 from quri_parts.core.operator import Operator, pauli_label
 
 from scikit_quri.circuit import LearningCircuit
 
 # //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-test_case_enable = [False, False, False, False, False, True]
+test_case_enable = [True, False, False, False, False, False]
 
-enable_oqtopus = False
+enable_oqtopus = True
 
 
 # //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
@@ -31,18 +37,37 @@ if test_case_enable[0]:
 
     # //〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
     # Simulator
-    c = ParametricQuantumCircuit(n_qubits)
+    # c = ParametricQuantumCircuit(n_qubits)
 
-    c.add_parametric_RX_gate(0, params[0])
-    c.add_parametric_RY_gate(1, params[1])
+    # c.add_parametric_RX_gate(0, params[0])
+    # c.add_parametric_RY_gate(1, params[1])
 
-    obs = Observable(n_qubits)
-    obs.add_operator(1.0, "Z 0")
-    obs.add_operator(1.0, "Z 1")
+    # obs = Observable(n_qubits)
+    # obs.add_operator(1.0, "Z 0")
+    # obs.add_operator(1.0, "Z 1")
 
-    ans = c.backprop(obs)
+    # ans = c.backprop(obs)
 
-    print("Simulator:", array_f4(ans))
+    # print("Simulator:", array_f4(ans))
+
+    # //〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
+    # Qiskit Simulator
+    theta_list = [Parameter("θ0"), Parameter("θ1")]
+    qc = QuantumCircuit(n_qubits)
+    qc.rx(theta_list[0], 0)
+    qc.ry(theta_list[1], 1)
+
+    pauli_list = [
+        ("ZI", 1.0),
+        ("IZ", 1.0),
+    ]
+    H = SparsePauliOp.from_list(pauli_list)
+
+    estimator = StatevectorEstimator()
+    gradient = ParamShiftEstimatorGradient(estimator)
+    job = gradient.run(circuits=[qc], observables=[H], parameter_values=[params.tolist()])
+    result = job.result()
+    print("Qiskit Simulator:", result.gradients[0])
 
     # //〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
     # OQTOPUS device
