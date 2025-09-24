@@ -499,11 +499,11 @@ if test_case_enable[5]:
     qc.ry(theta_list[1], 1)
     qc.rz(theta_list[2], 2)
     qc.rx(theta_list[3], 3)
-    qc.ry(theta_list[4], 4)
-    qc.rz(theta_list[5], 5)
-    qc.rx(theta_list[6], 6)
-    qc.ry(theta_list[7], 7)
-    qc.rz(theta_list[8], 8)
+    qc.rz(theta_list[4], 4)
+    qc.ry(theta_list[5], 5)
+    qc.ry(theta_list[6], 6)
+    qc.rz(theta_list[7], 7)
+    qc.rx(theta_list[8], 8)
 
     pauli_list = [
         ("IIIIIIIIX", 1.0),
@@ -512,8 +512,8 @@ if test_case_enable[5]:
         ("IIIIIYIII", 1.0),
         ("IIIIYIIII", 1.0),
         ("IIIYIIIII", 1.0),
-        ("IIIZIIIII", 1.0),
         ("IIZIIIIII", 1.0),
+        ("IZIIIIIII", 1.0),
         ("ZIIIIIIII", 1.0),
     ]
     H = SparsePauliOp.from_list(pauli_list)
