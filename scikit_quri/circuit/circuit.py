@@ -443,7 +443,7 @@ class LearningCircuit:
         observable = 1j * commutator(generator_operator, hamiltonian)
         return observable
 
-    def get_gate_axis(self, gate: QuantumGate) -> _Axis:
+    def _get_gate_axis(self, gate: QuantumGate) -> _Axis:
         match gate.name:
             case "ParametricRX":
                 return _Axis.X
@@ -453,6 +453,22 @@ class LearningCircuit:
                 return _Axis.Z
             case _:
                 raise NotImplementedError("Unknown gate type found: ", gate.name)
+
+    def get_bind_circuit(
+        self, gates: Sequence[QuantumGate], x, theta
+    ) -> ImmutableBoundParametricQuantumCircuit:
+        lc = LearningCircuit(self.n_qubits)
+        for g in gates:
+            if isinstance(g, QuantumGate):
+                lc.add_gate(g)
+            elif isinstance(g, ParametricQuantumGate):
+                g_axis = self._get_gate_axis(g)
+                g_qubit = g.target_indices[0]
+                lc._add_parametric_R_gate_inner(g_qubit, g_axis, None, None)
+            else:
+                raise NotImplementedError("Unknown gate type found: ", g.name)
+        _circuit = lc.bind_input_and_parameters(x, theta)
+        return _circuit
 
     def backprop(
         self,
@@ -487,30 +503,11 @@ class LearningCircuit:
             gate = self.circuit.gates[i]
             if not isinstance(gate, ParametricQuantumGate):
                 continue
-            axis = self.get_gate_axis(gate)
-
-            # target_gates = self.circuit.gates[0 : i + 1]
-            # target_gates_seq: Sequence[QuantumGate] = cast(Sequence[QuantumGate], target_gates)
-            # _circuit = QuantumCircuit(self.circuit.qubit_count, gates=target_gates_seq)
-            _circuit = QuantumCircuit(self.circuit.qubit_count)
-            # for i in range(len(self.circuit.gates_and_params)):
-            #     g, p = self.circuit.gates_and_params[i]
-            #     g_cast = cast(QuantumGate, g)
-            #     _circuit.add_gate(g_cast)
-            #     if p is not None:
-            #         param_value = p.value
-            #         for param in self._learning_parameter_list:
-            #             for pos in param.positions_in_circuit:
-            #                 if pos.gate_pos == i:
-            #                     param_value = theta[param.parameter_id] * (pos.coef or 1.0)
-            #         _circuit.set_parameter(i, param_value)
-            for g in self.circuit.gates[0 : i + 1]:
-                _circuit.add_gate(g)
-
+            axis = self._get_gate_axis(gate)
             qubit_index = gate.target_indices[0]
             observable = self.calc_gradient_observable(axis, qubit_index, operator)
-
-            # Run estimation job with Oqtopus backend
+            _circuit = self.get_bind_circuit(self.circuit.gates[: i + 1], x, theta)
+            # _circuit = self.circuit.bind_parameters(x, theta)
             job = backend.estimate(
                 _circuit,
                 operator=observable,
