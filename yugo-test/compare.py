@@ -4,25 +4,17 @@ from qiskit import QuantumCircuit
 from qiskit.circuit import Parameter
 from qiskit.primitives import StatevectorEstimator
 from qiskit.quantum_info import SparsePauliOp
-from qiskit_aer import AerSimulator
 from qiskit_algorithms.gradients import ParamShiftEstimatorGradient
 from qulacs import Observable, ParametricQuantumCircuit
 from quri_parts.core.operator import Operator, pauli_label
+from utils import array_f4
 
 from scikit_quri.circuit import LearningCircuit
 
 # //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-test_case_enable = [False, False, False, False, False, True]
+test_case_enable = [False, False, True, False, False, False]
 
 enable_oqtopus = True
-
-
-# //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-def array_f4(array):
-    for i in range(len(array)):
-        array[i] = float(f"{array[i]:.4f}")
-    return array
-
 
 # //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
 # 2 qubit
