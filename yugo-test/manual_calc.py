@@ -1,4 +1,5 @@
 import numpy as np
+from utils import array_f4
 
 X = np.array([[0, 1], [1, 0]], dtype=complex)
 Y = np.array([[0, -1j], [1j, 0]], dtype=complex)
@@ -31,71 +32,77 @@ def dagger(U):
     return U.conj().T
 
 
-# //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-
+# //ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 hamiltonian = X
+
+params = [
+    pi / 4,
+    pi / 4,
+    pi / 2,
+]
+
+gates = [
+    RY(params[0]),
+    RZ(params[1]),
+    RY(params[2]),
+]
+generators = ["Y", "Z", "Y"]
+
+ans = []
+len_params = len(params)
 psi = np.array([1, 0], dtype=complex)
 
-psi1 = RX(pi / 2) @ psi
-Oj = (
-    dagger(RZ(pi / 2))
-    @ dagger(RY(pi / 2))
-    @ (1j * commutator(0.5 * X, hamiltonian))
-    @ RY(pi / 2)
-    @ RZ(pi / 2)
-)
-ans = expectation_value(psi1, Oj)
-print(f"{dagger(psi1)} \n{Oj} \n{psi1} \n={ans}")
-print()
-
-psi2 = RY(pi / 2) @ RX(pi / 2) @ psi
-Oj = dagger(RZ(pi / 2)) @ (1j * commutator(0.5 * Y, hamiltonian)) @ RZ(pi / 2)
-ans = expectation_value(psi2, Oj)
-print(f"{dagger(psi2)} \n{Oj} \n{psi2} \n={ans}")
-print()
-
-psi3 = RZ(pi / 2) @ RY(pi / 2) @ RX(pi / 2) @ psi
-Oj = 1j * commutator(0.5 * Z, hamiltonian)
-ans = expectation_value(psi3, Oj)
-print(f"{dagger(psi3)} \n{Oj} \n{psi3} \n={ans}")
-
-# Oj = 0.5j * commutator(Y, Z)
-# ans = expectation_value(psi_final, Oj)
-# print(ans)
-
-# Oj = 0.5j * commutator(Z, Z)
-# ans = expectation_value(psi_final, Oj)
-# print(ans)
+test_cases = [
+    (
+        [pi / 4, pi / 4, pi / 2],
+        [RY(pi / 4), RZ(pi / 4), RY(pi / 2)],
+        ["Y", "Z", "Y"],
+        X,
+        [-0.7071, 0.0, -0.5],
+    ),
+    (
+        [pi / 4],
+        [RX(pi / 4)],
+        ["X"],
+        Z,
+        [-0.7071],
+    ),
+    (
+        [pi / 3, pi / 6],
+        [RX(pi / 3), RZ(pi / 6)],
+        ["X", "Z"],
+        Y,
+        [-0.433, 0.433],
+    ),
+]
 
 
-def calc_grad(psi, hamiltonian, axis, params):
-    match axis:
-        case "X":
-            U = RX(params[0])
-            Gj = X
-        case "Y":
-            U = RY(params[0])
-            Gj = Y
-        case "Z":
-            U = RZ(params[0])
-            Gj = Z
-        case _:
-            U = I
-            Gj = I
-    psi_final = U @ psi
-    Oj = 0.5j * commutator(Gj, hamiltonian)
-    ans = expectation_value(psi_final, Oj)
-    print(ans)
+def compute_gradients(params, gates, generators, hamiltonian, init_state):
+    ans = []
+    len_params = len(params)
+    for i in range(len_params):
+        psi_copy = init_state.copy()
+        for j in range(i + 1):
+            psi_copy = gates[j] @ psi_copy
+
+        H_copy = hamiltonian.copy()
+        for j in range(len_params - 1, i, -1):
+            H_copy = dagger(gates[j]) @ H_copy @ gates[j]
+
+        if generators[i] == "X":
+            Obs = 0.5j * commutator(X, H_copy)
+        elif generators[i] == "Y":
+            Obs = 0.5j * commutator(Y, H_copy)
+        elif generators[i] == "Z":
+            Obs = 0.5j * commutator(Z, H_copy)
+        else:
+            raise ValueError("Unknown generator")
+
+        ans.append(expectation_value(psi_copy, Obs).real)
+    return np.round(ans, 4)
 
 
-psi = np.array([1, 0], dtype=complex)
-
-# calc_grad(psi, X, "X", [pi / 4])
-# calc_grad(psi, X, "Y", [pi / 4])
-# calc_grad(psi, X, "Z", [pi / 4])
-# calc_grad(psi, Y, "X", [pi / 4])
-# calc_grad(psi, Y, "Y", [pi / 4])
-# calc_grad(psi, Y, "Z", [pi / 4])
-# calc_grad(psi, Z, "X", [pi / 4])
-# calc_grad(psi, Z, "Y", [pi / 4])
-# calc_grad(psi, Z, "Z", [pi / 4])
+for case in test_cases:
+    params, gates, generators, hamiltonian, expected = case
+    grad = compute_gradients(params, gates, generators, hamiltonian, psi)
+    print(np.round(grad, 4), expected)
