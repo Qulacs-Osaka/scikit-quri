@@ -34,8 +34,8 @@ theta_list = [
 qc = QuantumCircuit(n_qubits, n_qubits)
 qc.ry(theta_list[0], 0)
 qc.rz(theta_list[1], 0)
-qc.ry(theta_list[2], 1)
-qc.rz(theta_list[3], 1)
+qc.rz(theta_list[2], 1)
+qc.ry(theta_list[3], 1)
 
 H = SparsePauliOp.from_list(hamiltonian)
 
