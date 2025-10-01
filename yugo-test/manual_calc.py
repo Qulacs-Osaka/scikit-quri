@@ -1,5 +1,4 @@
 import numpy as np
-from utils import array_f4
 
 X = np.array([[0, 1], [1, 0]], dtype=complex)
 Y = np.array([[0, -1j], [1j, 0]], dtype=complex)
@@ -33,25 +32,6 @@ def dagger(U):
 
 
 # //ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-hamiltonian = X
-
-params = [
-    pi / 4,
-    pi / 4,
-    pi / 2,
-]
-
-gates = [
-    RY(params[0]),
-    RZ(params[1]),
-    RY(params[2]),
-]
-generators = ["Y", "Z", "Y"]
-
-ans = []
-len_params = len(params)
-psi = np.array([1, 0], dtype=complex)
-
 test_cases = [
     (
         [pi / 4, pi / 4, pi / 2],
@@ -104,5 +84,7 @@ def compute_gradients(params, gates, generators, hamiltonian, init_state):
 
 for case in test_cases:
     params, gates, generators, hamiltonian, expected = case
-    grad = compute_gradients(params, gates, generators, hamiltonian, psi)
+    grad = compute_gradients(
+        params, gates, generators, hamiltonian, np.array([1, 0], dtype=complex)
+    )
     print(np.round(grad, 4), expected)
