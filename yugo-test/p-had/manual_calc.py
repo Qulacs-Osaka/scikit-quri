@@ -82,6 +82,14 @@ def compute_gradients(params, gates, generators, hamiltonian, init_state, n_qubi
 if __name__ == "__main__":
     test_cases = [
         (
+            [pi / 3, pi / 3],
+            [RY(pi / 3), RZ(pi / 3)],
+            [("Y", 0), ("Z", 0)],
+            X,
+            [],
+            1,
+        ),
+        (
             [pi / 4, pi / 4, pi / 2],
             [RY(pi / 4), RZ(pi / 4), RY(pi / 2)],
             [("Y", 0), ("Z", 0), ("Y", 0)],
@@ -106,12 +114,33 @@ if __name__ == "__main__":
             1,
         ),
         (
-            [pi / 4, pi / 2, pi / 4, pi / 2],
-            [RY(pi / 4, 0, 2), RZ(pi / 2, 0, 2), RZ(pi / 4, 1, 2), RY(pi / 2, 1, 2)],
+            [pi / 4, pi / 4, pi / 2, pi / 2],
+            [
+                RY(pi / 4, 0, 2),
+                RZ(pi / 4, 0, 2),
+                RY(pi / 2, 1, 2),
+                RZ(pi / 2, 1, 2),
+            ],
             [("Y", 0), ("Z", 0), ("Y", 1), ("Z", 1)],
             np.kron(X, I) + np.kron(I, X),
             [0.0, -0.7071, 0, 0.0],
             2,
+        ),
+        (
+            [pi / 3, pi / 5, pi / 7, pi / 11, pi / 13, 1, 2],
+            [
+                RY(pi / 3, 0, 3),
+                RZ(pi / 5, 0, 3),
+                RY(pi / 7, 1, 3),
+                RZ(pi / 11, 1, 3),
+                RZ(pi / 13, 2, 3),
+                RY(1, 2, 3),
+                RZ(2, 2, 3),
+            ],
+            [("Y", 0), ("Z", 0), ("Y", 1), ("Z", 1), ("Z", 2), ("Y", 2), ("Z", 2)],
+            np.kron(np.kron(X, I), I) + np.kron(np.kron(I, X), I) + np.kron(np.kron(I, I), X),
+            [],
+            3,
         ),
     ]
 

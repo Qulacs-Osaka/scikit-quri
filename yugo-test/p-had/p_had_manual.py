@@ -82,6 +82,14 @@ def compute_gradients(params, gates, generators, hamiltonian, init_state, n_qubi
 if __name__ == "__main__":
     test_cases = [
         (
+            [pi / 3, pi / 3],
+            [RY(pi / 3), RZ(pi / 3)],
+            [("Y", 0), ("Z", 0)],
+            X,
+            [],
+            1,
+        ),
+        (
             [pi / 4, pi / 4, pi / 2],
             [RY(pi / 4), RZ(pi / 4), RY(pi / 2)],
             [("Y", 0), ("Z", 0), ("Y", 0)],
