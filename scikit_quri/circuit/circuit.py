@@ -1,11 +1,10 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Callable, List, Optional, Sequence, Tuple, TypeGuard, Union, cast
+from typing import Callable, List, Optional, Sequence, Tuple, TypeGuard, Union
 
 import numpy as np
 from numpy.typing import NDArray
 from qulacs import QuantumState as QulacsQuantumState
-from quri_parts.backend import SamplingBackend, SamplingCounts, SamplingJob, SamplingResult
 from quri_parts.circuit import (
     Parameter,
     ParametricQuantumGate,
@@ -726,31 +725,16 @@ def preprocess_x(x: NDArray[np.float64], i: int) -> float:
 
 
 if __name__ == "__main__":
-    # n_qubits = 3
-    # circuit = LearningCircuit(n_qubits)
-    # for i in range(n_qubits):
-    #     circuit.add_input_RX_gate(i, lambda x, i=i: np.arcsin(preprocess_x(x, i)))
-    # circuit.add_parametric_RX_gate(0)
-    # circuit.add_parametric_RX_gate(1)
-    # bind_circuit = circuit.bind_input_and_parameters(
-    #     np.array([0.1, 0.2, 0.3]), np.array([0.4, 0.5])
-    # )
-    # print(circuit.circuit.gates)
-    # print(circuit.circuit.param_mapping.in_params)
-    # for gate in bind_circuit.gates:
-    #     print(gate)
     n_qubits = 3
     circuit = LearningCircuit(n_qubits)
-    circuit.add_H_gate(0)
-    circuit.add_RX_gate(1, 0.5)
+    for i in range(n_qubits):
+        circuit.add_input_RX_gate(i, lambda x, i=i: np.arcsin(preprocess_x(x, i)))
     circuit.add_parametric_RX_gate(0)
-    circuit.add_input_RY_gate(1, lambda x: x[0])
-    circuit.add_parametric_RZ_gate(2)
-    x = np.array([0.123])
-    theta = np.array([0.456, 0.789])
-    result = circuit.hadamard_gradient(
-        x,
-        theta,
-        Operator({pauli_label("X0"): 1.0, pauli_label("X1"): 1.0, pauli_label("X2"): 1.0}),
+    circuit.add_parametric_RX_gate(1)
+    bind_circuit = circuit.bind_input_and_parameters(
+        np.array([0.1, 0.2, 0.3]), np.array([0.4, 0.5])
     )
-    print(f"Hadamard grad: {result}")
+    print(circuit.circuit.gates)
+    print(circuit.circuit.param_mapping.in_params)
+    for gate in bind_circuit.gates:
+        print(gate)
