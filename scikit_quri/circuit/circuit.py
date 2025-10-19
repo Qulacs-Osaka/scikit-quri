@@ -493,7 +493,7 @@ class LearningCircuit:
             else:
                 raise NotImplementedError("Unknown gate type found: ", gate.name)
 
-    def _get_inverse_gate(self, gate: QuantumGate, param: float) -> QuantumGate:
+    def _get_inverse_gate(self, gate: QuantumGate) -> QuantumGate:
         """Get Inverse Gate
 
         Args:
@@ -545,7 +545,7 @@ class LearningCircuit:
         for i in range(gates_length - 1, gate_index, -1):
             gate = self.circuit.gates[i]
             if isinstance(gate, QuantumGate):
-                gate_inverse = self._get_inverse_gate(gate, bound_params[i])
+                gate_inverse = self._get_inverse_gate(gate)
                 gates_backward.append(gate_inverse)
             elif isinstance(gate, ParametricQuantumGate):
                 gates_backward.append(gate)
