@@ -536,9 +536,10 @@ class LearningCircuit:
         bound_params = self.generate_bound_params(x, theta)
         gates_length = len(self.circuit.gates)
 
+        # Create original gates (U |+ψ〉)
         self._apply_gates_to_qc(_circuit, self.circuit.gates, bound_params)
 
-        # Apply backward gates
+        # Apply backward gates (U†{>j})
         gates_backward = []
         params_backward = []
         j = len([_ for _ in self.circuit.gates if isinstance(_, ParametricQuantumGate)])
@@ -555,7 +556,7 @@ class LearningCircuit:
         for p, g in zip(params_backward, gates_backward):
             print(np.round(p, 4), g.name, g.target_indices)
 
-        # Apply controlled gate
+        # Apply controlled gate (control{G})
         gate = self.circuit.gates[gate_index]
         if isinstance(gate, ParametricQuantumGate):
             axis = self._get_gate_axis(gate)
@@ -575,7 +576,7 @@ class LearningCircuit:
                 case _:
                     raise NotImplementedError
 
-        # Apply forward gates
+        # Apply forward gates (U{>j})
         gates_forward = []
         params_forward = []
         for i in range(gate_index + 1, gates_length):
