@@ -628,8 +628,6 @@ class LearningCircuit:
             )
             result = job.result()
             ans.append(result.exp_value)
-            for gate in _circuit.gates:
-                print(gate)
 
         return np.array(ans)
 
