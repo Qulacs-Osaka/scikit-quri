@@ -60,7 +60,6 @@ def execute(test: TestData):
                 pauli_ops[test.n_qubits - 1 - i] = pauli_str[0]
         new_pauli_str = "".join(pauli_ops)
         observable.append((new_pauli_str, coef))
-    print("Observable:", observable)
 
     H = SparsePauliOp.from_list(observable)
 

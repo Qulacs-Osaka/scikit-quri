@@ -56,7 +56,6 @@ def execute(test: TestData):
     for pauli_str, coef in test.observable:
         labels[pauli_label(pauli_str)] = coef
     op = Operator(labels)
-    print("Observable:", op)
 
     expectation = lc.hadamard_gradient(
         x=np.array(test.x),
