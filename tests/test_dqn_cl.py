@@ -3,7 +3,6 @@ from typing import Tuple
 
 import numpy as np
 from numpy.typing import NDArray
-from qulacs import Observable
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
 
@@ -11,7 +10,6 @@ from scikit_quri.circuit.pre_defined import create_dqn_cl, create_dqn_cl_no_cz
 from scikit_quri.qnn.classifier import QNNClassifier
 from quri_parts.algo.optimizer import Adam
 from quri_parts.qulacs.estimator import (
-    create_qulacs_vector_concurrent_estimator,
     create_qulacs_vector_concurrent_parametric_estimator,
 )
 from quri_parts.core.estimator import Estimatable
@@ -19,10 +17,12 @@ from quri_parts.core.estimator.gradient import (
     create_numerical_gradient_estimator,
 )
 from quri_parts.core.operator import Operator, pauli_label
+
 from scikit_quri.circuit import LearningCircuit
+from scikit_quri.backend import SimEstimator
 
 # This script aims to reproduce Ⅳ.B Binary classification in https://arxiv.org/pdf/2112.15002.pdf.
-from typing import List, Optional, Dict, Tuple
+from typing import List, Tuple
 
 locality = 2
 
@@ -54,7 +54,7 @@ def load_dataset(
 
 def create_classifier(n_features: int, circuit: LearningCircuit, locality: int):
     # Observables are hard-coded in QNNClassifier, so overwrite here.
-    estimator = create_qulacs_vector_concurrent_estimator()
+    estimator = SimEstimator()
     gradient_estimator = create_numerical_gradient_estimator(
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
