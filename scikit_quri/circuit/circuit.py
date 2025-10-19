@@ -536,9 +536,10 @@ class LearningCircuit:
         bound_params = self.generate_bound_params(x, theta)
         gates_length = len(self.circuit.gates)
 
+        # Create original gates (U |+ψ〉)
         self._apply_gates_to_qc(_circuit, self.circuit.gates, bound_params)
 
-        # Apply backward gates
+        # Apply backward gates (U†{>j})
         gates_backward = []
         params_backward = []
         j = len([_ for _ in self.circuit.gates if isinstance(_, ParametricQuantumGate)])
@@ -552,10 +553,8 @@ class LearningCircuit:
                 params_backward.append(-bound_params[j - 1])
                 j -= 1
         self._apply_gates_to_qc(_circuit, gates_backward, params_backward)
-        for p, g in zip(params_backward, gates_backward):
-            print(np.round(p, 4), g.name, g.target_indices)
 
-        # Apply controlled gate
+        # Apply controlled gate (control{G})
         gate = self.circuit.gates[gate_index]
         if isinstance(gate, ParametricQuantumGate):
             axis = self._get_gate_axis(gate)
@@ -563,19 +562,16 @@ class LearningCircuit:
             match axis:
                 case _Axis.X:
                     _circuit.add_CNOT_gate(ancilla_index, target_qubit)
-                    print(f"CX {ancilla_index}->{target_qubit}")
                 case _Axis.Y:
                     _circuit.add_Sdag_gate(target_qubit)
                     _circuit.add_CNOT_gate(ancilla_index, target_qubit)
                     _circuit.add_S_gate(target_qubit)
-                    print(f"CY {ancilla_index}->{target_qubit}")
                 case _Axis.Z:
                     _circuit.add_CZ_gate(ancilla_index, target_qubit)
-                    print(f"CZ {ancilla_index}->{target_qubit}")
                 case _:
                     raise NotImplementedError
 
-        # Apply forward gates
+        # Apply forward gates (U{>j})
         gates_forward = []
         params_forward = []
         for i in range(gate_index + 1, gates_length):
@@ -585,9 +581,6 @@ class LearningCircuit:
                 params_forward.append(bound_params[j])
                 j += 1
         self._apply_gates_to_qc(_circuit, gates_forward, params_forward)
-        for p, g in zip(params_forward, gates_forward):
-            print(np.round(p, 4), g.name, g.target_indices)
-        print()
 
         return _circuit
 
@@ -610,22 +603,25 @@ class LearningCircuit:
         # Use Oqtopus real backend
         backend = OqtopusEstimationBackend(OqtopusConfig.from_file("default"))
 
-        # Extract parametric gates to use for get generators
-        ans = []
-
         # Calculate operator for hadamard test
         operator = self._calc_hadamard_gradient_observable(operator)
 
         # Learning Param indexes
         learning_param_indexes = self.get_learning_param_indexes()
 
+        # Calculate gradient for each learning parameter
+        ans = []
         param_gate_count = -1
         for i, gate in enumerate(self.circuit.gates):
+            # Skip non-parametric gates
             if not isinstance(gate, ParametricQuantumGate):
                 continue
+
+            # Skip input parameters
             param_gate_count += 1
             if param_gate_count not in learning_param_indexes:
                 continue
+            
             _circuit = self._create_hadamard_test_circuit(x, theta, i)
             job = backend.estimate(
                 _circuit,
@@ -635,8 +631,6 @@ class LearningCircuit:
             )
             result = job.result()
             ans.append(result.exp_value)
-            for gate in _circuit.gates:
-                print(gate)
 
         return np.array(ans)
 
