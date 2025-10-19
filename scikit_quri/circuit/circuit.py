@@ -420,7 +420,7 @@ class LearningCircuit:
 
         return ans
 
-    def calc_gradient_observable(
+    def _calc_gradient_observable(
         self,
         generator: _Axis,
         qubit_index: int,
