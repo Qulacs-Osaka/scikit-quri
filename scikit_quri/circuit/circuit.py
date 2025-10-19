@@ -443,6 +443,14 @@ class LearningCircuit:
         return observable
 
     def _get_gate_axis(self, gate: QuantumGate) -> _Axis:
+        """Get gate axis by its name
+
+        Args:
+            gate (QuantumGate): Target gate
+
+        Returns:
+            _Axis: Axis of the gate
+        """
         match gate.name:
             case "ParametricRX":
                 return _Axis.X
