@@ -553,8 +553,6 @@ class LearningCircuit:
                 params_backward.append(-bound_params[j - 1])
                 j -= 1
         self._apply_gates_to_qc(_circuit, gates_backward, params_backward)
-        for p, g in zip(params_backward, gates_backward):
-            print(np.round(p, 4), g.name, g.target_indices)
 
         # Apply controlled gate (control{G})
         gate = self.circuit.gates[gate_index]
@@ -564,15 +562,12 @@ class LearningCircuit:
             match axis:
                 case _Axis.X:
                     _circuit.add_CNOT_gate(ancilla_index, target_qubit)
-                    print(f"CX {ancilla_index}->{target_qubit}")
                 case _Axis.Y:
                     _circuit.add_Sdag_gate(target_qubit)
                     _circuit.add_CNOT_gate(ancilla_index, target_qubit)
                     _circuit.add_S_gate(target_qubit)
-                    print(f"CY {ancilla_index}->{target_qubit}")
                 case _Axis.Z:
                     _circuit.add_CZ_gate(ancilla_index, target_qubit)
-                    print(f"CZ {ancilla_index}->{target_qubit}")
                 case _:
                     raise NotImplementedError
 
@@ -586,9 +581,6 @@ class LearningCircuit:
                 params_forward.append(bound_params[j])
                 j += 1
         self._apply_gates_to_qc(_circuit, gates_forward, params_forward)
-        for p, g in zip(params_forward, gates_forward):
-            print(np.round(p, 4), g.name, g.target_indices)
-        print()
 
         return _circuit
 
