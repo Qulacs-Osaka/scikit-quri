@@ -595,11 +595,11 @@ class LearningCircuit:
                 gates_backward.append(gate_inverse)
             elif isinstance(gate, ParametricQuantumGate):
                 gates_backward.append(gate)
-                params_backward.append(bound_params[j - 1])
+                params_backward.append(-bound_params[j - 1])
                 j -= 1
         self._apply_gates_to_qc(_circuit, gates_backward, params_backward)
         for p, g in zip(params_backward, gates_backward):
-            print(p, g)
+            print(np.round(p, 4), g.name, g.target_indices)
 
         # Apply controlled gate
         gate = self.circuit.gates[gate_index]
@@ -609,15 +609,15 @@ class LearningCircuit:
             match axis:
                 case _Axis.X:
                     _circuit.add_CNOT_gate(ancilla_index, target_qubit)
-                    print(f"CX {ancilla_index} {target_qubit}")
+                    print(f"CX {ancilla_index}->{target_qubit}")
                 case _Axis.Y:
                     _circuit.add_Sdag_gate(target_qubit)
                     _circuit.add_CNOT_gate(ancilla_index, target_qubit)
                     _circuit.add_S_gate(target_qubit)
-                    print(f"CY {ancilla_index} {target_qubit}")
+                    print(f"CY {ancilla_index}->{target_qubit}")
                 case _Axis.Z:
                     _circuit.add_CZ_gate(ancilla_index, target_qubit)
-                    print(f"CZ {ancilla_index} {target_qubit}")
+                    print(f"CZ {ancilla_index}->{target_qubit}")
                 case _:
                     raise NotImplementedError
 
@@ -632,7 +632,7 @@ class LearningCircuit:
                 j += 1
         self._apply_gates_to_qc(_circuit, gates_forward, params_forward)
         for p, g in zip(params_forward, gates_forward):
-            print(p, g)
+            print(np.round(p, 4), g.name, g.target_indices)
         print()
 
         return _circuit
@@ -681,6 +681,8 @@ class LearningCircuit:
             )
             result = job.result()
             ans.append(result.exp_value)
+            for gate in _circuit.gates:
+                print(gate)
 
         return np.array(ans)
 
