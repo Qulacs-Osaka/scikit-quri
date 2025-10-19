@@ -443,6 +443,14 @@ class LearningCircuit:
         return observable
 
     def _get_gate_axis(self, gate: QuantumGate) -> _Axis:
+        """Get gate axis by its name
+
+        Args:
+            gate (QuantumGate): Target gate
+
+        Returns:
+            _Axis: Axis of the gate
+        """
         match gate.name:
             case "ParametricRX":
                 return _Axis.X
@@ -458,7 +466,14 @@ class LearningCircuit:
         qc: QuantumCircuit,
         gates: Sequence[QuantumGate],
         parameters: Sequence[float],
-    ) -> None:
+    ):
+        """Apply Gates with Parameters to QuantumCircuit.
+
+        Args:
+            qc (QuantumCircuit): Target QuantumCircuit.
+            gates (Sequence[QuantumGate]): Sequence of gates to apply.
+            parameters (Sequence[float]): Sequence of parameters for the gates.
+        """
         i = 0
         for gate in gates:
             if isinstance(gate, QuantumGate):
@@ -478,7 +493,15 @@ class LearningCircuit:
             else:
                 raise NotImplementedError("Unknown gate type found: ", gate.name)
 
-    def _get_inverse_gate(self, gate: QuantumGate, param: float) -> QuantumGate:
+    def _get_inverse_gate(self, gate: QuantumGate) -> QuantumGate:
+        """Get Inverse Gate
+
+        Args:
+            gate (QuantumGate): Target gate to invert.
+
+        Returns:
+            QuantumGate: Inverse of the target gate.
+        """
         if isinstance(gate, QuantumGate):
             gate_inverse = QuantumGate(
                 name=gate.name,
@@ -499,6 +522,13 @@ class LearningCircuit:
     ) -> QuantumCircuit:
         """Create a circuit for Hadamard test.
         This circuit is used in the Hadamard test to estimate the gradient.
+
+        When differentiating with respect to θj,
+        U = U{>j} Uj(θj) U{<j}
+        G is the generator of Uj(θj): RX->G=X/2, RY->G=Y/2, RZ->G=Z/2.
+
+        The circuit is constructed as follows:
+        U{>j} control{G} U†{>j} U |+ψ〉
         """
         _circuit = QuantumCircuit(self.n_qubits + 1)
         ancilla_index = self.n_qubits
@@ -515,7 +545,7 @@ class LearningCircuit:
         for i in range(gates_length - 1, gate_index, -1):
             gate = self.circuit.gates[i]
             if isinstance(gate, QuantumGate):
-                gate_inverse = self._get_inverse_gate(gate, bound_params[i])
+                gate_inverse = self._get_inverse_gate(gate)
                 gates_backward.append(gate_inverse)
             elif isinstance(gate, ParametricQuantumGate):
                 gates_backward.append(gate)
