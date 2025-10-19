@@ -80,7 +80,7 @@ data = [
             ("X1", 1.0),
             ("Y2", 1.0),
         ],
-        enabled=True,
+        enabled=False,
     ),
     TestData(
         n_qubits=3,
@@ -99,6 +99,23 @@ data = [
             ("Z2", 1.0),
         ],
         enabled=False,
+    ),
+    TestData(
+        n_qubits=2,
+        gates=[
+            GateInfo(GateType.H, t_bit=0),
+            GateInfo(GateType.CX, t_bit=0, c_bit=1),
+            GateInfo(GateType.RY, t_bit=1, gate_mode=GateMode.LEARNING),
+        ],
+        x=[],
+        theta=[
+            pi / 4,
+        ],
+        observable=[
+            ("Z0", 1.0),
+            ("Z1", 1.0),
+        ],
+        enabled=True,
     ),
 ]
 
