@@ -603,22 +603,25 @@ class LearningCircuit:
         # Use Oqtopus real backend
         backend = OqtopusEstimationBackend(OqtopusConfig.from_file("default"))
 
-        # Extract parametric gates to use for get generators
-        ans = []
-
         # Calculate operator for hadamard test
         operator = self._calc_hadamard_gradient_observable(operator)
 
         # Learning Param indexes
         learning_param_indexes = self.get_learning_param_indexes()
 
+        # Calculate gradient for each learning parameter
+        ans = []
         param_gate_count = -1
         for i, gate in enumerate(self.circuit.gates):
+            # Skip non-parametric gates
             if not isinstance(gate, ParametricQuantumGate):
                 continue
+
+            # Skip input parameters
             param_gate_count += 1
             if param_gate_count not in learning_param_indexes:
                 continue
+            
             _circuit = self._create_hadamard_test_circuit(x, theta, i)
             job = backend.estimate(
                 _circuit,
