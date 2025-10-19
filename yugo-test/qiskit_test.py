@@ -7,35 +7,33 @@ from qiskit_algorithms.gradients import ParamShiftEstimatorGradient
 from utils import array_f4
 
 # //＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝＝
-n_qubits = 2
+n_qubits = 3
 params = np.array(
     [
-        np.pi / 4,
-        np.pi / 2,
-        np.pi / 4,
-        np.pi / 2,
+        0.456,
+        0.789,
     ],
     dtype=float,
 )
 
 # //ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 hamiltonian = [
-    ("XI", 1.0),
-    ("IX", 1.0),
+    ("XII", 1.0),
+    ("IXI", 1.0),
+    ("IIX", 1.0),
 ]
 
 theta_list = [
     Parameter("θ0"),
     Parameter("θ1"),
-    Parameter("θ2"),
-    Parameter("θ3"),
 ]
 
 qc = QuantumCircuit(n_qubits, n_qubits)
-qc.ry(theta_list[0], 0)
-qc.rz(theta_list[1], 0)
-qc.rz(theta_list[2], 1)
-qc.ry(theta_list[3], 1)
+qc.h(0)
+qc.rx(0.5, 1)
+qc.rx(theta_list[0], 0)
+qc.ry(0.123, 1)
+qc.rz(theta_list[1], 2)
 
 H = SparsePauliOp.from_list(hamiltonian)
 
