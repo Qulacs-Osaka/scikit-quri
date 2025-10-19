@@ -633,6 +633,7 @@ class LearningCircuit:
         self._apply_gates_to_qc(_circuit, gates_forward, params_forward)
         for p, g in zip(params_forward, gates_forward):
             print(p, g)
+        print()
 
         return _circuit
 
@@ -662,7 +663,7 @@ class LearningCircuit:
         operator = self._calc_hadamard_gradient_observable(operator)
 
         # Learning Param indexes
-        learning_param_indexes = circuit.get_learning_param_indexes()
+        learning_param_indexes = self.get_learning_param_indexes()
 
         param_gate_count = -1
         for i, gate in enumerate(self.circuit.gates):
@@ -750,4 +751,4 @@ if __name__ == "__main__":
         theta,
         Operator({pauli_label("X0"): 1.0, pauli_label("X1"): 1.0, pauli_label("X2"): 1.0}),
     )
-    print(result)
+    print(f"Hadamard grad: {result}")
