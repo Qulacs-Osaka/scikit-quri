@@ -19,6 +19,24 @@ pi = np.pi
 
 test_cases = [
     {
+        "n_qubits": 3,
+        "params": np.array(
+            [pi / 3, pi / 3, pi / 3, pi / 3, pi / 3, pi / 3, pi / 3, pi / 3, pi / 3], dtype=float
+        ),
+        "hamiltonian": [("IIZY", 1.0), ("IXIY", 1.0), ("YIIY", 1.0)],
+        "gates": [
+            ("RX", 0),
+            ("RZ", 0),
+            ("RY", 0),
+            ("RY", 1),
+            ("RX", 1),
+            ("RZ", 1),
+            ("RX", 2),
+            ("RY", 2),
+            ("RZ", 2),
+        ],
+    },
+    {
         "n_qubits": 1,
         "params": np.array([pi / 3, pi / 3], dtype=float),
         "hamiltonian": [("XY", 1.0)],

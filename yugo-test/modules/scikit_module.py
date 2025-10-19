@@ -50,6 +50,7 @@ def apply_gate(lc: LearningCircuit, gates: list[GateInfo], theta: list[float], x
 
 def execute(test: TestData):
     lc = LearningCircuit(test.n_qubits)
+
     apply_gate(lc, test.gates, test.theta, test.x)
     labels = {}
     for pauli_str, coef in test.observable:
