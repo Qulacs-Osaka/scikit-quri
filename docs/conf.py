@@ -33,6 +33,7 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
     "quri-parts": ("https://quri-parts.qunasys.com/api/", None),
+    "quri-parts-oqtopus": ("https://quri-parts-oqtopus.readthedocs.io/en/stable/", None),
 }
 
 mathjax_path = "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"

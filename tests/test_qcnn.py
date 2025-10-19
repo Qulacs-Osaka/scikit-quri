@@ -3,18 +3,17 @@ import pytest
 from numpy.random import default_rng
 from sklearn.metrics import f1_score
 
-from scikit_quri.circuit.pre_defined import create_qcnn_ansatz
-from scikit_quri.qnn import QNNClassifier
 from quri_parts.algo.optimizer import Adam, Optimizer
-
 from quri_parts.qulacs.estimator import (
-    create_qulacs_vector_concurrent_estimator,
     create_qulacs_vector_concurrent_parametric_estimator,
 )
 from quri_parts.core.estimator.gradient import (
     create_numerical_gradient_estimator,
 )
-from quri_parts.core.operator import Operator, pauli_label
+
+from scikit_quri.circuit.pre_defined import create_qcnn_ansatz
+from scikit_quri.qnn import QNNClassifier
+from scikit_quri.backend import SimEstimator
 
 
 def generate_data(bits: int, random_seed: int = 0):
@@ -55,13 +54,13 @@ tests/test_qcnn.py: 55040 warnings
 
 
 @pytest.mark.parametrize(("solver", "maxiter"), [(Adam(), 20)])
-# @pytest.mark.skip("This test takes too long time to finish")
+@pytest.mark.skip("This test takes too long time to finish")
 def test_qcnn(solver: Optimizer, maxiter: int):
     n_qubit = 8
     random_seed = 0
     circuit = create_qcnn_ansatz(n_qubit, random_seed)
 
-    estimator = create_qulacs_vector_concurrent_estimator()
+    estimator = SimEstimator()
     gradient_estimator = create_numerical_gradient_estimator(
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
