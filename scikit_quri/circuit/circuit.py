@@ -621,7 +621,7 @@ class LearningCircuit:
             param_gate_count += 1
             if param_gate_count not in learning_param_indexes:
                 continue
-            
+
             _circuit = self._create_hadamard_test_circuit(x, theta, i)
             job = backend.estimate(
                 _circuit,
