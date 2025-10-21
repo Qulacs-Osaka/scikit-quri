@@ -12,10 +12,10 @@ from quri_parts.circuit import (
     QuantumGate,
     UnboundParametricQuantumCircuit,
 )
+from quri_parts.core.estimator import ConcurrentQuantumEstimator
 from quri_parts.core.operator import Operator, commutator, pauli_label
 from quri_parts.qulacs.circuit import convert_parametric_circuit
 from quri_parts.rust.circuit.circuit_parametric import ImmutableBoundParametricQuantumCircuit
-from quri_parts_oqtopus.backend import OqtopusConfig, OqtopusEstimationBackend
 
 
 class _Axis(Enum):
@@ -597,12 +597,10 @@ class LearningCircuit:
         x: NDArray[np.float64],
         theta: NDArray[np.float64],
         operator: Operator,
-        device_id: str = "Kawasaki",
-        shots: int = 1024,
+        estimator: ConcurrentQuantumEstimator,
+        # device_id: str = "Kawasaki",
+        # shots: int = 1024,
     ) -> NDArray[np.float64]:
-        # Use Oqtopus real backend
-        backend = OqtopusEstimationBackend(OqtopusConfig.from_file("default"))
-
         # Calculate operator for hadamard test
         operator = self._calc_hadamard_gradient_observable(operator)
 
@@ -610,7 +608,7 @@ class LearningCircuit:
         learning_param_indexes = self.get_learning_param_indexes()
 
         # Calculate gradient for each learning parameter
-        ans = []
+        _circuits = []
         param_gate_count = -1
         for i, gate in enumerate(self.circuit.gates):
             # Skip non-parametric gates
@@ -623,16 +621,11 @@ class LearningCircuit:
                 continue
 
             _circuit = self._create_hadamard_test_circuit(x, theta, i)
-            job = backend.estimate(
-                _circuit,
-                operator=operator,
-                device_id=device_id,
-                shots=shots,
-            )
-            result = job.result()
-            ans.append(result.exp_value)
+            _circuits.append(_circuit)
 
-        return np.array(ans)
+        results = estimator(_circuits, [operator] * len(_circuits))
+
+        return np.array(list(results))
 
     def to_batched(
         self, data: NDArray[np.float64], parameters: NDArray[np.float64]
