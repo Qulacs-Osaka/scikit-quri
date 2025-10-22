@@ -12,10 +12,11 @@ from quri_parts.circuit import (
     QuantumGate,
     UnboundParametricQuantumCircuit,
 )
+from quri_parts.core.estimator import ConcurrentQuantumEstimator
 from quri_parts.core.operator import Operator, commutator, pauli_label
+from quri_parts.core.state import GeneralCircuitQuantumState
 from quri_parts.qulacs.circuit import convert_parametric_circuit
 from quri_parts.rust.circuit.circuit_parametric import ImmutableBoundParametricQuantumCircuit
-from quri_parts_oqtopus.backend import OqtopusConfig, OqtopusEstimationBackend
 
 
 class _Axis(Enum):
@@ -588,7 +589,7 @@ class LearningCircuit:
         # O ⊗ Y
         result_terms = {}
         for p1, c1 in operator.items():
-            new_label = str(p1) + f" Y{self.n_qubits}"
+            new_label = pauli_label(f"{str(p1)} Y{self.n_qubits}")
             result_terms[new_label] = result_terms.get(new_label, 0) + c1
         return Operator(result_terms)
 
@@ -597,12 +598,8 @@ class LearningCircuit:
         x: NDArray[np.float64],
         theta: NDArray[np.float64],
         operator: Operator,
-        device_id: str = "Kawasaki",
-        shots: int = 1024,
+        estimator: ConcurrentQuantumEstimator,
     ) -> NDArray[np.float64]:
-        # Use Oqtopus real backend
-        backend = OqtopusEstimationBackend(OqtopusConfig.from_file("default"))
-
         # Calculate operator for hadamard test
         operator = self._calc_hadamard_gradient_observable(operator)
 
@@ -610,7 +607,7 @@ class LearningCircuit:
         learning_param_indexes = self.get_learning_param_indexes()
 
         # Calculate gradient for each learning parameter
-        ans = []
+        _generalCircuitQuantumStates = []
         param_gate_count = -1
         for i, gate in enumerate(self.circuit.gates):
             # Skip non-parametric gates
@@ -623,16 +620,14 @@ class LearningCircuit:
                 continue
 
             _circuit = self._create_hadamard_test_circuit(x, theta, i)
-            job = backend.estimate(
-                _circuit,
-                operator=operator,
-                device_id=device_id,
-                shots=shots,
+            _generalCircuitQuantumStates.append(
+                GeneralCircuitQuantumState(self.n_qubits + 1, _circuit)
             )
-            result = job.result()
-            ans.append(result.exp_value)
 
-        return np.array(ans)
+        operators = [operator] * len(_generalCircuitQuantumStates)
+        results = estimator(operators, _generalCircuitQuantumStates)
+
+        return np.array(list(results))
 
     def to_batched(
         self, data: NDArray[np.float64], parameters: NDArray[np.float64]
