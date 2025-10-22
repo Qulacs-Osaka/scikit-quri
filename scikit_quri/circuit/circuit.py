@@ -14,6 +14,7 @@ from quri_parts.circuit import (
 )
 from quri_parts.core.estimator import ConcurrentQuantumEstimator
 from quri_parts.core.operator import Operator, commutator, pauli_label
+from quri_parts.core.state import GeneralCircuitQuantumState
 from quri_parts.qulacs.circuit import convert_parametric_circuit
 from quri_parts.rust.circuit.circuit_parametric import ImmutableBoundParametricQuantumCircuit
 
@@ -588,7 +589,7 @@ class LearningCircuit:
         # O ⊗ Y
         result_terms = {}
         for p1, c1 in operator.items():
-            new_label = str(p1) + f" Y{self.n_qubits}"
+            new_label = pauli_label(f"{str(p1)} Y{self.n_qubits}")
             result_terms[new_label] = result_terms.get(new_label, 0) + c1
         return Operator(result_terms)
 
@@ -598,8 +599,6 @@ class LearningCircuit:
         theta: NDArray[np.float64],
         operator: Operator,
         estimator: ConcurrentQuantumEstimator,
-        # device_id: str = "Kawasaki",
-        # shots: int = 1024,
     ) -> NDArray[np.float64]:
         # Calculate operator for hadamard test
         operator = self._calc_hadamard_gradient_observable(operator)
@@ -608,7 +607,7 @@ class LearningCircuit:
         learning_param_indexes = self.get_learning_param_indexes()
 
         # Calculate gradient for each learning parameter
-        _circuits = []
+        _generalCircuitQuantumStates = []
         param_gate_count = -1
         for i, gate in enumerate(self.circuit.gates):
             # Skip non-parametric gates
@@ -621,9 +620,12 @@ class LearningCircuit:
                 continue
 
             _circuit = self._create_hadamard_test_circuit(x, theta, i)
-            _circuits.append(_circuit)
+            _generalCircuitQuantumStates.append(
+                GeneralCircuitQuantumState(self.n_qubits + 1, _circuit)
+            )
 
-        results = estimator(_circuits, [operator] * len(_circuits))
+        operators = [operator] * len(_generalCircuitQuantumStates)
+        results = estimator(operators, _generalCircuitQuantumStates)
 
         return np.array(list(results))
 
