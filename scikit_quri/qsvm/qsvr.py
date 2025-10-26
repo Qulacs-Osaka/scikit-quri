@@ -6,7 +6,7 @@ from numpy.typing import NDArray
 from ..circuit import LearningCircuit
 from sklearn import svm
 from quri_parts.core.state import QuantumState, quantum_state
-from ..state.overlap_estimator import overlap_estimator
+from ..state._overlap_estimator import overlap_estimator
 
 
 class QSVR:

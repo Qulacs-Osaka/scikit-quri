@@ -20,7 +20,7 @@ class OqtopusEstimator(BaseEstimator):
     def __init__(
         self, device_id: str, shots: int = 1000, config: Optional[OqtopusConfig] = None
     ) -> None:
-        self.backend = OqtopusEstimationBackend(config=config)
+        self.backend = OqtopusEstimationBackend(config)
         self.device_id = device_id
         self.shots = shots
 

@@ -1,94 +1,71 @@
-from typing import List, Optional, TypeGuard
+from typing import List
 
 import numpy as np
 from numpy.typing import NDArray
-from ..circuit import LearningCircuit
 from sklearn import svm
-from quri_parts.core.state import (
-    QuantumState,
-    quantum_state,
-    ParametricCircuitQuantumState,
-    GeneralCircuitQuantumState,
-)
 from quri_parts.circuit import QuantumCircuit
-from quri_parts.backend import SamplingBackend
-from ..state.overlap_estimator import overlap_estimator
-from ..state.overlap_estimator_real_device import overlap_estimator_real_device
-
-
-# sampling_backendのTypeGuardを定義
-def is_real_device(
-    sampling_backend: Optional[SamplingBackend], is_sim: bool
-) -> TypeGuard[SamplingBackend]:
-    return not is_sim
+from quri_parts.rust.circuit.circuit_parametric import ImmutableBoundParametricQuantumCircuit
+from quri_parts.core.sampling import Sampler
+from scikit_quri.state import overlap_estimator
+from scikit_quri.circuit import LearningCircuit
 
 
 class QSVC:
-    def __init__(self, circuit: LearningCircuit, sim: bool = True):
-        self.svc = svm.SVC(kernel="precomputed")
+    def __init__(self, circuit: LearningCircuit):
+        self.svc = svm.SVC(kernel="precomputed", verbose=True)
         self.circuit = circuit
-        # for sim
-        self.data_states: List[QuantumState] = []
-        # for real devices
         self.data_circuits: List[QuantumCircuit] = []
         self.n_qubit: int = circuit.n_qubits
-        self.is_sim = sim
         self.estimator = None
 
-    def run_circuit(self, x: NDArray[np.float64]) -> GeneralCircuitQuantumState:
+    def run_circuit(self, x: NDArray[np.float64]) -> ImmutableBoundParametricQuantumCircuit:
         # ここにはparametrizeされたcircuitは入ってこないはず...
         circuit = self.circuit.bind_input_and_parameters(x, np.array([]))
-        state = quantum_state(n_qubits=self.n_qubit, circuit=circuit)
-        return state
+        return circuit
 
     def fit(
         self,
         x: NDArray[np.float64],
-        y: NDArray[np.int_],
-        sampling_backend: Optional[SamplingBackend] = None,
+        y: NDArray[np.int64],
+        sampler: Sampler,
         n_shots: int = 1000,
     ):
-        if not self.is_sim and sampling_backend is None:
-            raise ValueError("sampling_backend is required for real devices")
-
+        """
+        Args:
+            x: 学習データの特徴量(二次元配列)
+            y: 学習データのラベル
+            sampler: 期待値計算に用いるSampler
+            n_shots: ショット数. Defaults to 1000.
+        """
         kar = np.zeros((len(x), len(x)))
         for i in range(len(x)):
-            state = self.run_circuit(x[i])
-            self.data_states.append(state)
-            self.data_circuits.append(state.circuit.get_mutable_copy())
+            circuit = self.run_circuit(x[i])
+            self.data_circuits.append(circuit.get_mutable_copy())
 
-        if is_real_device(sampling_backend, self.is_sim):
-            self.estimator = overlap_estimator_real_device(
-                self.data_circuits.copy(), sampling_backend, n_shots
-            )
-        else:
-            self.estimator = overlap_estimator(self.data_states.copy())
+        self.estimator = overlap_estimator(sampler, n_shots)
 
         for i in range(len(x)):
             for j in range(len(x)):
-                kar[i][j] = self.estimator.estimate(i, j)
+                ket_circuit = self.data_circuits[i]
+                bra_circuit = self.data_circuits[j]
+                kar[i][j] = self.estimator.estimate(ket_circuit, bra_circuit)
             print("\r", f"{i}/{len(x)}", end="")
         print("")
+        print(kar.shape)
+        print("fitting SVC...")
         self.svc.fit(kar, y)
 
     def predict(self, xs: NDArray[np.float64]) -> NDArray[np.float64]:
         if self.estimator is None:
             raise ValueError("run fit() before predict")
-        kar = np.zeros((len(xs), len(self.data_states)))
-        new_states = []
+        kar = np.zeros((len(xs), len(self.data_circuits)))
         new_circuits = []
         for i in range(len(xs)):
             x_qc = self.run_circuit(xs[i])
-            new_states.append(x_qc)
-            new_circuits.append(x_qc.circuit.get_mutable_copy())
-        if self.is_sim:
-            self.estimator.add_data(new_states)
-        else:
-            self.estimator.add_data(new_circuits)
-        offset = len(self.data_states)
+            new_circuits.append(x_qc.get_mutable_copy())
         for i in range(len(xs)):
-            for j in range(len(self.data_states)):
-                kar[i][j] = self.estimator.estimate(offset + i, j)
+            for j in range(len(self.data_circuits)):
+                kar[i][j] = self.estimator.estimate(new_circuits[i], self.data_circuits[j])
             print("\r", f"{i}/{len(xs)}", end="")
         print("")
 
