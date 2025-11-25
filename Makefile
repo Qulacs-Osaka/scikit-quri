@@ -1,8 +1,8 @@
-PYTEST := poetry run pytest
-FORMATTER := poetry run ruff format
-LINTER := poetry run ruff check
-TYPE_CHECKER := poetry run mypy
-SPHINX_APIDOC := poetry run sphinx-apidoc
+PYTEST := uv run pytest
+FORMATTER := uv run ruff format
+LINTER := uv run ruff check
+TYPE_CHECKER := uv run mypy
+SPHINX_APIDOC := uv run sphinx-apidoc
 
 
 PROJECT_DIR := scikit_quri
@@ -44,8 +44,8 @@ cov_ci:
 
 .PHONY: serve_cov
 serve_cov: cov
-	poetry run python -m http.server --directory htmlcov $(PORT)
+	uv run python -m http.server --directory htmlcov $(PORT)
 
 .PHONY: html
 html:
-	poetry run $(MAKE) -C docs html
+	uv run $(MAKE) -C docs html
