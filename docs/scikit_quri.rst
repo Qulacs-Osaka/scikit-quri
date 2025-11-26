@@ -12,11 +12,11 @@ Subpackages
    scikit_quri.qkrr
    scikit_quri.qnn
    scikit_quri.qsvm
+   scikit_quri.state
 
 Module contents
 ---------------
 
 .. automodule:: scikit_quri
-   :members:
    :undoc-members:
    :show-inheritance:
