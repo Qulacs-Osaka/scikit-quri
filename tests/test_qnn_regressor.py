@@ -20,7 +20,7 @@ from quri_parts.core.estimator.gradient import (
     create_numerical_gradient_estimator,
 )
 from scikit_quri.qnn import QNNRegressor
-from quri_parts.algo.optimizer import Adam, LBFGS, Optimizer
+from quri_parts.algo.optimizer import LBFGS, Optimizer
 
 
 def generate_noisy_data(
