@@ -10,7 +10,7 @@ from sklearn.model_selection import RandomizedSearchCV
 
 
 from scikit_quri.circuit import LearningCircuit
-from scikit_quri.state.overlap_estimator import overlap_estimator
+from scikit_quri.state._overlap_estimator import overlap_estimator
 
 
 class QKRR:

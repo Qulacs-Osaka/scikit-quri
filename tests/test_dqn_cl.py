@@ -22,7 +22,7 @@ from scikit_quri.circuit import LearningCircuit
 from scikit_quri.backend import SimEstimator
 
 # This script aims to reproduce Ⅳ.B Binary classification in https://arxiv.org/pdf/2112.15002.pdf.
-from typing import List, Tuple
+from typing import List
 
 locality = 2
 
