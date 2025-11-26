@@ -1,22 +1,19 @@
 # mypy: ignore-errors
-from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import NDArray
 from quri_parts.algo.optimizer import Optimizer, Params
 from quri_parts.core.estimator import (
-    ConcurrentParametricQuantumEstimator,
     Estimatable,
     GradientEstimator,
     ConcurrentQuantumEstimator,
 )
-from quri_parts.circuit import ParametricQuantumCircuitProtocol
 from quri_parts.core.state import ParametricCircuitQuantumState
 from quri_parts.core.estimator.gradient import _ParametricStateT
 from quri_parts.algo.optimizer import OptimizerStatus
 from quri_parts.core.state import quantum_state
-from quri_parts.qulacs import QulacsParametricStateT, QulacsStateT
+from quri_parts.qulacs import QulacsStateT
 from quri_parts.core.operator import Operator, pauli_label
 from scikit_quri.circuit import LearningCircuit
 from typing import List, Optional
@@ -154,8 +151,13 @@ class QNNRegressor:
 
         c = 0
         while maxiter > c:
-            cost_fn = lambda params: self.cost_fn(self.x_train, self.y_train, params)
-            grad_fn = lambda params: self.grad_fn(self.x_train, self.y_train, params)
+
+            def cost_fn(params):
+                return self.cost_fn(self.x_train, self.y_train, params)
+
+            def grad_fn(params):
+                return self.grad_fn(self.x_train, self.y_train, params)
+
             optimizer_state = self.optimizer.step(optimizer_state, cost_fn, grad_fn)
             print("\r", f"iter:{c}/{maxiter} cost:{optimizer_state.cost}", end="")
             # print(f"{optimizer_state.cost=}")

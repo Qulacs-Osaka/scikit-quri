@@ -1,15 +1,20 @@
 # mypy: ignore-errors
-import numpy as np
-from numpy.random import default_rng, Generator
 from functools import reduce
-from typing import Optional, List
-from .circuit import LearningCircuit
+from typing import List, Optional
+
+import numpy as np
+from numpy.random import Generator, default_rng
 from numpy.typing import NDArray
-from quri_parts.circuit import QuantumGate, CZ, CNOT
+from quri_parts.circuit import CNOT, CZ, QuantumCircuit, QuantumGate
+
+from .circuit import LearningCircuit
 
 
 def create_qcl_ansatz(
-    n_qubit: int, c_depth: int, time_step: float = 0.5, seed: Optional[int] = 0
+    n_qubit: int,
+    c_depth: int,
+    time_step: float = 0.5,
+    seed: Optional[int] = 0,
 ) -> LearningCircuit:
     """Create a circuit used in this page: https://dojo.qulacs.org/ja/latest/notebooks/5.2_Quantum_Circuit_Learning.html
 
@@ -23,6 +28,7 @@ def create_qcl_ansatz(
         >>> circuit = create_qcl_ansatz(n_qubit, 3, 0.5)
         >>> qnn = QNNRegressor(circuit)
         >>> qnn.fit(x_train, y_train)
+
     """
 
     def preprocess_x(x: NDArray[np.float64], index: int) -> float:
@@ -36,11 +42,14 @@ def create_qcl_ansatz(
         # recognize i as n_qubit - 1.
         circuit.add_input_RY_gate(i, lambda x, i=i: np.arcsin(preprocess_x(x, i)))
         circuit.add_input_RZ_gate(
-            i, lambda x, i=i: np.arccos(preprocess_x(x, i) * preprocess_x(x, i))
+            i,
+            lambda x, i=i: np.arccos(preprocess_x(x, i) * preprocess_x(x, i)),
         )
 
     time_evol_gate = _create_time_evol_gate(n_qubit, time_step)
+    # time_evol_circuit = _create_time_evol_circuit(n_qubit, time_step, seed=seed)
     for _ in range(c_depth):
+        # circuit.circuit += time_evol_circuit
         circuit.add_gate(time_evol_gate)
         for i in range(n_qubit):
             circuit.add_parametric_RX_gate(i)
@@ -49,10 +58,48 @@ def create_qcl_ansatz(
     return circuit
 
 
+def _create_time_evol_circuit(
+    n_qubit,
+    time_step=0.77,
+    rng: Optional[Generator] = None,
+    seed: Optional[int] = 0,
+) -> QuantumCircuit:
+    """Create a hamiltonian dynamics with transverse field ising model with random interaction and random magnetic field
+
+    Args:
+        n_qubit: number of qubits
+        time_step: evolution time
+        rng: random number generator
+        seed: seed for random number
+    Return:
+        QuantumGate object
+
+    """
+    if rng is None:
+        rng = default_rng(seed)
+
+    circuit = QuantumCircuit(n_qubit)
+    for i in range(n_qubit):
+        Jx = rng.uniform(-1.0, 1.0)
+        circuit.add_RX_gate(i, angle=2 * Jx * time_step)
+        for j in range(i + 1, n_qubit):
+            J_ij = rng.uniform(-1.0, 1.0)
+            circuit.add_CZ_gate(i, j)
+            circuit.add_RZ_gate(
+                j,
+                angle=2 * J_ij * time_step,
+            )
+            circuit.add_CZ_gate(i, j)
+    return circuit
+
+
 def _create_time_evol_gate(
-    n_qubit, time_step=0.77, rng: Optional[Generator] = None, seed: Optional[int] = 0
+    n_qubit,
+    time_step=0.77,
+    rng: Optional[Generator] = None,
+    seed: Optional[int] = 0,
 ) -> QuantumGate:
-    """create a hamiltonian dynamics with transverse field ising model with random interaction and random magnetic field
+    """Create a hamiltonian dynamics with transverse field ising model with random interaction and random magnetic field
 
     Args:
         n_qubit: number of qubits
@@ -61,6 +108,7 @@ def _create_time_evol_gate(
         seed: seed for random number
     Return:
         qulacs' gate object
+
     """
     if rng is None:
         rng = default_rng(seed)
@@ -70,7 +118,8 @@ def _create_time_evol_gate(
     # H*P = P*D <-> H = P*D*P^dagger
     diag, eigen_vecs = np.linalg.eigh(ham)
     time_evol_op = np.dot(
-        np.dot(eigen_vecs, np.diag(np.exp(-1j * time_step * diag))), eigen_vecs.T.conj()
+        np.dot(eigen_vecs, np.diag(np.exp(-1j * time_step * diag))),
+        eigen_vecs.T.conj(),
     )  # e^-iHT
 
     # Convert to a qulacs gate
@@ -99,8 +148,7 @@ def _make_hamiltonian(n_qubit, rng: Optional[Generator] = None, seed: Optional[i
 
 
 def _make_fullgate(list_SiteAndOperator, n_qubit):
-    """
-    Receive `list_SiteAndOperator = [ [i_0, O_0], [i_1, O_1], ...]` and
+    """Receive `list_SiteAndOperator = [ [i_0, O_0], [i_1, O_1], ...]` and
     insert identity to qubits which is not present in the list to create (2**n_qubit, 2**n_qubit) matrix
     I(0) * ... * O_0(i_0) * ... * O_1(i_1) ...
     """
@@ -124,14 +172,17 @@ def preprocess_x(x: np.ndarray, i: int) -> float:
 
 
 def create_farhi_neven_ansatz(
-    n_qubit: int, c_depth: int, seed: Optional[int] = 0
+    n_qubit: int,
+    c_depth: int,
+    seed: Optional[int] = 0,
 ) -> LearningCircuit:
     circuit = LearningCircuit(n_qubit)
     rng = default_rng(seed)
     for i in range(n_qubit):
         circuit.add_input_RY_gate(i, lambda x, i=i: np.arcsin(preprocess_x(x, i)))
         circuit.add_input_RZ_gate(
-            i, lambda x, i=i: np.arccos(preprocess_x(x, i) * preprocess_x(x, i))
+            i,
+            lambda x, i=i: np.arccos(preprocess_x(x, i) * preprocess_x(x, i)),
         )
 
     zyu = list(range(n_qubit))
@@ -149,10 +200,11 @@ def create_farhi_neven_ansatz(
 
 
 def create_ibm_embedding_circuit(n_qubit: int) -> LearningCircuit:
-    """create circuit proposed in https://arxiv.org/abs/1802.06002.
+    """Create circuit proposed in https://arxiv.org/abs/1802.06002.
 
     Args:
         n_qubits: number of qubits
+
     """
 
     def preprocess_x(x: NDArray[np.float64], index: int) -> float:
@@ -167,7 +219,8 @@ def create_ibm_embedding_circuit(n_qubit: int) -> LearningCircuit:
         circuit.add_input_RZ_gate(i, lambda x, i=i: preprocess_x(x, i))
         circuit.add_CNOT_gate(i, j)
         circuit.add_input_RZ_gate(
-            j, lambda x, i=i: (np.pi - preprocess_x(x, i) * (np.pi - preprocess_x(x, j)))
+            j,
+            lambda x, i=i: (np.pi - preprocess_x(x, i) * (np.pi - preprocess_x(x, j))),
         )
         circuit.add_CNOT_gate(i, j)
     for i in range(n_qubit):
@@ -177,7 +230,8 @@ def create_ibm_embedding_circuit(n_qubit: int) -> LearningCircuit:
         circuit.add_input_RZ_gate(i, lambda x, i=i: preprocess_x(x, i))
         circuit.add_CNOT_gate(i, j)
         circuit.add_input_RZ_gate(
-            j, lambda x, i=i: (np.pi - preprocess_x(x, i) * (np.pi - preprocess_x(x, j)))
+            j,
+            lambda x, i=i: (np.pi - preprocess_x(x, i) * (np.pi - preprocess_x(x, j))),
         )
         circuit.add_CNOT_gate(i, j)
     return circuit
@@ -240,9 +294,9 @@ def create_qcnn_ansatz(n_qubit: int, seed: Optional[int] = 0) -> LearningCircuit
     Args:
         n_qubit: number of qubits. must be even.
         seed: seed for random numbers. used for determining the interaction strength of the hamiltonian simulation
-    """
 
-    rng = default_rng(seed)
+    """
+    default_rng(seed)
 
     def one_qubit_unitary(circuit: LearningCircuit, index: int) -> List[int]:
         ids = []
@@ -255,7 +309,9 @@ def create_qcnn_ansatz(n_qubit: int, seed: Optional[int] = 0) -> LearningCircuit
         return ids
 
     def _two_qubit_unitary(
-        circuit: LearningCircuit, targets: List[int], pauli_ids: List[int]
+        circuit: LearningCircuit,
+        targets: List[int],
+        pauli_ids: List[int],
     ) -> LearningCircuit:
         circuit.add_parametric_multi_Pauli_rotation_gate(targets, pauli_ids)
         return circuit

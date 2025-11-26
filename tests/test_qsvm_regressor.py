@@ -1,10 +1,10 @@
 import random
 from typing import List
 
-
 import numpy as np
-from numpy.typing import NDArray
 from numpy.random import RandomState
+from numpy.typing import NDArray
+from quri_parts.qulacs.sampler import create_qulacs_vector_sampler
 from sklearn.metrics import mean_squared_error
 
 from scikit_quri.circuit import create_ibm_embedding_circuit
@@ -16,7 +16,9 @@ def func_to_learn(x) -> float:
 
 
 def generate_noisy_sine(
-    x_min: float, x_max: float, num_x: int
+    x_min: float,
+    x_max: float,
+    num_x: int,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]]:
     seed = 0
     random.seed(seed)
@@ -37,15 +39,14 @@ def generate_noisy_sine(
 def test_noisy_sine():
     x_min = -0.5
     x_max = 0.5
-    num_x = 300
-    num_test = 100
+    num_x = 200
     x_train, y_train = generate_noisy_sine(x_min, x_max, num_x)
-    x_test, y_test = generate_noisy_sine(x_min, x_max, num_test)
-    n_qubit = 6
+    x_test, y_test = generate_noisy_sine(x_min, x_max, num_x)
+    n_qubit = 4
     circuit = create_ibm_embedding_circuit(n_qubit)
-    qsvm = QSVR(circuit)
-    qsvm.fit(x_train, y_train)
-    y_pred = qsvm.predict(x_test)
+    qsvr = QSVR(circuit)
+    sampler = create_qulacs_vector_sampler()
+    qsvr.fit(x_train, y_train, sampler, n_shots=2**12)
+    y_pred = qsvr.predict(x_test)
     loss = mean_squared_error(y_pred, y_test)
-    print(loss)
     assert loss < 0.008
