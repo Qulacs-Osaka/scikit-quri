@@ -7,11 +7,11 @@ scikit-quri is a library for quantum neural network. This library is based on [q
 
 # Installation
 ### Build from Source
-Install poetry before building package.
+Install uv before building package.
 ```
 git clone https://github.com/Qulacs-Osaka/scikit-quri.git
 cd scikit-quri
-poetry install
+uv sync
 ```
 # Documentation
 API Documentation: [scikit-quri documentation](https://qulacs-osaka.github.io/scikit-quri/)  

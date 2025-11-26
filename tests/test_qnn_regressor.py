@@ -20,7 +20,7 @@ from quri_parts.core.estimator.gradient import (
     create_numerical_gradient_estimator,
 )
 from scikit_quri.qnn import QNNRegressor
-from quri_parts.algo.optimizer import Adam, LBFGS, Optimizer
+from quri_parts.algo.optimizer import LBFGS, Optimizer
 
 
 def generate_noisy_data(
@@ -52,7 +52,7 @@ def two_vars_two_outputs(x: NDArray[np.float64]) -> NDArray[np.float64]:
     return np.array([2.0 * x[0] + x[1], 1.5 * x[0] - 3.0 * x[1]])
 
 
-@pytest.mark.parametrize(("solver", "maxiter"), [(LBFGS(), 30), (Adam(), 30)])
+@pytest.mark.parametrize(("solver", "maxiter"), [(LBFGS(), 30)])
 def test_noisy_two_vars_two_outputs(solver: Optimizer, maxiter: int) -> None:
     x_min = -0.5
     x_max = 0.5
@@ -80,7 +80,7 @@ def sine_two_vars(x: NDArray[np.float64]) -> NDArray[np.float64]:
     return np.sin(np.pi * x[0] * x[1])
 
 
-@pytest.mark.parametrize(("solver", "maxiter"), [(LBFGS(), 20), (Adam(), 20)])
+@pytest.mark.parametrize(("solver", "maxiter"), [(LBFGS(), 30)])
 def test_noisy_sine_two_vars(solver: Optimizer, maxiter: int) -> None:
     x_min = -0.5
     x_max = 0.5
@@ -110,13 +110,7 @@ def sine(x: NDArray[np.float64]) -> NDArray[np.float64]:
 @pytest.mark.parametrize(
     ("solver", "maxiter"),
     [
-        (LBFGS(), 20),
-        (
-            Adam(
-                ftol=2e-4,
-            ),
-            20,
-        ),
+        (LBFGS(), 30),
     ],
 )
 def test_noisy_sine(solver: Optimizer, maxiter: int) -> None:

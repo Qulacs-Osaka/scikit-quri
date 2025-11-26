@@ -146,7 +146,6 @@ class QNNRegressor:
 
         # set initial learning parameters
         init_params = 2 * np.pi * np.random.random(parameter_count)
-        print(f"{init_params=}")
         optimizer_state = self.optimizer.get_init_state(init_params)
 
         c = 0
@@ -164,7 +163,6 @@ class QNNRegressor:
             # break
             if optimizer_state.status == OptimizerStatus.CONVERGED:
                 break
-
             if optimizer_state.status == OptimizerStatus.FAILED:
                 break
             c += 1

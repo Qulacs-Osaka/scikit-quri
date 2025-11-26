@@ -1,12 +1,11 @@
-[tool.poetry]
+[project]
 name = "scikit-quri"
 version = "1.1.0"
 description = ""
-authors = ["Qulacs-Osaka <qulacs.osaka@gmail.com>"]
-license = "MIT"
+authors = [{ name = "Qulacs-Osaka", email = "qulacs.osaka@gmail.com" }]
+requires-python = ">=3.10,<3.12"
 readme = "./README.md"
-repository = "https://github.com/Qulacs-Osaka/scikit-quri"
-homepage = "https://github.com/Qulacs-Osaka/scikit-quri"
+license = "MIT"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
@@ -17,36 +16,46 @@ classifiers = [
     "Programming Language :: Python",
     "Topic :: Scientific/Engineering :: Physics",
 ]
+dependencies = [
+    "scikit-learn>=1.4.0,<2",
+    "quri-parts-openfermion>=0.23.0,<0.24",
+    "quri-parts-oqtopus>=1.0.3,<2",
+    "quri-parts==0.24.1",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.10,<3.12"
-quri-parts = {version = "^0.22.0", extras = ["qulacs"]}
-scikit-learn = "^1.4.0"
-matplotlib = "^3.8.4"
-pandas = "^2.2.3"
-seaborn = "^0.13.2"
-quri-parts-openfermion = "^0.23.0"
-quri-parts-oqtopus = "^1.0.3"
-pre-commit = "^4.3.0"
+[project.urls]
+Homepage = "https://github.com/Qulacs-Osaka/scikit-quri"
+Repository = "https://github.com/Qulacs-Osaka/scikit-quri"
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.4.4"
-ruff = "^0.11.11"
-mypy = "^1.8.0"
-pytest-cov = "^4.1.0"
+[project.optional-dependencies]
+qulacs = [
+    "quri-parts>=0.24.1",
+]
 
-[tool.poetry.group.doc]
-optional = true
+[dependency-groups]
+dev = [
+    "pytest>=7.4.4,<8",
+    "ruff>=0.11.11,<0.12",
+    "mypy>=1.8.0,<2",
+    "pytest-cov>=4.1.0,<5",
+    "matplotlib>=3.10.7",
+    "pandas>=2.3.3",
+    "seaborn>=0.13.2",
+    "pre-commit>=4.5.0",
+]
+doc = [
+    "Sphinx>=5.2.3,<6",
+    "sphinx-book-theme>=1.0.1,<2",
+    "ipykernel>=6.16.0,<7",
+    "myst-nb>=1.0",
+]
 
-[tool.poetry.group.doc.dependencies]
-Sphinx = "^5.2.3"
-sphinx-book-theme = "^1.0.1"
-ipykernel = "^6.16.0"
-myst-nb = ">=1.0"
+[tool.uv]
+default-groups = ["dev"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.ruff]
 line-length = 100
