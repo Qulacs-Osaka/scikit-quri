@@ -1,16 +1,20 @@
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Callable, List, Optional, Tuple, Union, Sequence, TypeGuard
+from typing import Callable, List, Optional, Sequence, Tuple, TypeGuard, Union
 
 import numpy as np
 from numpy.typing import NDArray
 from qulacs import QuantumState as QulacsQuantumState
-
 from quri_parts.circuit import (
+    Parameter,
+    ParametricQuantumGate,
+    QuantumCircuit,
     QuantumGate,
     UnboundParametricQuantumCircuit,
-    Parameter,
 )
+from quri_parts.core.estimator import ConcurrentQuantumEstimator
+from quri_parts.core.operator import Operator, commutator, pauli_label
+from quri_parts.core.state import GeneralCircuitQuantumState
 from quri_parts.qulacs.circuit import convert_parametric_circuit
 from quri_parts.rust.circuit.circuit_parametric import ImmutableBoundParametricQuantumCircuit
 
@@ -416,6 +420,214 @@ class LearningCircuit:
                     ans[param.parameter_id] += ret[pos.gate_pos] * (pos.coef or 1.0)
 
         return ans
+
+    def _calc_gradient_observable(
+        self,
+        generator: _Axis,
+        qubit_index: int,
+        hamiltonian: Operator,
+    ) -> Operator:
+        """Calculate the gradient observable.
+        O_j = i[G_j, H]
+
+        Args:
+            generator (_Axis): The axis of the generator.
+            index (int): The index of the generator.
+            hamiltonian (Operator): The Hamiltonian operator.
+
+        Returns:
+            Operator: The gradient observable operator.
+        """
+        simbol = {_Axis.X: "X", _Axis.Y: "Y", _Axis.Z: "Z"}[generator]
+        generator_operator = Operator({pauli_label(f"{simbol}{qubit_index}"): 0.5})
+        observable = 1j * commutator(generator_operator, hamiltonian)
+        return observable
+
+    def _get_gate_axis(self, gate: QuantumGate) -> _Axis:
+        """Get gate axis by its name
+
+        Args:
+            gate (QuantumGate): Target gate
+
+        Returns:
+            _Axis: Axis of the gate
+        """
+        match gate.name:
+            case "ParametricRX":
+                return _Axis.X
+            case "ParametricRY":
+                return _Axis.Y
+            case "ParametricRZ":
+                return _Axis.Z
+            case _:
+                raise NotImplementedError("Unknown gate type found: ", gate.name)
+
+    def _apply_gates_to_qc(
+        self,
+        qc: QuantumCircuit,
+        gates: Sequence[QuantumGate],
+        parameters: Sequence[float],
+    ):
+        """Apply Gates with Parameters to QuantumCircuit.
+
+        Args:
+            qc (QuantumCircuit): Target QuantumCircuit.
+            gates (Sequence[QuantumGate]): Sequence of gates to apply.
+            parameters (Sequence[float]): Sequence of parameters for the gates.
+        """
+        i = 0
+        for gate in gates:
+            if isinstance(gate, QuantumGate):
+                qc.add_gate(gate)
+            elif isinstance(gate, ParametricQuantumGate):
+                param = parameters[i]
+                g_axis = self._get_gate_axis(gate)
+                g_qubit = gate.target_indices[0]
+                match g_axis:
+                    case _Axis.X:
+                        qc.add_RX_gate(g_qubit, param)
+                    case _Axis.Y:
+                        qc.add_RY_gate(g_qubit, param)
+                    case _Axis.Z:
+                        qc.add_RZ_gate(g_qubit, param)
+                i += 1
+            else:
+                raise NotImplementedError("Unknown gate type found: ", gate.name)
+
+    def _get_inverse_gate(self, gate: QuantumGate) -> QuantumGate:
+        """Get Inverse Gate
+
+        Args:
+            gate (QuantumGate): Target gate to invert.
+
+        Returns:
+            QuantumGate: Inverse of the target gate.
+        """
+        if isinstance(gate, QuantumGate):
+            gate_inverse = QuantumGate(
+                name=gate.name,
+                target_indices=gate.target_indices,
+                control_indices=gate.control_indices,
+                classical_indices=gate.classical_indices,
+                params=[-p for p in gate.params],
+                pauli_ids=gate.pauli_ids,
+                unitary_matrix=gate.unitary_matrix,
+            )
+        return gate_inverse
+
+    def _create_hadamard_test_circuit(
+        self,
+        x,
+        theta,
+        gate_index: int,
+    ) -> QuantumCircuit:
+        """Create a circuit for Hadamard test.
+        This circuit is used in the Hadamard test to estimate the gradient.
+
+        When differentiating with respect to θj,
+        U = U{>j} Uj(θj) U{<j}
+        G is the generator of Uj(θj): RX->G=X/2, RY->G=Y/2, RZ->G=Z/2.
+
+        The circuit is constructed as follows:
+        U{>j} control{G} U†{>j} U |+ψ〉
+        """
+        _circuit = QuantumCircuit(self.n_qubits + 1)
+        ancilla_index = self.n_qubits
+        _circuit.add_H_gate(ancilla_index)
+        bound_params = self.generate_bound_params(x, theta)
+        gates_length = len(self.circuit.gates)
+
+        # Create original gates (U |+ψ〉)
+        self._apply_gates_to_qc(_circuit, self.circuit.gates, bound_params)
+
+        # Apply backward gates (U†{>j})
+        gates_backward = []
+        params_backward = []
+        j = len([_ for _ in self.circuit.gates if isinstance(_, ParametricQuantumGate)])
+        for i in range(gates_length - 1, gate_index, -1):
+            gate = self.circuit.gates[i]
+            if isinstance(gate, QuantumGate):
+                gate_inverse = self._get_inverse_gate(gate)
+                gates_backward.append(gate_inverse)
+            elif isinstance(gate, ParametricQuantumGate):
+                gates_backward.append(gate)
+                params_backward.append(-bound_params[j - 1])
+                j -= 1
+        self._apply_gates_to_qc(_circuit, gates_backward, params_backward)
+
+        # Apply controlled gate (control{G})
+        gate = self.circuit.gates[gate_index]
+        if isinstance(gate, ParametricQuantumGate):
+            axis = self._get_gate_axis(gate)
+            target_qubit = gate.target_indices[0]
+            match axis:
+                case _Axis.X:
+                    _circuit.add_CNOT_gate(ancilla_index, target_qubit)
+                case _Axis.Y:
+                    _circuit.add_Sdag_gate(target_qubit)
+                    _circuit.add_CNOT_gate(ancilla_index, target_qubit)
+                    _circuit.add_S_gate(target_qubit)
+                case _Axis.Z:
+                    _circuit.add_CZ_gate(ancilla_index, target_qubit)
+                case _:
+                    raise NotImplementedError
+
+        # Apply forward gates (U{>j})
+        gates_forward = []
+        params_forward = []
+        for i in range(gate_index + 1, gates_length):
+            gate = self.circuit.gates[i]
+            gates_forward.append(gate)
+            if isinstance(gate, ParametricQuantumGate):
+                params_forward.append(bound_params[j])
+                j += 1
+        self._apply_gates_to_qc(_circuit, gates_forward, params_forward)
+
+        return _circuit
+
+    def _calc_hadamard_gradient_observable(self, operator: Operator) -> Operator:
+        # O ⊗ Y
+        result_terms = {}
+        for p1, c1 in operator.items():
+            new_label = pauli_label(f"{str(p1)} Y{self.n_qubits}")
+            result_terms[new_label] = result_terms.get(new_label, 0) + c1
+        return Operator(result_terms)
+
+    def hadamard_gradient(
+        self,
+        x: NDArray[np.float64],
+        theta: NDArray[np.float64],
+        operator: Operator,
+        estimator: ConcurrentQuantumEstimator,
+    ) -> NDArray[np.float64]:
+        # Calculate operator for hadamard test
+        operator = self._calc_hadamard_gradient_observable(operator)
+
+        # Learning Param indexes
+        learning_param_indexes = self.get_learning_param_indexes()
+
+        # Calculate gradient for each learning parameter
+        _generalCircuitQuantumStates = []
+        param_gate_count = -1
+        for i, gate in enumerate(self.circuit.gates):
+            # Skip non-parametric gates
+            if not isinstance(gate, ParametricQuantumGate):
+                continue
+
+            # Skip input parameters
+            param_gate_count += 1
+            if param_gate_count not in learning_param_indexes:
+                continue
+
+            _circuit = self._create_hadamard_test_circuit(x, theta, i)
+            _generalCircuitQuantumStates.append(
+                GeneralCircuitQuantumState(self.n_qubits + 1, _circuit)
+            )
+
+        operators = [operator] * len(_generalCircuitQuantumStates)
+        results = estimator(operators, _generalCircuitQuantumStates)
+
+        return np.array(list(results))
 
     def to_batched(
         self, data: NDArray[np.float64], parameters: NDArray[np.float64]
