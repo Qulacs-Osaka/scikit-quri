@@ -7,11 +7,6 @@ on:
     paths-ignore:
       - "tests/**"
       - "**/*.md"
-  pull_request:
-    paths-ignore:
-      - "tests/**"
-      - "**/*.md"
-  workflow_dispatch:
 
 jobs:
   build-and-deploy:
