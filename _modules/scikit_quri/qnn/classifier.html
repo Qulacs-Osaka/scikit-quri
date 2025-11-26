@@ -316,12 +316,11 @@ document.write(`
                   
   <h1>Source code for scikit_quri.qnn.classifier</h1><div class="highlight"><pre>
 <span></span><span class="c1"># mypy: ignore-errors</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.algo.optimizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optimizer</span><span class="p">,</span> <span class="n">Params</span><span class="p">,</span> <span class="n">Adam</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.algo.optimizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optimizer</span><span class="p">,</span> <span class="n">Params</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ConcurrentQuantumEstimator</span><span class="p">,</span>
     <span class="n">Estimatable</span><span class="p">,</span>
@@ -476,9 +475,13 @@ document.write(`
         <span class="c1"># print(f&quot;{init_params=}&quot;)</span>
         <span class="n">optimizer_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">get_init_state</span><span class="p">(</span><span class="n">init_params</span><span class="p">)</span>
 
-        <span class="n">cost_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">params</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_func</span><span class="p">(</span><span class="n">x_scaled</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">cost_func</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_func</span><span class="p">(</span><span class="n">x_scaled</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
         <span class="c1"># cost_func = partial(self.cost_func, x_scaled=x_scaled, y_train=y_train)</span>
-        <span class="n">grad_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">params</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_func_grad</span><span class="p">(</span><span class="n">x_scaled</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">grad_func</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_func_grad</span><span class="p">(</span><span class="n">x_scaled</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
         <span class="c1"># grad_func = partial(self.cost_func_grad, x_scaled=x_scaled, y_train=y_train)</span>
         <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">while</span> <span class="n">maxiter</span> <span class="o">&gt;</span> <span class="n">c</span><span class="p">:</span>

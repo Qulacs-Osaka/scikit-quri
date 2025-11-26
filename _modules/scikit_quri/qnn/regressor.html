@@ -316,24 +316,21 @@ document.write(`
                   
   <h1>Source code for scikit_quri.qnn.regressor</h1><div class="highlight"><pre>
 <span></span><span class="c1"># mypy: ignore-errors</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.algo.optimizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optimizer</span><span class="p">,</span> <span class="n">Params</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">ConcurrentParametricQuantumEstimator</span><span class="p">,</span>
     <span class="n">Estimatable</span><span class="p">,</span>
     <span class="n">GradientEstimator</span><span class="p">,</span>
     <span class="n">ConcurrentQuantumEstimator</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParametricQuantumCircuitProtocol</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.state</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParametricCircuitQuantumState</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator.gradient</span><span class="w"> </span><span class="kn">import</span> <span class="n">_ParametricStateT</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.algo.optimizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptimizerStatus</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.state</span><span class="w"> </span><span class="kn">import</span> <span class="n">quantum_state</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.qulacs</span><span class="w"> </span><span class="kn">import</span> <span class="n">QulacsParametricStateT</span><span class="p">,</span> <span class="n">QulacsStateT</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.qulacs</span><span class="w"> </span><span class="kn">import</span> <span class="n">QulacsStateT</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Operator</span><span class="p">,</span> <span class="n">pauli_label</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">LearningCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
@@ -471,8 +468,13 @@ document.write(`
 
         <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">while</span> <span class="n">maxiter</span> <span class="o">&gt;</span> <span class="n">c</span><span class="p">:</span>
-            <span class="n">cost_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">params</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_fn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_train</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_train</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-            <span class="n">grad_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">params</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">grad_fn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_train</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_train</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">cost_fn</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_fn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_train</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_train</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">grad_fn</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">grad_fn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_train</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_train</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
             <span class="n">optimizer_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">optimizer_state</span><span class="p">,</span> <span class="n">cost_fn</span><span class="p">,</span> <span class="n">grad_fn</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;iter:</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">maxiter</span><span class="si">}</span><span class="s2"> cost:</span><span class="si">{</span><span class="n">optimizer_state</span><span class="o">.</span><span class="n">cost</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
             <span class="c1"># print(f&quot;{optimizer_state.cost=}&quot;)</span>

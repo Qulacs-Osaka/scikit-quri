@@ -383,7 +383,21 @@ document.write(`
 </li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.backend">Module contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.backend">Module contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.BaseEstimator"><code class="docutils literal notranslate"><span class="pre">BaseEstimator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.BaseEstimator.estimate"><code class="docutils literal notranslate"><span class="pre">BaseEstimator.estimate()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.OqtopusEstimator"><code class="docutils literal notranslate"><span class="pre">OqtopusEstimator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.OqtopusEstimator.estimate"><code class="docutils literal notranslate"><span class="pre">OqtopusEstimator.estimate()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.SimEstimator"><code class="docutils literal notranslate"><span class="pre">SimEstimator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.SimEstimator.estimate"><code class="docutils literal notranslate"><span class="pre">SimEstimator.estimate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
             </nav>
         </div>
@@ -405,7 +419,7 @@ document.write(`
 <dl class="py class">
 <dt class="sig sig-object py" id="scikit_quri.backend.base_estimator.BaseEstimator">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.backend.base_estimator.</span></span><span class="sig-name descname"><span class="pre">BaseEstimator</span></span><a class="reference internal" href="_modules/scikit_quri/backend/base_estimator.html#BaseEstimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.backend.base_estimator.BaseEstimator" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Estimatorを実行する際の基底クラス
 estimateメソッドに対するinterfaceを定義</p>
 <dl class="py method">
@@ -418,15 +432,15 @@ operatorsまたはstatesのどちらかが1つの場合、もう一方の数に�
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>operators</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.13)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.13)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><em>Operator</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><em>PauliLabel</em></a><em>]</em><em>]</em>) – 期待値を計算する演算子のリスト</p></li>
-<li><p><strong>states</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.13)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.13)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.CircuitQuantumState" title="(in QURI Parts)"><em>CircuitQuantumState</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state_vector.html#quri_parts.core.state.state_vector.QuantumStateVector" title="(in QURI Parts)"><em>QuantumStateVector</em></a><em>]</em><em>]</em>) – 期待値を計算する状態のリスト</p></li>
+<li><p><strong>operators</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.14)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><em>Operator</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><em>PauliLabel</em></a><em>]</em><em>]</em>) – 期待値を計算する演算子のリスト</p></li>
+<li><p><strong>states</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.14)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.CircuitQuantumState" title="(in QURI Parts)"><em>CircuitQuantumState</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state_vector.html#quri_parts.core.state.state_vector.QuantumStateVector" title="(in QURI Parts)"><em>QuantumStateVector</em></a><em>]</em><em>]</em>) – 期待値を計算する状態のリスト</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>operatorsとstatesの組み合わせに対する期待値のリスト</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.13)"><em>Iterable</em></a>[<a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.estimator.html#quri_parts.core.estimator.Estimate" title="(in QURI Parts)"><em>Estimate</em></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.13)">complex</a>]]</p>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a>[<a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.estimator.html#quri_parts.core.estimator.Estimate" title="(in QURI Parts)"><em>Estimate</em></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.14)">complex</a>]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -446,9 +460,9 @@ operatorsまたはstatesのどちらかが1つの場合、もう一方の数に�
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>device_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – 実行するデバイスのID</p></li>
-<li><p><strong>shots</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a>) – ショット数. Defaults to 1000.</p></li>
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.13)"><em>Optional</em></a><em>[</em><a class="reference external" href="https://quri-parts-oqtopus.readthedocs.io/en/stable/reference/quri_parts_oqtopus/backend/config/#quri_parts_oqtopus.backend.config.OqtopusConfig" title="(in QURI Parts OQTOPUS v0.0.0)"><em>OqtopusConfig</em></a><em>]</em>) – OqtopusのConfig. Defaults to None.</p></li>
+<li><p><strong>device_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – 実行するデバイスのID</p></li>
+<li><p><strong>shots</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – ショット数. Defaults to 1000.</p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><em>Optional</em></a><em>[</em><a class="reference external" href="https://quri-parts-oqtopus.readthedocs.io/en/stable/reference/quri_parts_oqtopus/backend/config/#quri_parts_oqtopus.backend.config.OqtopusConfig" title="(in QURI Parts OQTOPUS v0.0.0)"><em>OqtopusConfig</em></a><em>]</em>) – OqtopusのConfig. Defaults to None.</p></li>
 </ul>
 </dd>
 </dl>
@@ -471,7 +485,7 @@ operatorsまたはstatesのどちらかが1つの場合、もう一方の数に�
 </dd>
 <dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.13)"><strong>ValueError</strong></a> – operatorsまたはstatesが空、もしくは両方の数が異なる場合</p></li>
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – operatorsまたはstatesが空、もしくは両方の数が異なる場合</p></li>
 <li><p><strong>BackendError</strong> – Oqtopusでの実行に失敗した場合</p></li>
 </ul>
 </dd>
@@ -513,6 +527,108 @@ operatorsまたはstatesのどちらかが1つの場合、もう一方の数に�
 </section>
 <section id="module-scikit_quri.backend">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-scikit_quri.backend" title="Permalink to this heading">#</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="scikit_quri.backend.BaseEstimator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.backend.</span></span><span class="sig-name descname"><span class="pre">BaseEstimator</span></span><a class="reference internal" href="_modules/scikit_quri/backend/base_estimator.html#BaseEstimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.backend.BaseEstimator" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Estimatorを実行する際の基底クラス
+estimateメソッドに対するinterfaceを定義</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.backend.BaseEstimator.estimate">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/base_estimator.html#BaseEstimator.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.backend.BaseEstimator.estimate" title="Permalink to this definition">#</a></dt>
+<dd><p>operatorsとstatesの組み合わせに対して期待値を計算する
+operatorsまたはstatesのどちらかが1つの場合、もう一方の数に合わせて繰り返す
+もしくは、両方の数が同じ場合、1対1で対応させる
+それ以外の場合、ValueErrorを投げる</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>operators</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.14)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><em>Operator</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><em>PauliLabel</em></a><em>]</em><em>]</em>) – 期待値を計算する演算子のリスト</p></li>
+<li><p><strong>states</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.14)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.CircuitQuantumState" title="(in QURI Parts)"><em>CircuitQuantumState</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state_vector.html#quri_parts.core.state.state_vector.QuantumStateVector" title="(in QURI Parts)"><em>QuantumStateVector</em></a><em>]</em><em>]</em>) – 期待値を計算する状態のリスト</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>operatorsとstatesの組み合わせに対する期待値のリスト</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a>[<a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.estimator.html#quri_parts.core.estimator.Estimate" title="(in QURI Parts)"><em>Estimate</em></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.14)">complex</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scikit_quri.backend.OqtopusEstimator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.backend.</span></span><span class="sig-name descname"><span class="pre">OqtopusEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/oqtopus_estimator.html#OqtopusEstimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.backend.OqtopusEstimator" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#scikit_quri.backend.base_estimator.BaseEstimator" title="scikit_quri.backend.base_estimator.BaseEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEstimator</span></code></a></p>
+<p>quri-parts-oqtopusを用いて実機で期待値を計算するEstimator Class
+実行には`~/.oqtopus`の設定が必要
+<a class="reference external" href="https://quri-parts-oqtopus.readthedocs.io/en/stable/usage/getting_started/#prepare-oqtopus-configuration-file">https://quri-parts-oqtopus.readthedocs.io/en/stable/usage/getting_started/#prepare-oqtopus-configuration-file</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>device_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – 実行するデバイスのID</p></li>
+<li><p><strong>shots</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – ショット数. Defaults to 1000.</p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><em>Optional</em></a><em>[</em><a class="reference external" href="https://quri-parts-oqtopus.readthedocs.io/en/stable/reference/quri_parts_oqtopus/backend/config/#quri_parts_oqtopus.backend.config.OqtopusConfig" title="(in QURI Parts OQTOPUS v0.0.0)"><em>OqtopusConfig</em></a><em>]</em>) – OqtopusのConfig. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.backend.OqtopusEstimator.estimate">
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/oqtopus_estimator.html#OqtopusEstimator.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.backend.OqtopusEstimator.estimate" title="Permalink to this definition">#</a></dt>
+<dd><p>operatorsとstatesの組み合わせに対して期待値を計算する
+operatorsまたはstatesのどちらかが1つの場合、もう一方の数に合わせて繰り返す
+もしくは、両方の数が同じ場合、1対1で対応させる
+それ以外の場合、ValueErrorを投げる</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>operators</strong> – 期待値を計算する演算子のリスト</p></li>
+<li><p><strong>states</strong> – 期待値を計算する状態のリスト</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>operatorsとstatesの組み合わせに対する期待値のリスト</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – operatorsまたはstatesが空、もしくは両方の数が異なる場合</p></li>
+<li><p><strong>BackendError</strong> – Oqtopusでの実行に失敗した場合</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scikit_quri.backend.SimEstimator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.backend.</span></span><span class="sig-name descname"><span class="pre">SimEstimator</span></span><a class="reference internal" href="_modules/scikit_quri/backend/sim_estimator.html#SimEstimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.backend.SimEstimator" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#scikit_quri.backend.base_estimator.BaseEstimator" title="scikit_quri.backend.base_estimator.BaseEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEstimator</span></code></a></p>
+<p>quri-parts-qulacsを用いて期待値を計算するSimulation用Estimator Class</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.backend.SimEstimator.estimate">
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/sim_estimator.html#SimEstimator.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.backend.SimEstimator.estimate" title="Permalink to this definition">#</a></dt>
+<dd><p>operatorsとstatesの組み合わせに対して期待値を計算する
+operatorsまたはstatesのどちらかが1つの場合、もう一方の数に合わせて繰り返す
+もしくは、両方の数が同じ場合、1対1で対応させる
+それ以外の場合、ValueErrorを投げる</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>operators</strong> – 期待値を計算する演算子のリスト</p></li>
+<li><p><strong>states</strong> – 期待値を計算する状態のリスト</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>operatorsとstatesの組み合わせに対する期待値のリスト</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 
@@ -583,7 +699,21 @@ operatorsまたはstatesのどちらかが1つの場合、もう一方の数に�
 </li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.backend">Module contents</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.backend">Module contents</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.BaseEstimator"><code class="docutils literal notranslate"><span class="pre">BaseEstimator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.BaseEstimator.estimate"><code class="docutils literal notranslate"><span class="pre">BaseEstimator.estimate()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.OqtopusEstimator"><code class="docutils literal notranslate"><span class="pre">OqtopusEstimator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.OqtopusEstimator.estimate"><code class="docutils literal notranslate"><span class="pre">OqtopusEstimator.estimate()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.SimEstimator"><code class="docutils literal notranslate"><span class="pre">SimEstimator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.SimEstimator.estimate"><code class="docutils literal notranslate"><span class="pre">SimEstimator.estimate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
   </nav></div>
 
