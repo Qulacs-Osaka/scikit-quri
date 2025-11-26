@@ -1,10 +1,9 @@
 # mypy: ignore-errors
-from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import NDArray
-from quri_parts.algo.optimizer import Optimizer, Params, Adam
+from quri_parts.algo.optimizer import Optimizer, Params
 from quri_parts.core.estimator import (
     ConcurrentQuantumEstimator,
     Estimatable,
@@ -159,9 +158,13 @@ class QNNClassifier:
         # print(f"{init_params=}")
         optimizer_state = self.optimizer.get_init_state(init_params)
 
-        cost_func = lambda params: self.cost_func(x_scaled, y_train, params)
+        def cost_func(params):
+            return self.cost_func(x_scaled, y_train, params)
+
         # cost_func = partial(self.cost_func, x_scaled=x_scaled, y_train=y_train)
-        grad_func = lambda params: self.cost_func_grad(x_scaled, y_train, params)
+        def grad_func(params):
+            return self.cost_func_grad(x_scaled, y_train, params)
+
         # grad_func = partial(self.cost_func_grad, x_scaled=x_scaled, y_train=y_train)
         c = 0
         while maxiter > c:

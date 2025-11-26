@@ -1,5 +1,5 @@
 # mypy: ignore-errors
-from typing import Callable, overload, List
+from typing import Callable, List
 from ..circuit.circuit import LearningCircuit
 from numpy.typing import NDArray
 import numpy as np
@@ -361,7 +361,10 @@ class quantum_kernel_tsne:
             for n_epoch in range(self.max_iter):
                 if n_epoch % 10 == 0:
                     print(f"epoch:{n_epoch} loss:{self.optimizer_state.cost}")
-                grad_f = lambda alpha: self.calc_grad(alpha, p_probs, fidelity)
+
+                def grad_f(alpha):
+                    return self.calc_grad(alpha, p_probs, fidelity)
+
                 self.optimizer_state = self.optimizer.step(self.optimizer_state, cost_f, grad_f)
                 if self.optimizer_state.status == OptimizerStatus.CONVERGED:
                     break

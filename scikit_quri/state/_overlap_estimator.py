@@ -1,15 +1,13 @@
-from typing import List, Sequence
+from typing import List
 from quri_parts.core.state import GeneralCircuitQuantumState, QuantumState
 import numpy as np
 from numpy.typing import NDArray
 from quri_parts.qulacs.circuit import convert_circuit
 from quri_parts.qulacs.overlap_estimator import (
-    create_qulacs_vector_overlap_estimator,
     _create_qulacs_initial_state,
 )
 from qulacs.state import inner_product
 from qulacs import QuantumState as QulacsQuantumState
-from quri_parts.core.state import GeneralCircuitQuantumState
 
 
 class overlap_estimator:

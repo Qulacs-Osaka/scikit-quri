@@ -296,7 +296,7 @@ def create_qcnn_ansatz(n_qubit: int, seed: Optional[int] = 0) -> LearningCircuit
         seed: seed for random numbers. used for determining the interaction strength of the hamiltonian simulation
 
     """
-    rng = default_rng(seed)
+    default_rng(seed)
 
     def one_qubit_unitary(circuit: LearningCircuit, index: int) -> List[int]:
         ids = []

@@ -2,7 +2,6 @@ from abc import ABCMeta, abstractmethod
 from typing import Sequence, Iterable
 
 from quri_parts.qulacs import QulacsStateT
-from quri_parts.circuit import ImmutableQuantumCircuit
 from quri_parts.core.estimator import (
     Estimatable,
 )

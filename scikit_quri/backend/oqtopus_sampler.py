@@ -1,7 +1,7 @@
 from quri_parts.circuit import NonParametricQuantumCircuit
 from typing import Optional
 from quri_parts.core.sampling import Sampler, MeasurementCounts
-from quri_parts_oqtopus.backend import OqtopusConfig, OqtopusSamplingBackend, OqtopusSamplingResult
+from quri_parts_oqtopus.backend import OqtopusConfig, OqtopusSamplingBackend
 
 
 class OqtopusSampler:
