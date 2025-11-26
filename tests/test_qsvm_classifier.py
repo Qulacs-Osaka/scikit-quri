@@ -1,4 +1,5 @@
 import pandas as pd
+from quri_parts.qulacs.sampler import create_qulacs_vector_sampler
 from sklearn import datasets
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
@@ -12,14 +13,18 @@ def test_classify_iris():
     df = pd.DataFrame(iris.data, columns=iris.feature_names)
     x = df.loc[:, ["petal length (cm)", "petal width (cm)"]]
     x_train, x_test, y_train, y_test = train_test_split(
-        x, iris.target, test_size=0.25, random_state=1
+        x,
+        iris.target,
+        test_size=0.25,
+        random_state=1,
     )
 
     x_train = x_train.to_numpy()
     x_test = x_test.to_numpy()
     n_qubit = 4  # qubitの数 2だと少なすぎて複雑さがでない
     circuit = create_ibm_embedding_circuit(n_qubit)
+    sampler = create_qulacs_vector_sampler()
     qsvm = QSVC(circuit)
-    qsvm.fit(x_train, y_train)
+    qsvm.fit(x_train, y_train, sampler)
     y_pred = qsvm.predict(x_test)
     assert f1_score(y_test, y_pred, average="weighted") > 0.92

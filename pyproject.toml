@@ -52,7 +52,8 @@ build-backend = "poetry.core.masonry.api"
 line-length = 100
 
 [tool.ruff.lint]
-select = ["NPY201"]
+select = ["ALL"]
+ignore = ["D107"]
 
 [tool.mypy]
 check_untyped_defs = true
