@@ -20,6 +20,14 @@ scikit\_quri.backend.oqtopus\_estimator module
    :undoc-members:
    :show-inheritance:
 
+scikit\_quri.backend.oqtopus\_sampler module
+--------------------------------------------
+
+.. automodule:: scikit_quri.backend.oqtopus_sampler
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 scikit\_quri.backend.sim\_estimator module
 ------------------------------------------
 

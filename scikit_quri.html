@@ -162,6 +162,7 @@
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.qkrr.html">scikit_quri.qkrr package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.qnn.html">scikit_quri.qnn package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.qsvm.html">scikit_quri.qsvm package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="scikit_quri.state.html">scikit_quri.state package</a></li>
 </ul>
 </details></li>
 </ul>
@@ -394,6 +395,14 @@ document.write(`
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_estimator.OqtopusEstimator.estimate"><code class="docutils literal notranslate"><span class="pre">OqtopusEstimator.estimate()</span></code></a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="scikit_quri.backend.html#module-scikit_quri.backend.oqtopus_sampler">scikit_quri.backend.oqtopus_sampler module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler"><code class="docutils literal notranslate"><span class="pre">OqtopusSampler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler.sample"><code class="docutils literal notranslate"><span class="pre">OqtopusSampler.sample()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.create_oqtopus_sampler"><code class="docutils literal notranslate"><span class="pre">create_oqtopus_sampler()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="scikit_quri.backend.html#module-scikit_quri.backend.sim_estimator">scikit_quri.backend.sim_estimator module</a><ul>
@@ -698,11 +707,38 @@ document.write(`
 </li>
 <li class="toctree-l1"><a class="reference internal" href="scikit_quri.qsvm.html">scikit_quri.qsvm package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="scikit_quri.qsvm.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="scikit_quri.qsvm.html#scikit-quri-qsvm-qsvc-module">scikit_quri.qsvm.qsvc module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="scikit_quri.qsvm.html#scikit-quri-qsvm-qsvr-module">scikit_quri.qsvm.qsvr module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="scikit_quri.qsvm.html#module-scikit_quri.qsvm">Module contents</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="scikit_quri.qsvm.html#scikit_quri.qsvm.QSVC"><code class="docutils literal notranslate"><span class="pre">QSVC</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="scikit_quri.qsvm.html#scikit_quri.qsvm.QSVR"><code class="docutils literal notranslate"><span class="pre">QSVR</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="scikit_quri.qsvm.html#module-scikit_quri.qsvm.base_qsv">scikit_quri.qsvm.base_qsv module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.SVMethodType"><code class="docutils literal notranslate"><span class="pre">SVMethodType</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.SVMethodType.SVC"><code class="docutils literal notranslate"><span class="pre">SVMethodType.SVC</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.SVMethodType.SVR"><code class="docutils literal notranslate"><span class="pre">SVMethodType.SVR</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV"><code class="docutils literal notranslate"><span class="pre">BaseQSV</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV.fit"><code class="docutils literal notranslate"><span class="pre">BaseQSV.fit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV.predict"><code class="docutils literal notranslate"><span class="pre">BaseQSV.predict()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.QSVC"><code class="docutils literal notranslate"><span class="pre">QSVC</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.QSVR"><code class="docutils literal notranslate"><span class="pre">QSVR</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="scikit_quri.qsvm.html#module-scikit_quri.qsvm">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="scikit_quri.state.html">scikit_quri.state package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="scikit_quri.state.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scikit_quri.state.html#module-scikit_quri.state.overlap_estimator">scikit_quri.state.overlap_estimator module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="scikit_quri.state.html#scikit_quri.state.overlap_estimator.overlap_estimator"><code class="docutils literal notranslate"><span class="pre">overlap_estimator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.state.html#scikit_quri.state.overlap_estimator.overlap_estimator.estimate"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="scikit_quri.state.html#module-scikit_quri.state">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="scikit_quri.state.html#scikit_quri.state.overlap_estimator"><code class="docutils literal notranslate"><span class="pre">overlap_estimator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.state.html#scikit_quri.state.overlap_estimator.estimate"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

@@ -161,6 +161,7 @@
 <li class="toctree-l3"><a class="reference internal" href="../../../scikit_quri.qkrr.html">scikit_quri.qkrr package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../scikit_quri.qnn.html">scikit_quri.qnn package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../../../scikit_quri.qsvm.html">scikit_quri.qsvm package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../../scikit_quri.state.html">scikit_quri.state package</a></li>
 </ul>
 </details></li>
 </ul>
@@ -329,12 +330,12 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.state</span><span class="w"> </span><span class="kn">import</span> <span class="n">overlap_estimator</span>
 
 
-<span class="k">class</span><span class="w"> </span><span class="nc">SVMethodType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
+<div class="viewcode-block" id="SVMethodType"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.SVMethodType">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SVMethodType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
     <span class="n">SVC</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">SVR</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">SVR</span> <span class="o">=</span> <span class="mi">2</span></div>
 
 
-<span class="k">class</span><span class="w"> </span><span class="nc">BaseQSV</span><span class="p">:</span>
+<div class="viewcode-block" id="BaseQSV"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">BaseQSV</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Quantum Support Vector Machineの基底クラス.&quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">LearningCircuit</span><span class="p">,</span> <span class="n">sv_method_type</span><span class="p">:</span> <span class="n">SVMethodType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -343,7 +344,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">n_qubits</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span>
+<div class="viewcode-block" id="BaseQSV.fit"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV.fit">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
         <span class="n">y</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
@@ -378,9 +379,9 @@ document.write(`
             <span class="bp">self</span><span class="o">.</span><span class="n">sv_method</span> <span class="o">=</span> <span class="n">svm</span><span class="o">.</span><span class="n">SVC</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="s2">&quot;precomputed&quot;</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="n">max_iter</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">sv_method_type</span> <span class="o">==</span> <span class="n">SVMethodType</span><span class="o">.</span><span class="n">SVR</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sv_method</span> <span class="o">=</span> <span class="n">svm</span><span class="o">.</span><span class="n">SVR</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="s2">&quot;precomputed&quot;</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="n">max_iter</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sv_method</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">gram_train</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sv_method</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">gram_train</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
+<div class="viewcode-block" id="BaseQSV.predict"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV.predict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;testデータから予測を行う.</span>
 
 <span class="sd">        Args:</span>
@@ -403,14 +404,14 @@ document.write(`
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">n_x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">()</span>
         <span class="n">pred</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sv_method</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">gram_test</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">pred</span>
+        <span class="k">return</span> <span class="n">pred</span></div>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_run_circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">QuantumCircuit</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;inputデータを回路にapplyした回路を返す.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">bind_input_and_parameters</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]))</span><span class="o">.</span><span class="n">get_mutable_copy</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">bind_input_and_parameters</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]))</span><span class="o">.</span><span class="n">get_mutable_copy</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="QSVC"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.QSVC">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QSVC</span><span class="p">(</span><span class="n">BaseQSV</span><span class="p">):</span>
+<div class="viewcode-block" id="QSVC"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.QSVC">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QSVC</span><span class="p">(</span><span class="n">BaseQSV</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Quantum Support Vector Classifier.</span>
 
 <span class="sd">    Args:</span>
@@ -422,7 +423,7 @@ document.write(`
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">SVMethodType</span><span class="o">.</span><span class="n">SVC</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="QSVR"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.QSVR">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QSVR</span><span class="p">(</span><span class="n">BaseQSV</span><span class="p">):</span>
+<div class="viewcode-block" id="QSVR"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.QSVR">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QSVR</span><span class="p">(</span><span class="n">BaseQSV</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Quantum Support Vector Regressor.</span>
 
 <span class="sd">    Args:</span>

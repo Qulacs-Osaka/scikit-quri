@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scikit_quri.backend.base_estimator &#8212; scikit_quri  documentation</title>
+    <title>scikit_quri.state.overlap_estimator &#8212; scikit_quri  documentation</title>
   
   
   
@@ -44,7 +44,7 @@
     <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/sphinx_highlight.js"></script>
     <script src="../../../_static/scripts/sphinx-book-theme.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/scikit_quri/backend/base_estimator';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/scikit_quri/state/overlap_estimator';</script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -237,7 +237,7 @@
       
       
       
-      <li><a href="https://github.com/Qulacs-Osaka/scikit-quri/issues/new?title=Issue%20on%20page%20%2F_modules/scikit_quri/backend/base_estimator.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/Qulacs-Osaka/scikit-quri/issues/new?title=Issue%20on%20page%20%2F_modules/scikit_quri/state/overlap_estimator.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -315,40 +315,49 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <h1>Source code for scikit_quri.backend.base_estimator</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Iterable</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.qulacs</span><span class="w"> </span><span class="kn">import</span> <span class="n">QulacsStateT</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">Estimatable</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Estimate</span>
+  <h1>Source code for scikit_quri.state.overlap_estimator</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.circuit.inverse</span><span class="w"> </span><span class="kn">import</span> <span class="n">inverse_circuit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sampler</span>
 
 
-<div class="viewcode-block" id="BaseEstimator"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.base_estimator.BaseEstimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">BaseEstimator</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Estimatorを実行する際の基底クラス</span>
-<span class="sd">    estimateメソッドに対するinterfaceを定義</span>
+<div class="viewcode-block" id="overlap_estimator"><a class="viewcode-back" href="../../../scikit_quri.state.html#scikit_quri.state.overlap_estimator.overlap_estimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">overlap_estimator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;quri-partsのoverlap_estimatorの代替Class</span>
+<span class="sd">    (n_data:500のとき,x60 faster)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="BaseEstimator.estimate"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.base_estimator.BaseEstimator.estimate">[docs]</a>    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">estimate</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">operators</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Estimatable</span><span class="p">],</span> <span class="n">states</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">QulacsStateT</span><span class="p">]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Estimate</span><span class="p">[</span><span class="nb">complex</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        operatorsとstatesの組み合わせに対して期待値を計算する</span>
-<span class="sd">        operatorsまたはstatesのどちらかが1つの場合、もう一方の数に合わせて繰り返す</span>
-<span class="sd">        もしくは、両方の数が同じ場合、1対1で対応させる</span>
-<span class="sd">        それ以外の場合、ValueErrorを投げる</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sampler</span><span class="p">:</span> <span class="n">Sampler</span><span class="p">,</span> <span class="n">n_shots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Args:</span>
+<span class="sd">        circuits (List[QuantumCircuit]): 量子回路のリスト</span>
 
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">sampler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_shots</span> <span class="o">=</span> <span class="n">n_shots</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="overlap_estimator.estimate"><a class="viewcode-back" href="../../../scikit_quri.state.html#scikit_quri.state.overlap_estimator.overlap_estimator.estimate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ket_circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">bra_circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;与えられた量子回路のi番目とj番目の内積の絶対値の二乗を計算</span>
+<span class="sd">        引数に対して非破壊的に動作</span>
 <span class="sd">        Args:</span>
-<span class="sd">            operators: 期待値を計算する演算子のリスト</span>
-<span class="sd">            states: 期待値を計算する状態のリスト</span>
+<span class="sd">            i (int): 量子状態のindex(ket)</span>
+<span class="sd">            j (int): 量子状態のindex(bra)</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            operatorsとstatesの組み合わせに対する期待値のリスト</span>
+<span class="sd">            float: |&lt;φi|φj&gt;|^2</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div></div>
+        <span class="n">ket_circuit</span> <span class="o">=</span> <span class="n">ket_circuit</span><span class="o">.</span><span class="n">get_mutable_copy</span><span class="p">()</span>
+        <span class="n">bra_circuit</span> <span class="o">=</span> <span class="n">bra_circuit</span><span class="o">.</span><span class="n">get_mutable_copy</span><span class="p">()</span>
+        <span class="n">circuit</span> <span class="o">=</span> <span class="n">ket_circuit</span>
+        <span class="c1"># 逆順にcombine</span>
+        <span class="n">inv_circuit</span> <span class="o">=</span> <span class="n">inverse_circuit</span><span class="p">(</span><span class="n">bra_circuit</span><span class="p">)</span>
+        <span class="n">circuit</span> <span class="o">+=</span> <span class="n">inv_circuit</span>
+        <span class="n">sampling_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_shots</span><span class="p">)</span>
+        <span class="n">count_zero</span> <span class="o">=</span> <span class="n">sampling_count</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">count_zero</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">count_zero</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">count_zero</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_shots</span>
+        <span class="k">return</span> <span class="n">p</span></div></div>
 </pre></div>
 
                 </article>

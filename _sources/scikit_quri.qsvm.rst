@@ -4,18 +4,10 @@ scikit\_quri.qsvm package
 Submodules
 ----------
 
-scikit\_quri.qsvm.qsvc module
------------------------------
+scikit\_quri.qsvm.base\_qsv module
+----------------------------------
 
-.. automodule:: scikit_quri.qsvm.qsvc
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-scikit\_quri.qsvm.qsvr module
------------------------------
-
-.. automodule:: scikit_quri.qsvm.qsvr
+.. automodule:: scikit_quri.qsvm.base_qsv
    :members:
    :undoc-members:
    :show-inheritance:
@@ -24,6 +16,5 @@ Module contents
 ---------------
 
 .. automodule:: scikit_quri.qsvm
-   :members:
    :undoc-members:
    :show-inheritance:

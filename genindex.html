@@ -161,6 +161,7 @@
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.qkrr.html">scikit_quri.qkrr package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.qnn.html">scikit_quri.qnn package</a></li>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.qsvm.html">scikit_quri.qsvm package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="scikit_quri.state.html">scikit_quri.state package</a></li>
 </ul>
 </details></li>
 </ul>
@@ -491,6 +492,8 @@ document.write(`
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV">BaseQSV (class in scikit_quri.qsvm.base_qsv)</a>
+</li>
       <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.TSNE.binary_search_perplexity">binary_search_perplexity() (scikit_quri.qnn.kernel_tsne.TSNE method)</a>
 </li>
       <li><a href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.bind_input_and_parameters">bind_input_and_parameters() (scikit_quri.circuit.circuit.LearningCircuit method)</a>
@@ -581,6 +584,8 @@ document.write(`
         <li><a href="scikit_quri.circuit.html#scikit_quri.circuit.pre_defined.create_ibm_embedding_circuit">(in module scikit_quri.circuit.pre_defined)</a>
 </li>
       </ul></li>
+      <li><a href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.create_oqtopus_sampler">create_oqtopus_sampler() (in module scikit_quri.backend.oqtopus_sampler)</a>
+</li>
       <li><a href="scikit_quri.circuit.html#scikit_quri.circuit.create_qcl_ansatz">create_qcl_ansatz() (in module scikit_quri.circuit)</a>
 
       <ul>
@@ -640,6 +645,10 @@ document.write(`
 </li>
         <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.overlap_estimator.estimate">(scikit_quri.qnn.kernel_tsne.overlap_estimator method)</a>
 </li>
+        <li><a href="scikit_quri.state.html#scikit_quri.state.overlap_estimator.estimate">(scikit_quri.state.overlap_estimator method)</a>
+</li>
+        <li><a href="scikit_quri.state.html#scikit_quri.state.overlap_estimator.overlap_estimator.estimate">(scikit_quri.state.overlap_estimator.overlap_estimator method)</a>
+</li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -675,6 +684,8 @@ document.write(`
         <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.QNNRegressor.fit">(scikit_quri.qnn.QNNRegressor method)</a>
 </li>
         <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.fit">(scikit_quri.qnn.regressor.QNNRegressor method)</a>
+</li>
+        <li><a href="scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV.fit">(scikit_quri.qsvm.base_qsv.BaseQSV method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -829,6 +840,8 @@ document.write(`
 </li>
         <li><a href="scikit_quri.backend.html#module-scikit_quri.backend.oqtopus_estimator">scikit_quri.backend.oqtopus_estimator</a>
 </li>
+        <li><a href="scikit_quri.backend.html#module-scikit_quri.backend.oqtopus_sampler">scikit_quri.backend.oqtopus_sampler</a>
+</li>
         <li><a href="scikit_quri.backend.html#module-scikit_quri.backend.sim_estimator">scikit_quri.backend.sim_estimator</a>
 </li>
         <li><a href="scikit_quri.circuit.html#module-scikit_quri.circuit">scikit_quri.circuit</a>
@@ -852,6 +865,12 @@ document.write(`
         <li><a href="scikit_quri.qnn.html#module-scikit_quri.qnn.regressor">scikit_quri.qnn.regressor</a>
 </li>
         <li><a href="scikit_quri.qsvm.html#module-scikit_quri.qsvm">scikit_quri.qsvm</a>
+</li>
+        <li><a href="scikit_quri.qsvm.html#module-scikit_quri.qsvm.base_qsv">scikit_quri.qsvm.base_qsv</a>
+</li>
+        <li><a href="scikit_quri.state.html#module-scikit_quri.state">scikit_quri.state</a>
+</li>
+        <li><a href="scikit_quri.state.html#module-scikit_quri.state.overlap_estimator">scikit_quri.state.overlap_estimator</a>
 </li>
       </ul></li>
   </ul></td>
@@ -932,8 +951,16 @@ document.write(`
         <li><a href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_estimator.OqtopusEstimator">(class in scikit_quri.backend.oqtopus_estimator)</a>
 </li>
       </ul></li>
-      <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.overlap_estimator">overlap_estimator (class in scikit_quri.qnn.kernel_tsne)</a>
+      <li><a href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler">OqtopusSampler (class in scikit_quri.backend.oqtopus_sampler)</a>
 </li>
+      <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.overlap_estimator">overlap_estimator (class in scikit_quri.qnn.kernel_tsne)</a>
+
+      <ul>
+        <li><a href="scikit_quri.state.html#scikit_quri.state.overlap_estimator">(class in scikit_quri.state)</a>
+</li>
+        <li><a href="scikit_quri.state.html#scikit_quri.state.overlap_estimator.overlap_estimator">(class in scikit_quri.state.overlap_estimator)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -966,6 +993,8 @@ document.write(`
         <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.QNNRegressor.predict">(scikit_quri.qnn.QNNRegressor method)</a>
 </li>
         <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.predict">(scikit_quri.qnn.regressor.QNNRegressor method)</a>
+</li>
+        <li><a href="scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV.predict">(scikit_quri.qsvm.base_qsv.BaseQSV method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1014,9 +1043,9 @@ document.write(`
         <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor">(class in scikit_quri.qnn.regressor)</a>
 </li>
       </ul></li>
-      <li><a href="scikit_quri.qsvm.html#scikit_quri.qsvm.QSVC">QSVC (class in scikit_quri.qsvm)</a>
+      <li><a href="scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.QSVC">QSVC (class in scikit_quri.qsvm.base_qsv)</a>
 </li>
-      <li><a href="scikit_quri.qsvm.html#scikit_quri.qsvm.QSVR">QSVR (class in scikit_quri.qsvm)</a>
+      <li><a href="scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.QSVR">QSVR (class in scikit_quri.qsvm.base_qsv)</a>
 </li>
       <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne">quantum_kernel_tsne (class in scikit_quri.qnn.kernel_tsne)</a>
 </li>
@@ -1038,6 +1067,8 @@ document.write(`
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler.sample">sample() (scikit_quri.backend.oqtopus_sampler.OqtopusSampler method)</a>
+</li>
       <li>
     scikit_quri
 
@@ -1064,6 +1095,13 @@ document.write(`
 
       <ul>
         <li><a href="scikit_quri.backend.html#module-scikit_quri.backend.oqtopus_estimator">module</a>
+</li>
+      </ul></li>
+      <li>
+    scikit_quri.backend.oqtopus_sampler
+
+      <ul>
+        <li><a href="scikit_quri.backend.html#module-scikit_quri.backend.oqtopus_sampler">module</a>
 </li>
       </ul></li>
       <li>
@@ -1101,8 +1139,6 @@ document.write(`
         <li><a href="scikit_quri.qkrr.html#module-scikit_quri.qkrr">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     scikit_quri.qkrr.qkrr
 
@@ -1110,6 +1146,8 @@ document.write(`
         <li><a href="scikit_quri.qkrr.html#module-scikit_quri.qkrr.qkrr">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     scikit_quri.qnn
 
@@ -1152,12 +1190,39 @@ document.write(`
         <li><a href="scikit_quri.qsvm.html#module-scikit_quri.qsvm">module</a>
 </li>
       </ul></li>
+      <li>
+    scikit_quri.qsvm.base_qsv
+
+      <ul>
+        <li><a href="scikit_quri.qsvm.html#module-scikit_quri.qsvm.base_qsv">module</a>
+</li>
+      </ul></li>
+      <li>
+    scikit_quri.state
+
+      <ul>
+        <li><a href="scikit_quri.state.html#module-scikit_quri.state">module</a>
+</li>
+      </ul></li>
+      <li>
+    scikit_quri.state.overlap_estimator
+
+      <ul>
+        <li><a href="scikit_quri.state.html#module-scikit_quri.state.overlap_estimator">module</a>
+</li>
+      </ul></li>
       <li><a href="scikit_quri.backend.html#scikit_quri.backend.SimEstimator">SimEstimator (class in scikit_quri.backend)</a>
 
       <ul>
         <li><a href="scikit_quri.backend.html#scikit_quri.backend.sim_estimator.SimEstimator">(class in scikit_quri.backend.sim_estimator)</a>
 </li>
       </ul></li>
+      <li><a href="scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.SVMethodType.SVC">SVC (scikit_quri.qsvm.base_qsv.SVMethodType attribute)</a>
+</li>
+      <li><a href="scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.SVMethodType">SVMethodType (class in scikit_quri.qsvm.base_qsv)</a>
+</li>
+      <li><a href="scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.SVMethodType.SVR">SVR (scikit_quri.qsvm.base_qsv.SVMethodType attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
