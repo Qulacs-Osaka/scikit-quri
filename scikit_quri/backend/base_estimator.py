@@ -30,4 +30,3 @@ class BaseEstimator(metaclass=ABCMeta):
         Returns:
             operatorsとstatesの組み合わせに対する期待値のリスト
         """
-        pass

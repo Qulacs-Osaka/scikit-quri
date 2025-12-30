@@ -4,13 +4,13 @@ from quri_parts.core.sampling import Sampler
 
 
 class overlap_estimator:
-    """quri-partsのoverlap_estimatorの代替Class
-    (n_data:500のとき,x60 faster)
-    """
+    """quri-partsのoverlap_estimatorの代替Class."""
 
     def __init__(self, sampler: Sampler, n_shots: int = 1000):
-        """Args:
-        circuits (List[QuantumCircuit]): 量子回路のリスト
+        """
+        Args:
+            sampler (Sampler): サンプリング関数
+            n_shots (int): ショット数 defaults to 1000.
 
         """
         self.sampler = sampler
@@ -21,8 +21,8 @@ class overlap_estimator:
         """与えられた量子回路のi番目とj番目の内積の絶対値の二乗を計算
         引数に対して非破壊的に動作
         Args:
-            i (int): 量子状態のindex(ket)
-            j (int): 量子状態のindex(bra)
+            ket_circuit (QuantumCircuit): 量子回路(ket)
+            bra_circuit (QuantumCircuit): 量子回路(bra)
 
         Returns:
             float: |<φi|φj>|^2
@@ -36,7 +36,7 @@ class overlap_estimator:
         circuit += inv_circuit
         sampling_count = self.sampler(circuit, self.n_shots)
         count_zero = sampling_count.get(0)
-        if count_zero is None:
+        if not count_zero:
             count_zero = 0
         p = count_zero / self.n_shots
         return p

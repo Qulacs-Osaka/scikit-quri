@@ -1913,7 +1913,7 @@ requires-dist = [
     { name = "quri-parts", specifier = "==0.24.1" },
     { name = "quri-parts", marker = "extra == 'qulacs'", specifier = ">=0.24.1" },
     { name = "quri-parts-openfermion", specifier = ">=0.23.0,<0.24" },
-    { name = "quri-parts-oqtopus", specifier = ">=1.0.3,<2" },
+    { name = "quri-parts-oqtopus", specifier = "==1.0.3" },
     { name = "scikit-learn", specifier = ">=1.4.0,<2" },
 ]
 provides-extras = ["qulacs"]

@@ -627,7 +627,7 @@ class LearningCircuit:
         operators = [operator] * len(_generalCircuitQuantumStates)
         results = estimator(operators, _generalCircuitQuantumStates)
 
-        return np.array(list(results))
+        return np.array([res.value for res in results])
 
     def to_batched(
         self, data: NDArray[np.float64], parameters: NDArray[np.float64]

@@ -16,6 +16,7 @@ from quri_parts.core.state import quantum_state
 from quri_parts.qulacs import QulacsStateT
 from quri_parts.core.operator import Operator, pauli_label
 from scikit_quri.circuit import LearningCircuit
+from scikit_quri.backend import BaseEstimator
 from typing import List, Optional
 
 from sklearn.preprocessing import MinMaxScaler
@@ -78,7 +79,7 @@ class QNNRegressor:
     """
 
     ansatz: LearningCircuit
-    estimator: EstimatorType
+    estimator: BaseEstimator
     gradient_estimator: GradientEstimatorType
     optimizer: Optimizer
 
@@ -96,6 +97,8 @@ class QNNRegressor:
     trained_param: Optional[Params] = field(default=None)
 
     def __post_init__(self) -> None:
+        if not issubclass(type(self.estimator), BaseEstimator):
+            raise TypeError("estimator must be a subclass of BaseEstimator")
         self.n_qubit = self.ansatz.n_qubits
         if self.do_x_scale:
             self.scale_x_scaler = MinMaxScaler(
@@ -302,7 +305,7 @@ class QNNRegressor:
         res = np.zeros((len(circuit_states), self.n_outputs), dtype=np.float64)
         for i, operator in enumerate(self.operator):
             # Operatorが1じゃない時は，stateの数と，operatorの数が一致しないといけない
-            estimates = self.estimator([operator], circuit_states)
+            estimates = self.estimator.estimate([operator], circuit_states)
             res[:, i] = np.array([e.value.real for e in estimates])
         res *= self.y_exp_ratio
         return res

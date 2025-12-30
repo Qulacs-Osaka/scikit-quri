@@ -28,7 +28,6 @@ class QKRR:
         self.n_iteration = n_iteration
 
     def run_circuit(self, x: NDArray[np.float64]):
-        # ここにはparametrizeされたcircuitは入ってこないはず...
         circuit = self.circuit.bind_input_and_parameters(x, np.array([]))
         state = quantum_state(n_qubits=self.n_qubit, circuit=circuit)
         return state
