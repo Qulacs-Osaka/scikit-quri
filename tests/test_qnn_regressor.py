@@ -14,7 +14,6 @@ from scikit_quri.circuit import create_qcl_ansatz
 # )
 from scikit_quri.backend import SimEstimator
 from quri_parts.qulacs.estimator import (
-    create_qulacs_vector_concurrent_estimator,
     create_qulacs_vector_concurrent_parametric_estimator,
 )
 from quri_parts.core.estimator.gradient import (
