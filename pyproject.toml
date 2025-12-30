@@ -19,7 +19,7 @@ classifiers = [
 dependencies = [
     "scikit-learn>=1.4.0,<2",
     "quri-parts-openfermion>=0.23.0,<0.24",
-    "quri-parts-oqtopus>=1.0.3,<2",
+    "quri-parts-oqtopus==1.0.3",
     "quri-parts==0.24.1",
 ]
 

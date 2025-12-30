@@ -12,6 +12,7 @@ from scikit_quri.circuit import create_qcl_ansatz
 # from scikit_quri.circuit.pre_defined import (
 #     create_multi_qubit_param_rotational_ansatz,
 # )
+from scikit_quri.backend import SimEstimator
 from quri_parts.qulacs.estimator import (
     create_qulacs_vector_concurrent_estimator,
     create_qulacs_vector_concurrent_parametric_estimator,
@@ -62,7 +63,7 @@ def test_noisy_two_vars_two_outputs(solver: Optimizer, maxiter: int) -> None:
     n_qubit = 4
     depth = 3
     time_step = 0.5
-    estimator = create_qulacs_vector_concurrent_estimator()
+    estimator = SimEstimator()
     gradient_estimator = create_numerical_gradient_estimator(
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
@@ -90,7 +91,7 @@ def test_noisy_sine_two_vars(solver: Optimizer, maxiter: int) -> None:
     depth = 3
     time_step = 0.5
     circuit = create_qcl_ansatz(n_qubit, depth, time_step, 0)
-    estimator = create_qulacs_vector_concurrent_estimator()
+    estimator = SimEstimator()
     gradient_estimator = create_numerical_gradient_estimator(
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
@@ -122,7 +123,7 @@ def test_noisy_sine(solver: Optimizer, maxiter: int) -> None:
     n_qubit = 3
     depth = 3
     time_step = 0.5
-    estimator = create_qulacs_vector_concurrent_estimator()
+    estimator = SimEstimator()
     gradient_estimator = create_numerical_gradient_estimator(
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )

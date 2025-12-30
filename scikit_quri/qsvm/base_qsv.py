@@ -56,7 +56,7 @@ class BaseQSV:
             print("\r", f"{i}/{len(x)}", end="")
         print()
         print("fitting SV...")
-        print(gram_train[0][1], gram_train[1][0])
+        # svmのmax_iterはインスタンス作成時に指定する必要があるためここで作成
         if self.sv_method_type == SVMethodType.SVC:
             self.sv_method = svm.SVC(kernel="precomputed", max_iter=max_iter, verbose=True)
         elif self.sv_method_type == SVMethodType.SVR:
