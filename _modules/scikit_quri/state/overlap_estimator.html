@@ -322,13 +322,13 @@ document.write(`
 
 
 <div class="viewcode-block" id="overlap_estimator"><a class="viewcode-back" href="../../../scikit_quri.state.html#scikit_quri.state.overlap_estimator.overlap_estimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">overlap_estimator</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;quri-partsのoverlap_estimatorの代替Class</span>
-<span class="sd">    (n_data:500のとき,x60 faster)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;quri-partsのoverlap_estimatorの代替Class.&quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sampler</span><span class="p">:</span> <span class="n">Sampler</span><span class="p">,</span> <span class="n">n_shots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Args:</span>
-<span class="sd">        circuits (List[QuantumCircuit]): 量子回路のリスト</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+<span class="sd">            sampler (Sampler): サンプリング関数</span>
+<span class="sd">            n_shots (int): ショット数 defaults to 1000.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">sampler</span>
@@ -339,8 +339,8 @@ document.write(`
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;与えられた量子回路のi番目とj番目の内積の絶対値の二乗を計算</span>
 <span class="sd">        引数に対して非破壊的に動作</span>
 <span class="sd">        Args:</span>
-<span class="sd">            i (int): 量子状態のindex(ket)</span>
-<span class="sd">            j (int): 量子状態のindex(bra)</span>
+<span class="sd">            ket_circuit (QuantumCircuit): 量子回路(ket)</span>
+<span class="sd">            bra_circuit (QuantumCircuit): 量子回路(bra)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            float: |&lt;φi|φj&gt;|^2</span>
@@ -354,7 +354,7 @@ document.write(`
         <span class="n">circuit</span> <span class="o">+=</span> <span class="n">inv_circuit</span>
         <span class="n">sampling_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_shots</span><span class="p">)</span>
         <span class="n">count_zero</span> <span class="o">=</span> <span class="n">sampling_count</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">count_zero</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">count_zero</span><span class="p">:</span>
             <span class="n">count_zero</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">count_zero</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_shots</span>
         <span class="k">return</span> <span class="n">p</span></div></div>
