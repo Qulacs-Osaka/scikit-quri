@@ -628,7 +628,7 @@ class LearningCircuit:
         estimates = estimator(operators, _generalCircuitQuantumStates)
         results = [estimate.value for estimate in estimates]
 
-        return np.array(list(results))
+        return np.array([res.value for res in results])
 
     def to_batched(
         self, data: NDArray[np.float64], parameters: NDArray[np.float64]
