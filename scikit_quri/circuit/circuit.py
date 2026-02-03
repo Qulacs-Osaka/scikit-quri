@@ -341,7 +341,7 @@ class LearningCircuit:
     def learning_params_count(self) -> int:
         return len(self._learning_parameter_list)
 
-    def get_learning_param_indexes(self) -> List[int]:
+    def get_learning_params_indexes(self) -> List[int]:
         pos: List[int] = []
         for param in self._learning_parameter_list:
             for pos_in_circuit in param.positions_in_circuit:
@@ -604,7 +604,7 @@ class LearningCircuit:
         operator = self._calc_hadamard_gradient_observable(operator)
 
         # Learning Param indexes
-        learning_param_indexes = self.get_learning_param_indexes()
+        learning_param_indexes = self.get_learning_params_indexes()
 
         # Calculate gradient for each learning parameter
         _generalCircuitQuantumStates = []

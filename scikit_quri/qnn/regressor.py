@@ -1,28 +1,23 @@
 # mypy: ignore-errors
 from dataclasses import dataclass, field
+from typing import List, Optional
 
 import numpy as np
 from numpy.typing import NDArray
-from quri_parts.algo.optimizer import Optimizer, Params
-from quri_parts.core.estimator import (
-    Estimatable,
-    GradientEstimator,
-    ConcurrentQuantumEstimator,
-)
-from quri_parts.core.state import ParametricCircuitQuantumState
+from quri_parts.algo.optimizer import Optimizer, OptimizerStatus, Params
+from quri_parts.core.estimator import ConcurrentQuantumEstimator, Estimatable, GradientEstimator
 from quri_parts.core.estimator.gradient import _ParametricStateT
-from quri_parts.algo.optimizer import OptimizerStatus
-from quri_parts.core.state import quantum_state
-from quri_parts.qulacs import QulacsStateT
 from quri_parts.core.operator import Operator, pauli_label
-from scikit_quri.circuit import LearningCircuit
-from scikit_quri.backend import BaseEstimator
-from typing import List, Optional
-
+from quri_parts.core.state import ParametricCircuitQuantumState, quantum_state
+from quri_parts.qulacs import QulacsStateT
 from sklearn.preprocessing import MinMaxScaler
+from typing_extensions import TypeAlias
+
+from scikit_quri.backend import BaseEstimator
+from scikit_quri.circuit import LearningCircuit
+
 # from sklearn.metrics import mean_squared_error
 
-from typing_extensions import TypeAlias
 
 EstimatorType: TypeAlias = ConcurrentQuantumEstimator[QulacsStateT]
 GradientEstimatorType: TypeAlias = GradientEstimator[_ParametricStateT]
@@ -241,7 +236,7 @@ class QNNRegressor:
         # for MSE
         y_pred = self._predict_inner(x_scaled, params)
         y_pred_grads = self._estimate_grad(x_scaled, params)
-        grads = np.zeros(len(self.ansatz.get_learning_param_indexes()))
+        grads = np.zeros(len(self.ansatz.get_learning_params_indexes()))
         diff = y_pred - y_scaled
         for i in range(len(diff)):
             # (self.n_outputs, params)
@@ -264,7 +259,7 @@ class QNNRegressor:
         Returns:
             grads: Gradients of the cost function.
         """
-        learning_params_indexes = self.ansatz.get_learning_param_indexes()
+        learning_params_indexes = self.ansatz.get_learning_params_indexes()
         grads = []
         for x in x_scaled:
             circuit_params = self.ansatz.generate_bound_params(x, params)

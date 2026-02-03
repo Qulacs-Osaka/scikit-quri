@@ -46,11 +46,11 @@ def create_qcl_ansatz(
             lambda x, i=i: np.arccos(preprocess_x(x, i) * preprocess_x(x, i)),
         )
 
-    time_evol_gate = _create_time_evol_gate(n_qubit, time_step)
-    # time_evol_circuit = _create_time_evol_circuit(n_qubit, time_step, seed=seed)
+    # time_evol_gate = _create_time_evol_gate(n_qubit, time_step)
+    time_evol_circuit = _create_time_evol_circuit(n_qubit, time_step, seed=seed)
     for _ in range(c_depth):
-        # circuit.circuit += time_evol_circuit
-        circuit.add_gate(time_evol_gate)
+        circuit.circuit += time_evol_circuit
+        # circuit.add_gate(time_evol_gate)
         for i in range(n_qubit):
             circuit.add_parametric_RX_gate(i)
             circuit.add_parametric_RZ_gate(i)
@@ -84,12 +84,12 @@ def _create_time_evol_circuit(
         circuit.add_RX_gate(i, angle=2 * Jx * time_step)
         for j in range(i + 1, n_qubit):
             J_ij = rng.uniform(-1.0, 1.0)
-            circuit.add_CZ_gate(i, j)
+            circuit.add_CNOT_gate(i, j)
             circuit.add_RZ_gate(
                 j,
                 angle=2 * J_ij * time_step,
             )
-            circuit.add_CZ_gate(i, j)
+            circuit.add_CNOT_gate(i, j)
     return circuit
 
 

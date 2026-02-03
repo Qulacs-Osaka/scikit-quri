@@ -17,6 +17,7 @@ class overlap_estimator:
         self.n_shots = n_shots
         self.cache = {}
 
+    # TODO list化に対応したい
     def estimate(self, ket_circuit: QuantumCircuit, bra_circuit: QuantumCircuit) -> float:
         """与えられた量子回路のi番目とj番目の内積の絶対値の二乗を計算
         引数に対して非破壊的に動作
