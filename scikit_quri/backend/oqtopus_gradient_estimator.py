@@ -3,7 +3,8 @@ from typing import Sequence
 
 import numpy as np
 from numpy.typing import NDArray
-from quri_parts.circuit.parameter_shift import ShiftedParameters
+
+# from quri_parts.circuit.parameter_shift import ShiftedParameters
 from quri_parts.core import quantum_state
 from quri_parts.core.estimator import Estimatable, Estimate
 
@@ -88,38 +89,38 @@ def numerical_gradient_estimates(
     return grad
 
 
-def parameter_shift_gradient_estimates(
-    op: Estimatable,
-    circuit: LearningCircuit,
-    params: LearningCircuitParameter,
-) -> Sequence[complex]:
-    """パラメータシフト法により勾配を計算する。
+# def parameter_shift_gradient_estimates(
+#     op: Estimatable,
+#     circuit: LearningCircuit,
+#     params: LearningCircuitParameter,
+# ) -> Sequence[complex]:
+#     """パラメータシフト法により勾配を計算する。
 
-    Note:
-        現在実装中。
+#     Note:
+#         現在実装中。
 
-    Args:
-        op: 期待値を計算する演算子。
-        circuit: 学習回路。
-        params: 入力パラメータと学習パラメータ。
+#     Args:
+#         op: 期待値を計算する演算子。
+#         circuit: 学習回路。
+#         params: 入力パラメータと学習パラメータ。
 
-    Returns:
-        各学習パラメータに対する勾配のシーケンス。
-    """
-    gen_params = circuit.generate_bound_params(
-        np.array(params.input_param), np.array(params.learning_param)
-    )
-    param_mapping = circuit.circuit.param_mapping
-    parameter_shift = ShiftedParameters(param_mapping)
-    derivatives = parameter_shift.get_derivatives()
-    shifted_params_and_coefs = [d.get_shifted_parameters_and_coef(gen_params) for d in derivatives]
+#     Returns:
+#         各学習パラメータに対する勾配のシーケンス。
+#     """
+# gen_params = circuit.generate_bound_params(
+#     np.array(params.input_param), np.array(params.learning_param)
+# )
+# param_mapping = circuit.circuit.param_mapping
+# parameter_shift = ShiftedParameters(param_mapping)
+# derivatives = parameter_shift.get_derivatives()
+# shifted_params_and_coefs = [d.get_shifted_parameters_and_coef(gen_params) for d in derivatives]
 
-    gate_params = set()
-    for params_and_coefs in shifted_params_and_coefs:
-        for p, _ in params_and_coefs:
-            gate_params.add(p)
-    gate_params_list = list(gate_params)
-    pass
+# gate_params = set()
+# for params_and_coefs in shifted_params_and_coefs:
+#     for p, _ in params_and_coefs:
+#         gate_params.add(p)
+# gate_params_list = list(gate_params)
+# pass
 
 
 class OqtopusGradientEstimator(BaseGradientEstimator):

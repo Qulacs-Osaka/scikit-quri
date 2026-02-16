@@ -5,7 +5,7 @@ from enum import Enum
 import numpy as np
 from numpy.typing import NDArray
 from quri_parts.circuit import QuantumCircuit
-from quri_parts.core.sampling import Sampler, ConcurrentSampler
+from quri_parts.core.sampling import ConcurrentSampler
 from sklearn import svm
 
 from scikit_quri.circuit import LearningCircuit

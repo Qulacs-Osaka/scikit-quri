@@ -2,7 +2,7 @@ import numpy as np
 from numpy.typing import NDArray
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.circuit.inverse import inverse_circuit
-from quri_parts.core.sampling import Sampler, ConcurrentSampler
+from quri_parts.core.sampling import ConcurrentSampler
 
 
 class overlap_estimator:

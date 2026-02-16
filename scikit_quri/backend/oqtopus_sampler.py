@@ -2,12 +2,11 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from quri_parts.circuit import NonParametricQuantumCircuit
 from typing import Optional, Iterable
-from quri_parts.core.sampling import MeasurementCounts, Sampler, ConcurrentSampler
+from quri_parts.core.sampling import MeasurementCounts
 from quri_parts_oqtopus.backend import (
     OqtopusConfig,
     OqtopusSamplingBackend,
     OqtopusDeviceBackend,
-    OqtopusSamplingResult,
 )
 
 
@@ -48,11 +47,11 @@ class OqtopusSampler:
         Raises:
             BackendError: Oqtopusでの実行に失敗した場合
         """
-        device_qubits = self.get_device_qubit_count()
         circuit_shots_list = list(circuit_shots_tuples)
         max_shots = max(shots for _, shots in circuit_shots_list)
         circuits = [circuit for circuit, _ in circuit_shots_list]
         # batched_circuits = [[]]
+        # device_qubits = self.get_device_qubit_count()
         # prefix_qubits = 0
         # for circuit in circuits:
         #     prefix_qubits += circuit.qubit_count

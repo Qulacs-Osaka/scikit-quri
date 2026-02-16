@@ -8,7 +8,7 @@ from scikit_quri.circuit import create_qcl_ansatz
 from scikit_quri.qnn import QNNClassifier
 from scikit_quri.backend import SimEstimator
 
-from quri_parts.algo.optimizer import Adam, LBFGS, Optimizer
+from quri_parts.algo.optimizer import LBFGS, Optimizer
 from quri_parts.qulacs.estimator import (
     create_qulacs_vector_concurrent_parametric_estimator,
 )
