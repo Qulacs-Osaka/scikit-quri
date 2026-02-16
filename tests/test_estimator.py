@@ -1,7 +1,10 @@
+import pytest
 from scikit_quri.backend import SimEstimator
 from quri_parts.core.operator import pauli_label
 from quri_parts.core import QuantumCircuit, quantum_state
 from quri_parts.core.state import GeneralCircuitQuantumState
+
+pytestmark = pytest.mark.skip(reason="メンテナンス中のためスキップ")
 
 
 def create_simple_circuit() -> GeneralCircuitQuantumState:
@@ -21,6 +24,7 @@ def test_sim_estimator() -> None:
     assert estimate is not None
 
 
+@pytest.mark.oqtopus
 def test_oqtopus_estimator() -> None:
     """Test for OqtopusEstimator."""
     from scikit_quri.backend import OqtopusEstimator

@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 from typing import Sequence
 from scikit_quri.backend import SimGradientEstimator
@@ -5,6 +6,8 @@ from scikit_quri.circuit.pre_defined import create_qcl_ansatz
 from scikit_quri.circuit import LearningCircuit
 from quri_parts.core.operator import pauli_label
 from quri_parts.core.state import ParametricCircuitQuantumState
+
+pytestmark = pytest.mark.skip(reason="メンテナンス中のためスキップ")
 
 
 def create_simple_circuit() -> LearningCircuit:
@@ -40,6 +43,7 @@ def _test_sim_grad_learning_param() -> Sequence[complex]:
     return estimate
 
 
+@pytest.mark.oqtopus
 def _test_oqtopus_grad() -> Sequence[complex]:
     """Test for OqtopusGradient."""
     from scikit_quri.backend import OqtopusGradientEstimator

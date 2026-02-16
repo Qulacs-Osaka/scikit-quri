@@ -4,7 +4,7 @@ from typing import List
 import numpy as np
 from numpy.random import RandomState
 from numpy.typing import NDArray
-from quri_parts.qulacs.sampler import create_qulacs_vector_sampler
+from quri_parts.qulacs.sampler import create_qulacs_vector_concurrent_sampler
 from sklearn.metrics import mean_squared_error
 
 from scikit_quri.circuit import create_ibm_embedding_circuit
@@ -45,7 +45,7 @@ def test_noisy_sine():
     n_qubit = 4
     circuit = create_ibm_embedding_circuit(n_qubit)
     qsvr = QSVR(circuit)
-    sampler = create_qulacs_vector_sampler()
+    sampler = create_qulacs_vector_concurrent_sampler()
     qsvr.fit(x_train, y_train, sampler, n_shots=2**12)
     y_pred = qsvr.predict(x_test)
     loss = mean_squared_error(y_pred, y_test)
