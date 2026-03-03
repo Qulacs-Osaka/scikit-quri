@@ -316,10 +316,16 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for scikit_quri.backend.oqtopus_sampler</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">NonParametricQuantumCircuit</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sampler</span><span class="p">,</span> <span class="n">MeasurementCounts</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts_oqtopus.backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">OqtopusConfig</span><span class="p">,</span> <span class="n">OqtopusSamplingBackend</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">NonParametricQuantumCircuit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Iterable</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">MeasurementCounts</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts_oqtopus.backend</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">OqtopusConfig</span><span class="p">,</span>
+    <span class="n">OqtopusSamplingBackend</span><span class="p">,</span>
+    <span class="n">OqtopusDeviceBackend</span><span class="p">,</span>
+<span class="p">)</span>
 
 
 <div class="viewcode-block" id="OqtopusSampler"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">OqtopusSampler</span><span class="p">:</span>
@@ -327,27 +333,111 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="n">OqtopusSamplingBackend</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">device_id</span> <span class="o">=</span> <span class="n">device_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">device_backend</span> <span class="o">=</span> <span class="n">OqtopusDeviceBackend</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 
-<div class="viewcode-block" id="OqtopusSampler.sample"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler.sample">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">NonParametricQuantumCircuit</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">NonParametricQuantumCircuit</span><span class="p">],</span> <span class="n">shots</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeasurementCounts</span><span class="p">:</span>
+<div class="viewcode-block" id="OqtopusSampler.get_device_qubit_count"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler.get_device_qubit_count">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_device_qubit_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Oqtopusのデバイスの量子ビット数を取得する関数</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Oqtopusのデバイスの量子ビット数</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            BackendError: Oqtopusでの実行に失敗した場合</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">device_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">device_backend</span><span class="o">.</span><span class="n">get_device</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">device_info</span><span class="o">.</span><span class="n">n_qubits</span></div>
+
+<div class="viewcode-block" id="OqtopusSampler.sample"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler.sample">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">NonParametricQuantumCircuit</span><span class="p">,</span> <span class="n">shots</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeasurementCounts</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Raises:</span>
 <span class="sd">            BackendError: Oqtopusでの実行に失敗した場合</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">device_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="n">shots</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
-        <span class="n">counts</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">counts</span>
+        <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">counts</span></div>
+
+<div class="viewcode-block" id="OqtopusSampler.concurrent_sample"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler.concurrent_sample">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">concurrent_sample</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">circuit_shots_tuples</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">NonParametricQuantumCircuit</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">MeasurementCounts</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        concurrentにsampleする関数</span>
+<span class="sd">        quri-partsのConcurrentSamplerに合わせるため、shotsはtupleの最大値を使用する</span>
+<span class="sd">        devicesの量子ビット数を超える量子回路の組み合わせに対しては、複数回に分けて実行する</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            BackendError: Oqtopusでの実行に失敗した場合</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">circuit_shots_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">circuit_shots_tuples</span><span class="p">)</span>
+        <span class="n">max_shots</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">shots</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">shots</span> <span class="ow">in</span> <span class="n">circuit_shots_list</span><span class="p">)</span>
+        <span class="n">circuits</span> <span class="o">=</span> <span class="p">[</span><span class="n">circuit</span> <span class="k">for</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">circuit_shots_list</span><span class="p">]</span>
+        <span class="c1"># batched_circuits = [[]]</span>
+        <span class="c1"># device_qubits = self.get_device_qubit_count()</span>
+        <span class="c1"># prefix_qubits = 0</span>
+        <span class="c1"># for circuit in circuits:</span>
+        <span class="c1">#     prefix_qubits += circuit.qubit_count</span>
+        <span class="c1">#     if prefix_qubits &gt; device_qubits:</span>
+        <span class="c1">#         prefix_qubits = circuit.qubit_count</span>
+        <span class="c1">#         batched_circuits.append([circuit])</span>
+        <span class="c1">#     else:</span>
+        <span class="c1">#         batched_circuits[-1].append(circuit)</span>
+        <span class="c1">#! qiskitのtranspilerで物理layoutを考慮してしまうので、combineすると相互作用でoverlapが1.0じゃなくなる</span>
+        <span class="c1">#! qulacsのsimでも物理layoutが考慮されているっぽい？</span>
+        <span class="n">batched_circuits</span> <span class="o">=</span> <span class="p">[[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">circuits</span><span class="p">]</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">transpiler_info</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;transpiler_lib&quot;</span><span class="p">:</span> <span class="s2">&quot;qiskit&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;transpiler_options&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;optimization_level&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">submit_sample</span><span class="p">(</span>
+            <span class="n">batched_circuits</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">NonParametricQuantumCircuit</span><span class="p">],</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">MeasurementCounts</span><span class="p">]:</span>
+            <span class="n">req</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span>
+                <span class="n">batched_circuits</span><span class="p">,</span>
+                <span class="n">device_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span>
+                <span class="n">shots</span><span class="o">=</span><span class="n">max_shots</span><span class="p">,</span>
+                <span class="n">transpiler_info</span><span class="o">=</span><span class="n">transpiler_info</span><span class="p">,</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">divided_counts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Expected divided_counts for list of circuits.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">req</span><span class="o">.</span><span class="n">divided_counts</span>
+
+        <span class="n">batched_result</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">MeasurementCounts</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># SamplerをThreadPoolExecutorで並列化して実行</span>
+        <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">()</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+            <span class="n">futures</span> <span class="o">=</span> <span class="p">[</span><span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">submit_sample</span><span class="p">,</span> <span class="n">batch</span><span class="p">)</span> <span class="k">for</span> <span class="n">batch</span> <span class="ow">in</span> <span class="n">batched_circuits</span><span class="p">]</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">):</span>
+                <span class="n">c</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;succeeded: </span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">batched_circuits</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">batched_result</span> <span class="o">=</span> <span class="p">[</span><span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span> <span class="k">for</span> <span class="n">future</span> <span class="ow">in</span> <span class="n">futures</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">divided_counts</span> <span class="ow">in</span> <span class="n">batched_result</span><span class="p">:</span>
+            <span class="c1"># dictのkey(int)でsortしてから格納</span>
+            <span class="n">counts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">v</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">divided_counts</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
         <span class="k">return</span> <span class="n">counts</span></div></div>
 
 
-<div class="viewcode-block" id="create_oqtopus_sampler"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.create_oqtopus_sampler">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">create_oqtopus_sampler</span><span class="p">(</span><span class="n">device_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">OqtopusConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sampler</span><span class="p">:</span>
+<div class="viewcode-block" id="create_oqtopus_sampler"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.create_oqtopus_sampler">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">create_oqtopus_sampler</span><span class="p">(</span><span class="n">device_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">OqtopusConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Oqtopus用のSamplerを生成する関数</span>
+<span class="sd">    quri-partsのSamplerとして動作</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Sampler: Oqtopus用のSampler</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">oqtopusSampler</span> <span class="o">=</span> <span class="n">OqtopusSampler</span><span class="p">(</span><span class="n">device_id</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">oqtopusSampler</span><span class="o">.</span><span class="n">sample</span></div>
+
+
+<div class="viewcode-block" id="create_oqtopus_concurrent_sampler"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.create_oqtopus_concurrent_sampler">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">create_oqtopus_concurrent_sampler</span><span class="p">(</span><span class="n">device_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">OqtopusConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Oqtopus用のConcurrentSamplerを生成する関数</span>
+<span class="sd">    quri-partsのConcurrentSamplerとして動作</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        ConcurrentSampler: Oqtopus用のConcurrentSampler</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">oqtopusSampler</span> <span class="o">=</span> <span class="n">OqtopusSampler</span><span class="p">(</span><span class="n">device_id</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">oqtopusSampler</span><span class="o">.</span><span class="n">concurrent_sample</span></div>
 </pre></div>
 
                 </article>

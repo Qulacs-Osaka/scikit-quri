@@ -364,11 +364,11 @@ document.write(`
             <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">preprocess_x</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="n">preprocess_x</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">i</span><span class="p">)),</span>
         <span class="p">)</span>
 
-    <span class="n">time_evol_gate</span> <span class="o">=</span> <span class="n">_create_time_evol_gate</span><span class="p">(</span><span class="n">n_qubit</span><span class="p">,</span> <span class="n">time_step</span><span class="p">)</span>
-    <span class="c1"># time_evol_circuit = _create_time_evol_circuit(n_qubit, time_step, seed=seed)</span>
+    <span class="c1"># time_evol_gate = _create_time_evol_gate(n_qubit, time_step)</span>
+    <span class="n">time_evol_circuit</span> <span class="o">=</span> <span class="n">_create_time_evol_circuit</span><span class="p">(</span><span class="n">n_qubit</span><span class="p">,</span> <span class="n">time_step</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">c_depth</span><span class="p">):</span>
-        <span class="c1"># circuit.circuit += time_evol_circuit</span>
-        <span class="n">circuit</span><span class="o">.</span><span class="n">add_gate</span><span class="p">(</span><span class="n">time_evol_gate</span><span class="p">)</span>
+        <span class="n">circuit</span><span class="o">.</span><span class="n">circuit</span> <span class="o">+=</span> <span class="n">time_evol_circuit</span>
+        <span class="c1"># circuit.add_gate(time_evol_gate)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_qubit</span><span class="p">):</span>
             <span class="n">circuit</span><span class="o">.</span><span class="n">add_parametric_RX_gate</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
             <span class="n">circuit</span><span class="o">.</span><span class="n">add_parametric_RZ_gate</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
@@ -402,12 +402,12 @@ document.write(`
         <span class="n">circuit</span><span class="o">.</span><span class="n">add_RX_gate</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">angle</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">Jx</span> <span class="o">*</span> <span class="n">time_step</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_qubit</span><span class="p">):</span>
             <span class="n">J_ij</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
-            <span class="n">circuit</span><span class="o">.</span><span class="n">add_CZ_gate</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+            <span class="n">circuit</span><span class="o">.</span><span class="n">add_CNOT_gate</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
             <span class="n">circuit</span><span class="o">.</span><span class="n">add_RZ_gate</span><span class="p">(</span>
                 <span class="n">j</span><span class="p">,</span>
                 <span class="n">angle</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">J_ij</span> <span class="o">*</span> <span class="n">time_step</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="n">circuit</span><span class="o">.</span><span class="n">add_CZ_gate</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+            <span class="n">circuit</span><span class="o">.</span><span class="n">add_CNOT_gate</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">circuit</span>
 
 

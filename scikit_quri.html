@@ -399,10 +399,13 @@ document.write(`
 </li>
 <li class="toctree-l2"><a class="reference internal" href="scikit_quri.backend.html#module-scikit_quri.backend.oqtopus_sampler">scikit_quri.backend.oqtopus_sampler module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler"><code class="docutils literal notranslate"><span class="pre">OqtopusSampler</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler.get_device_qubit_count"><code class="docutils literal notranslate"><span class="pre">OqtopusSampler.get_device_qubit_count()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler.sample"><code class="docutils literal notranslate"><span class="pre">OqtopusSampler.sample()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler.concurrent_sample"><code class="docutils literal notranslate"><span class="pre">OqtopusSampler.concurrent_sample()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.create_oqtopus_sampler"><code class="docutils literal notranslate"><span class="pre">create_oqtopus_sampler()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.create_oqtopus_concurrent_sampler"><code class="docutils literal notranslate"><span class="pre">create_oqtopus_concurrent_sampler()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="scikit_quri.backend.html#module-scikit_quri.backend.sim_estimator">scikit_quri.backend.sim_estimator module</a><ul>
@@ -426,6 +429,16 @@ document.write(`
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.create_oqtopus_sampler"><code class="docutils literal notranslate"><span class="pre">create_oqtopus_sampler()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.SimGradientEstimator"><code class="docutils literal notranslate"><span class="pre">SimGradientEstimator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.SimGradientEstimator.estimate_gradient"><code class="docutils literal notranslate"><span class="pre">SimGradientEstimator.estimate_gradient()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.SimGradientEstimator.estimate_learning_param_gradient"><code class="docutils literal notranslate"><span class="pre">SimGradientEstimator.estimate_learning_param_gradient()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.OqtopusGradientEstimator"><code class="docutils literal notranslate"><span class="pre">OqtopusGradientEstimator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.OqtopusGradientEstimator.estimate_gradient"><code class="docutils literal notranslate"><span class="pre">OqtopusGradientEstimator.estimate_gradient()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.OqtopusGradientEstimator.estimate_learning_param_gradient"><code class="docutils literal notranslate"><span class="pre">OqtopusGradientEstimator.estimate_learning_param_gradient()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -461,7 +474,7 @@ document.write(`
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.parameter_count"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.parameter_count</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.input_params_count"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.input_params_count</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.learning_params_count"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.learning_params_count</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.get_learning_param_indexes"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_learning_param_indexes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.get_learning_params_indexes"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_learning_params_indexes()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.get_minimum_learning_param_indexes"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_minimum_learning_param_indexes()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.get_input_params_indexes"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_input_params_indexes()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.bind_input_and_parameters"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.bind_input_and_parameters()</span></code></a></li>
@@ -513,7 +526,7 @@ document.write(`
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.LearningCircuit.parameter_count"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.parameter_count</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.LearningCircuit.input_params_count"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.input_params_count</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.LearningCircuit.learning_params_count"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.learning_params_count</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.LearningCircuit.get_learning_param_indexes"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_learning_param_indexes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.LearningCircuit.get_learning_params_indexes"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_learning_params_indexes()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.LearningCircuit.get_minimum_learning_param_indexes"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_minimum_learning_param_indexes()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.LearningCircuit.get_input_params_indexes"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_input_params_indexes()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.LearningCircuit.bind_input_and_parameters"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.bind_input_and_parameters()</span></code></a></li>
@@ -714,14 +727,18 @@ document.write(`
 <li class="toctree-l2"><a class="reference internal" href="scikit_quri.state.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="scikit_quri.state.html#module-scikit_quri.state.overlap_estimator">scikit_quri.state.overlap_estimator module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.state.html#scikit_quri.state.overlap_estimator.overlap_estimator"><code class="docutils literal notranslate"><span class="pre">overlap_estimator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.state.html#scikit_quri.state.overlap_estimator.overlap_estimator.create_overlap_circuit"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.create_overlap_circuit()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.state.html#scikit_quri.state.overlap_estimator.overlap_estimator.estimate"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.state.html#scikit_quri.state.overlap_estimator.overlap_estimator.estimate_concurrent"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate_concurrent()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="scikit_quri.state.html#module-scikit_quri.state">Module contents</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.state.html#scikit_quri.state.overlap_estimator"><code class="docutils literal notranslate"><span class="pre">overlap_estimator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.state.html#scikit_quri.state.overlap_estimator.create_overlap_circuit"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.create_overlap_circuit()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.state.html#scikit_quri.state.overlap_estimator.estimate"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.state.html#scikit_quri.state.overlap_estimator.estimate_concurrent"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate_concurrent()</span></code></a></li>
 </ul>
 </li>
 </ul>

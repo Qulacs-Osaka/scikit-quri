@@ -364,14 +364,18 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.state.overlap_estimator">scikit_quri.state.overlap_estimator module</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.overlap_estimator"><code class="docutils literal notranslate"><span class="pre">overlap_estimator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.overlap_estimator.create_overlap_circuit"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.create_overlap_circuit()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.overlap_estimator.estimate"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.overlap_estimator.estimate_concurrent"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate_concurrent()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.state">Module contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator"><code class="docutils literal notranslate"><span class="pre">overlap_estimator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.create_overlap_circuit"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.create_overlap_circuit()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.estimate"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.estimate_concurrent"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate_concurrent()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -396,17 +400,42 @@ document.write(`
 <span id="scikit-quri-state-overlap-estimator-module"></span><h2>scikit_quri.state.overlap_estimator module<a class="headerlink" href="#module-scikit_quri.state.overlap_estimator" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="scikit_quri.state.overlap_estimator.overlap_estimator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.state.overlap_estimator.</span></span><span class="sig-name descname"><span class="pre">overlap_estimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_shots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.state.overlap_estimator.overlap_estimator" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.state.overlap_estimator.</span></span><span class="sig-name descname"><span class="pre">overlap_estimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">concurrent_sampler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_shots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.state.overlap_estimator.overlap_estimator" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>quri-partsのoverlap_estimatorの代替Class.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>sampler</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><em>Callable</em></a><em>[</em><em>[</em><em>ImmutableQuantumCircuit</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><em>Mapping</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.14)"><em>Union</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>concurrent_sampler</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><em>quri_parts.rust.circuit.circuit.ImmutableQuantumCircuit</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em><em>]</em><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><em>Mapping</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.14)"><em>Union</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em><em>]</em><em>]</em><em>]</em>) – </p></li>
 <li><p><strong>n_shots</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – </p></li>
 </ul>
 </dd>
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.state.overlap_estimator.overlap_estimator.create_overlap_circuit">
+<span class="sig-name descname"><span class="pre">create_overlap_circuit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ket_circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bra_circuit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator.create_overlap_circuit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.state.overlap_estimator.overlap_estimator.create_overlap_circuit" title="Permalink to this definition">#</a></dt>
+<dd><p>ket_circuitとbra_circuitからoverlapを計算するための量子回路を作成する関数
+引数に対して非破壊的に動作
+:param ket_circuit: 量子回路(ket)
+:type ket_circuit: QuantumCircuit
+:param bra_circuit: 量子回路(bra)
+:type bra_circuit: QuantumCircuit</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>overlapを計算するための量子回路</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>QuantumCircuit</p>
+</dd>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ket_circuit</strong> (<em>QuantumCircuit</em>) – </p></li>
+<li><p><strong>bra_circuit</strong> (<em>QuantumCircuit</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.state.overlap_estimator.overlap_estimator.estimate">
 <span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ket_circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bra_circuit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.state.overlap_estimator.overlap_estimator.estimate" title="Permalink to this definition">#</a></dt>
@@ -432,6 +461,32 @@ document.write(`
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.state.overlap_estimator.overlap_estimator.estimate_concurrent">
+<span class="sig-name descname"><span class="pre">estimate_concurrent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ket_circuits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bra_circuits</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator.estimate_concurrent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.state.overlap_estimator.overlap_estimator.estimate_concurrent" title="Permalink to this definition">#</a></dt>
+<dd><p>circuitsの各量子回路の相関行列を計算する関数
+ket_circuitsとbra_circuitsのすべての組み合わせに対してestimateを行う。
+predictが正方行列ではないため、相関行列のflattenを返す
+:param ket_circuits: 量子回路のリスト(ket)
+:type ket_circuits: list[QuantumCircuit]
+:param bra_circuits: 量子回路のリスト(bra)
+:type bra_circuits: list[QuantumCircuit]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>内積の絶対値の二乗の行列</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a>]]</p>
+</dd>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ket_circuits</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><em>quri_parts.rust.circuit.circuit.QuantumCircuit</em><em>]</em>) – </p></li>
+<li><p><strong>bra_circuits</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><em>quri_parts.rust.circuit.circuit.QuantumCircuit</em><em>]</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </dd></dl>
 
 </section>
@@ -439,17 +494,42 @@ document.write(`
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-scikit_quri.state" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="scikit_quri.state.overlap_estimator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.state.</span></span><span class="sig-name descname"><span class="pre">overlap_estimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sampler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_shots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.state.overlap_estimator" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.state.</span></span><span class="sig-name descname"><span class="pre">overlap_estimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">concurrent_sampler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_shots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.state.overlap_estimator" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>quri-partsのoverlap_estimatorの代替Class.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>sampler</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><em>Callable</em></a><em>[</em><em>[</em><em>ImmutableQuantumCircuit</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><em>Mapping</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.14)"><em>Union</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>concurrent_sampler</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><em>quri_parts.rust.circuit.circuit.ImmutableQuantumCircuit</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em><em>]</em><em>]</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Mapping" title="(in Python v3.14)"><em>Mapping</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.14)"><em>Union</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em><em>]</em><em>]</em><em>]</em>) – </p></li>
 <li><p><strong>n_shots</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – </p></li>
 </ul>
 </dd>
 </dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.state.overlap_estimator.create_overlap_circuit">
+<span class="sig-name descname"><span class="pre">create_overlap_circuit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ket_circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bra_circuit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator.create_overlap_circuit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.state.overlap_estimator.create_overlap_circuit" title="Permalink to this definition">#</a></dt>
+<dd><p>ket_circuitとbra_circuitからoverlapを計算するための量子回路を作成する関数
+引数に対して非破壊的に動作
+:param ket_circuit: 量子回路(ket)
+:type ket_circuit: QuantumCircuit
+:param bra_circuit: 量子回路(bra)
+:type bra_circuit: QuantumCircuit</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>overlapを計算するための量子回路</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>QuantumCircuit</p>
+</dd>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ket_circuit</strong> (<em>QuantumCircuit</em>) – </p></li>
+<li><p><strong>bra_circuit</strong> (<em>QuantumCircuit</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.state.overlap_estimator.estimate">
 <span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ket_circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bra_circuit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.state.overlap_estimator.estimate" title="Permalink to this definition">#</a></dt>
@@ -470,6 +550,32 @@ document.write(`
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>ket_circuit</strong> (<em>QuantumCircuit</em>) – </p></li>
 <li><p><strong>bra_circuit</strong> (<em>QuantumCircuit</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.state.overlap_estimator.estimate_concurrent">
+<span class="sig-name descname"><span class="pre">estimate_concurrent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ket_circuits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bra_circuits</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator.estimate_concurrent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.state.overlap_estimator.estimate_concurrent" title="Permalink to this definition">#</a></dt>
+<dd><p>circuitsの各量子回路の相関行列を計算する関数
+ket_circuitsとbra_circuitsのすべての組み合わせに対してestimateを行う。
+predictが正方行列ではないため、相関行列のflattenを返す
+:param ket_circuits: 量子回路のリスト(ket)
+:type ket_circuits: list[QuantumCircuit]
+:param bra_circuits: 量子回路のリスト(bra)
+:type bra_circuits: list[QuantumCircuit]</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>内積の絶対値の二乗の行列</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a>]]</p>
+</dd>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ket_circuits</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><em>quri_parts.rust.circuit.circuit.QuantumCircuit</em><em>]</em>) – </p></li>
+<li><p><strong>bra_circuits</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>[</em><em>quri_parts.rust.circuit.circuit.QuantumCircuit</em><em>]</em>) – </p></li>
 </ul>
 </dd>
 </dl>
@@ -519,14 +625,18 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.state.overlap_estimator">scikit_quri.state.overlap_estimator module</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.overlap_estimator"><code class="docutils literal notranslate"><span class="pre">overlap_estimator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.overlap_estimator.create_overlap_circuit"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.create_overlap_circuit()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.overlap_estimator.estimate"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.overlap_estimator.estimate_concurrent"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate_concurrent()</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.state">Module contents</a><ul class="nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator"><code class="docutils literal notranslate"><span class="pre">overlap_estimator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.create_overlap_circuit"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.create_overlap_circuit()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.estimate"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.estimate_concurrent"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate_concurrent()</span></code></a></li>
 </ul>
 </li>
 </ul>

@@ -659,7 +659,7 @@ document.write(`
     <span class="k">def</span><span class="w"> </span><span class="nf">learning_params_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learning_parameter_list</span><span class="p">)</span>
 
-<div class="viewcode-block" id="LearningCircuit.get_learning_param_indexes"><a class="viewcode-back" href="../../../scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.get_learning_param_indexes">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_learning_param_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<div class="viewcode-block" id="LearningCircuit.get_learning_params_indexes"><a class="viewcode-back" href="../../../scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.get_learning_params_indexes">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_learning_params_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
         <span class="n">pos</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learning_parameter_list</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">pos_in_circuit</span> <span class="ow">in</span> <span class="n">param</span><span class="o">.</span><span class="n">positions_in_circuit</span><span class="p">:</span>
@@ -922,7 +922,7 @@ document.write(`
         <span class="n">operator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_hadamard_gradient_observable</span><span class="p">(</span><span class="n">operator</span><span class="p">)</span>
 
         <span class="c1"># Learning Param indexes</span>
-        <span class="n">learning_param_indexes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_learning_param_indexes</span><span class="p">()</span>
+        <span class="n">learning_param_indexes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_learning_params_indexes</span><span class="p">()</span>
 
         <span class="c1"># Calculate gradient for each learning parameter</span>
         <span class="n">_generalCircuitQuantumStates</span> <span class="o">=</span> <span class="p">[]</span>
