@@ -9,6 +9,7 @@ __pycache__/
 *.so
 
 CLAUDE.md
+.claude/
 
 # Distribution / packaging
 .Python
