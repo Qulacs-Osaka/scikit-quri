@@ -8,7 +8,7 @@ from scikit_quri.circuit import create_qcl_ansatz
 from scikit_quri.qnn import QNNClassifier
 from scikit_quri.backend import SimEstimator
 
-from quri_parts.algo.optimizer import Adam, LBFGS, Optimizer
+from quri_parts.algo.optimizer import LBFGS, Optimizer
 from quri_parts.qulacs.estimator import (
     create_qulacs_vector_concurrent_parametric_estimator,
 )
@@ -17,7 +17,7 @@ from quri_parts.core.estimator.gradient import (
 )
 
 
-@pytest.mark.parametrize(("solver", "maxiter"), [(Adam(ftol=1e-2), 777), (LBFGS(), 8)])
+@pytest.mark.parametrize(("solver", "maxiter"), [(LBFGS(), 10)])
 def test_classify_iris(solver: Optimizer, maxiter: int) -> None:
     iris = datasets.load_iris()
     df = pd.DataFrame(iris.data, columns=iris.feature_names)

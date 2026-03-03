@@ -9,6 +9,7 @@ from quri_parts.circuit.transpile import (
 from quri_parts.core.estimator import Estimatable, Estimate
 from quri_parts.core.operator import Operator, PauliLabel
 from quri_parts_oqtopus.backend import OqtopusConfig, OqtopusEstimationBackend
+from quri_parts.qulacs.estimator import _Estimate
 
 from .base_estimator import BaseEstimator
 
@@ -93,7 +94,7 @@ class OqtopusEstimator(BaseEstimator):
             BackendError: Oqtopusでの実行に失敗した場合
 
         """
-        results = []
+        results: list[Estimate[complex]] = []
         for circuit, operator in zip(circuits, operators):
             # EstimatableをOperatorに統一する
             if isinstance(operator, PauliLabel):
@@ -109,14 +110,14 @@ class OqtopusEstimator(BaseEstimator):
             # * success以外の場合、例外を投げるため、exp_valueがNoneになることはない
             if not exp_real:
                 exp_real = 0.0
-            results.append(complex(exp_real, 0.0))
+            results.append(_Estimate(value=complex(exp_real, 0.0)))
         return results
 
     def _transpile_circuit(
         self,
         circuit: NonParametricQuantumCircuit,
     ) -> NonParametricQuantumCircuit:
-        """qasm変換用に量子回路をtranspileする
+        """qasm変換用に量子回路をtranspileする(必要性は要検討)
 
         Args:
             circuit: transpile前の量子回路

@@ -88,3 +88,8 @@ warn_return_any = true
 warn_unreachable = true
 warn_unused_configs = true
 warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+markers = [
+    "oqtopus: mark test to run only with Oqtopus backend"
+]

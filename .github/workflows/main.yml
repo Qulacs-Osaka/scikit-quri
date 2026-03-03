@@ -2,6 +2,9 @@ name: Test
 
 on:
   pull_request:
+    paths: 
+      - "scikit_quri/**"
+      - "tests/**"
 
 jobs:
   test:
@@ -28,6 +31,3 @@ jobs:
 
       - name: Run tests
         run: make cov_ci
-
-      - name: Upload coverage report
-        uses: codecov/codecov-action@v3
