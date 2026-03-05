@@ -16,5 +16,6 @@ Module contents
 ---------------
 
 .. automodule:: scikit_quri.qsvm
+   :members:
    :undoc-members:
    :show-inheritance:

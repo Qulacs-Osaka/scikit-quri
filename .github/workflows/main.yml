@@ -28,6 +28,10 @@ jobs:
 
       - name: Check
         run: make check
+      
+      - name: Create env
+        run: |
+          echo "${{ secrets.OQTOPUS_ENV }}" > ~/.oqtopus
 
       - name: Run tests
         run: make cov_ci

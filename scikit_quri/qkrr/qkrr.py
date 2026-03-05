@@ -3,14 +3,15 @@ from typing import List
 
 import numpy as np
 from numpy.typing import NDArray
-from quri_parts.core.state import QuantumState, quantum_state
+from quri_parts.circuit import QuantumCircuit
+from quri_parts.core.sampling import ConcurrentSampler
 from scipy.stats import loguniform
 from sklearn.kernel_ridge import KernelRidge
 from sklearn.model_selection import RandomizedSearchCV
 
 
 from scikit_quri.circuit import LearningCircuit
-from scikit_quri.state._overlap_estimator import overlap_estimator
+from scikit_quri.state.overlap_estimator import overlap_estimator
 
 
 class QKRR:
@@ -23,16 +24,12 @@ class QKRR:
         self.krr = KernelRidge(kernel="precomputed")
         self.kernel_ridge_tuned = None
         self.circuit = circuit
-        self.data_states: List[QuantumState] = []
+        self.data_circuits: List[QuantumCircuit] = []
         self.n_qubit: int = circuit.n_qubits
         self.n_iteration = n_iteration
+        self.estimator = None
 
-    def run_circuit(self, x: NDArray[np.float64]):
-        circuit = self.circuit.bind_input_and_parameters(x, np.array([]))
-        state = quantum_state(n_qubits=self.n_qubit, circuit=circuit)
-        return state
-
-    def fit(self, x: NDArray[np.float64], y: NDArray[np.int_]) -> None:
+    def fit(self, x: NDArray[np.float64], y: NDArray[np.int_], sampler: ConcurrentSampler) -> None:
         """
         train the machine.
         :param x: training inputs
@@ -41,12 +38,12 @@ class QKRR:
         kar = np.zeros((len(x), len(x)))
         # Compute UΦx to get kernel of `x` and `y`.
         for i in range(len(x)):
-            self.data_states.append(self.run_circuit(x[i]))
-        self.estimator = overlap_estimator(self.data_states.copy())
-        for i in range(len(x)):
-            for j in range(len(x)):
-                kar[i][j] = self.estimator.estimate(i, j)
+            self.data_circuits.append(self._run_circuit(x[i]))
 
+        self.estimator = overlap_estimator(sampler)
+        kar = self.estimator.estimate_concurrent(self.data_circuits, self.data_circuits).reshape(
+            len(x), len(x)
+        )
         self.krr.fit(kar, y)
 
         # hyperparameter tuning
@@ -78,18 +75,15 @@ class QKRR:
         :param xs: inputs to make predictions
         :return: List[int], predicted values of y
         """
-        if self.kernel_ridge_tuned is None:
+        if self.kernel_ridge_tuned is None or self.estimator is None:
             raise ValueError("run fit() before predict")
 
-        kar = np.zeros((len(xs), len(self.data_states)))
-        new_status = []
-        for i in range(len(xs)):
-            x_qc = self.run_circuit(xs[i])
-            new_status.append(x_qc)
-        self.estimator.add_data(new_status)
-        offset = len(self.data_states)
-        for i in range(len(xs)):
-            for j in range(len(self.data_states)):
-                kar[i][j] = self.estimator.estimate(offset + i, j)
+        test_circuits = [self._run_circuit(_xs) for _xs in xs]
+        kar = self.estimator.estimate_concurrent(test_circuits, self.data_circuits).reshape(
+            len(xs), len(self.data_circuits)
+        )
         pred: NDArray[np.float64] = self.kernel_ridge_tuned.predict(kar)
         return pred
+
+    def _run_circuit(self, x: NDArray[np.float64]) -> QuantumCircuit:
+        return self.circuit.bind_input_and_parameters(x, np.array([])).get_mutable_copy()

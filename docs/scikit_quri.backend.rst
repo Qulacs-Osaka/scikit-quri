@@ -12,10 +12,26 @@ scikit\_quri.backend.base\_estimator module
    :undoc-members:
    :show-inheritance:
 
+scikit\_quri.backend.base\_gradient\_estimator module
+-----------------------------------------------------
+
+.. automodule:: scikit_quri.backend.base_gradient_estimator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 scikit\_quri.backend.oqtopus\_estimator module
 ----------------------------------------------
 
 .. automodule:: scikit_quri.backend.oqtopus_estimator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+scikit\_quri.backend.oqtopus\_gradient\_estimator module
+--------------------------------------------------------
+
+.. automodule:: scikit_quri.backend.oqtopus_gradient_estimator
    :members:
    :undoc-members:
    :show-inheritance:
@@ -32,6 +48,14 @@ scikit\_quri.backend.sim\_estimator module
 ------------------------------------------
 
 .. automodule:: scikit_quri.backend.sim_estimator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+scikit\_quri.backend.sim\_gradient\_estimator module
+----------------------------------------------------
+
+.. automodule:: scikit_quri.backend.sim_gradient_estimator
    :members:
    :undoc-members:
    :show-inheritance:
