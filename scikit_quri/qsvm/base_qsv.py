@@ -18,7 +18,7 @@ class SVMethodType(Enum):
 
 
 class BaseQSV:
-    """Quantum Support Vector Machineの基底クラス."""
+    """Base class for Quantum Support Vector Machine."""
 
     def __init__(self, circuit: LearningCircuit, sv_method_type: SVMethodType) -> None:
         self.circuit = circuit
@@ -35,15 +35,15 @@ class BaseQSV:
         max_iter: int = int(1e7),
         verbose: bool = False,
     ) -> None:
-        """trainデータから学習を行う.
+        """Fit the model to the training data.
 
         Args:
-            x: 学習データの特徴量(二次元配列)
-            y: 学習データのラベル
-            sampler: sampler function
-            n_shots: ショット数. Defaults to 1000.
-            max_iter: svmの最大反復回数. Defaults to 1e6.
-            verbose: svmの学習過程の出力の有無. Defaults to False.
+            x: Training feature matrix of shape (n_samples, n_features).
+            y: Training labels.
+            sampler: Concurrent sampler function.
+            n_shots: Number of shots per circuit execution. Defaults to 1000.
+            max_iter: Maximum number of iterations for the SVM solver. Defaults to 1e7.
+            verbose: Whether to print the SVM training progress. Defaults to False.
 
         """
         n_x = len(x)
@@ -53,7 +53,7 @@ class BaseQSV:
         gram_train = self.estimator.estimate_concurrent(
             self.data_circuits, self.data_circuits
         ).reshape(n_x, n_x)
-        # svmのmax_iterはインスタンス作成時に指定する必要があるためここで作成
+        # max_iter must be specified at instantiation time for sklearn SVM
         if self.sv_method_type == SVMethodType.SVC:
             self.sv_method = svm.SVC(kernel="precomputed", max_iter=max_iter, verbose=verbose)
         elif self.sv_method_type == SVMethodType.SVR:
@@ -62,13 +62,13 @@ class BaseQSV:
         self.gram_train = gram_train
 
     def predict(self, xs: NDArray[np.float64]) -> NDArray[np.float64]:
-        """testデータから予測を行う.
+        """Predict outcomes for the given test data.
 
         Args:
-            xs: テストデータの特徴量(二次元配列)
+            xs: Test feature matrix of shape (n_samples, n_features).
 
         Returns:
-            pred: 予測結果
+            pred: Predicted values of shape (n_samples,).
 
         """
         if not self.estimator:
@@ -84,7 +84,7 @@ class BaseQSV:
         return pred
 
     def _run_circuit(self, x: NDArray[np.float64]) -> QuantumCircuit:
-        """inputデータを回路にapplyした回路を返す."""
+        """Return a bound circuit with the input data applied."""
         return self.circuit.bind_input_and_parameters(x, np.array([])).get_mutable_copy()
 
 

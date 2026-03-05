@@ -107,6 +107,29 @@ class _LearningParameter:
 
 @dataclass
 class LearningCircuit:
+    """Parametric quantum circuit for quantum machine learning.
+
+    Manages three types of circuit parameters:
+
+    - **Fixed gates**: Non-parametric gates (X, Y, Z, H, CNOT, etc.).
+    - **Input gates** (``add_input_R*``): Rotation angle is computed from input data ``x``
+      via a user-supplied function at inference time.
+    - **Learnable gates** (``add_parametric_R*``): Rotation angle is a trainable parameter
+      updated during optimization. Multiple gates can share a single parameter via
+      ``share_with`` / ``share_with_coef``.
+    - **Parametric-input gates** (``add_parametric_input_R*``): Angle depends on both a
+      learnable parameter and input data (e.g. ``f(theta, x)``).
+
+    Args:
+        n_qubits: Number of qubits in the circuit.
+
+    Example:
+        >>> circuit = LearningCircuit(n_qubits=4)
+        >>> circuit.add_input_RY_gate(0, lambda x: np.arcsin(x[0]))
+        >>> param_id = circuit.add_parametric_RX_gate(1)
+        >>> bound = circuit.bind_input_and_parameters(x, theta)
+    """
+
     n_qubits: int
     circuit: UnboundParametricQuantumCircuit = field(init=False)
     input_functions: dict[int, Callable[[NDArray[np.float64]], float]] = field(
@@ -196,16 +219,34 @@ class LearningCircuit:
     def add_input_RX_gate(
         self, qubit: int, input_function: Callable[[NDArray[np.float64]], float]
     ) -> None:
+        """Add an RX gate whose angle is determined by input data at inference time.
+
+        Args:
+            qubit: Index of the target qubit.
+            input_function: Function ``f(x) -> float`` that maps input data to the rotation angle.
+        """
         self._add_input_R_gate_inner(qubit, _Axis.X, input_function)
 
     def add_input_RY_gate(
         self, qubit: int, input_function: Callable[[NDArray[np.float64]], float]
     ) -> None:
+        """Add an RY gate whose angle is determined by input data at inference time.
+
+        Args:
+            qubit: Index of the target qubit.
+            input_function: Function ``f(x) -> float`` that maps input data to the rotation angle.
+        """
         self._add_input_R_gate_inner(qubit, _Axis.Y, input_function)
 
     def add_input_RZ_gate(
         self, qubit: int, input_function: Callable[[NDArray[np.float64]], float]
     ) -> None:
+        """Add an RZ gate whose angle is determined by input data at inference time.
+
+        Args:
+            qubit: Index of the target qubit.
+            input_function: Function ``f(x) -> float`` that maps input data to the rotation angle.
+        """
         self._add_input_R_gate_inner(qubit, _Axis.Z, input_function)
 
     def _add_R_gate_inner(
@@ -255,8 +296,7 @@ class LearningCircuit:
             parameter_id = len(self._learning_parameter_list)
             learning_parameter = _LearningParameter(
                 parameter_id,
-                # 仮置きで0.0にしてます
-                0.0,
+                0.0,  # initial value; will be overwritten when parameters are bound
             )
             learning_parameter.append_position(new_gate_pos, None)
             self._learning_parameter_list.append(learning_parameter)
@@ -277,36 +317,106 @@ class LearningCircuit:
     def add_parametric_RX_gate(
         self, qubit: int, share_with: Optional[int] = None, share_with_coef: Optional[float] = None
     ) -> int:
+        """Add a trainable RX gate and return its parameter ID.
+
+        Args:
+            qubit: Index of the target qubit.
+            share_with: If given, this gate shares the learnable parameter with the gate
+                whose ``parameter_id`` equals ``share_with``.
+            share_with_coef: Coefficient applied to the shared parameter value
+                (angle = shared_value * coef). Only used when ``share_with`` is set.
+
+        Returns:
+            parameter_id: Index of the learnable parameter assigned to this gate.
+        """
         return self._add_parametric_R_gate_inner(qubit, _Axis.X, share_with, share_with_coef)
 
     def add_parametric_RY_gate(
         self, qubit: int, share_with: Optional[int] = None, share_with_coef: Optional[float] = None
     ) -> int:
+        """Add a trainable RY gate and return its parameter ID.
+
+        Args:
+            qubit: Index of the target qubit.
+            share_with: If given, this gate shares the learnable parameter with the gate
+                whose ``parameter_id`` equals ``share_with``.
+            share_with_coef: Coefficient applied to the shared parameter value
+                (angle = shared_value * coef). Only used when ``share_with`` is set.
+
+        Returns:
+            parameter_id: Index of the learnable parameter assigned to this gate.
+        """
         return self._add_parametric_R_gate_inner(qubit, _Axis.Y, share_with, share_with_coef)
 
     def add_parametric_RZ_gate(
         self, qubit: int, share_with: Optional[int] = None, share_with_coef: Optional[float] = None
     ) -> int:
+        """Add a trainable RZ gate and return its parameter ID.
+
+        Args:
+            qubit: Index of the target qubit.
+            share_with: If given, this gate shares the learnable parameter with the gate
+                whose ``parameter_id`` equals ``share_with``.
+            share_with_coef: Coefficient applied to the shared parameter value
+                (angle = shared_value * coef). Only used when ``share_with`` is set.
+
+        Returns:
+            parameter_id: Index of the learnable parameter assigned to this gate.
+        """
         return self._add_parametric_R_gate_inner(qubit, _Axis.Z, share_with, share_with_coef)
 
     def add_parametric_multi_Pauli_rotation_gate(
         self, targets: List[int], pauli_ids: List[int]
     ) -> Parameter:
+        """Add a trainable multi-qubit Pauli rotation gate.
+
+        Args:
+            targets: List of target qubit indices.
+            pauli_ids: List of Pauli operator IDs for each target qubit
+                (1=X, 2=Y, 3=Z).
+
+        Returns:
+            The Parameter object associated with this gate.
+        """
         return self.circuit.add_ParametricPauliRotation_gate(targets, pauli_ids)
 
     def add_parametric_input_RX_gate(
         self, index: int, input_func: InputFuncWithParam = lambda theta, x: x[0]
     ) -> None:
+        """Add an RX gate whose angle depends on both a learnable parameter and input data.
+
+        Args:
+            index: Index of the target qubit.
+            input_func: Function ``f(theta, x) -> float`` that computes the rotation angle
+                from the current learnable parameter value and input data.
+                Defaults to ``lambda theta, x: x[0]``.
+        """
         self._add_parametric_input_R_gate_inner(index, _Axis.X, input_func)
 
     def add_parametric_input_RY_gate(
         self, index: int, input_func: InputFuncWithParam = lambda theta, x: x[0]
     ) -> None:
+        """Add an RY gate whose angle depends on both a learnable parameter and input data.
+
+        Args:
+            index: Index of the target qubit.
+            input_func: Function ``f(theta, x) -> float`` that computes the rotation angle
+                from the current learnable parameter value and input data.
+                Defaults to ``lambda theta, x: x[0]``.
+        """
         self._add_parametric_input_R_gate_inner(index, _Axis.Y, input_func)
 
     def add_parametric_input_RZ_gate(
         self, index: int, input_func: InputFuncWithParam = lambda theta, x: x[0]
     ) -> None:
+        """Add an RZ gate whose angle depends on both a learnable parameter and input data.
+
+        Args:
+            index: Index of the target qubit.
+            input_func: Function ``f(theta, x) -> float`` that computes the rotation angle
+                from the current learnable parameter value and input data.
+                Defaults to ``lambda theta, x: x[0]``.
+        """
         self._add_parametric_input_R_gate_inner(index, _Axis.Z, input_func)
 
     def _add_parametric_input_R_gate_inner(
@@ -321,27 +431,36 @@ class LearningCircuit:
         )
 
         if target == _Axis.X:
-            self.add_parametric_RX_gate(index)
+            self.circuit.add_ParametricRX_gate(index)
         elif target == _Axis.Y:
-            self.add_parametric_RY_gate(index)
+            self.circuit.add_ParametricRY_gate(index)
         elif target == _Axis.Z:
-            self.add_parametric_RZ_gate(index)
+            self.circuit.add_ParametricRZ_gate(index)
         else:
             raise NotImplementedError
 
     @property
     def parameter_count(self) -> int:
+        """Total number of parametric slots in the underlying circuit (input + learnable)."""
         return self.circuit.parameter_count
 
     @property
     def input_params_count(self) -> int:
+        """Number of input-data-driven parameters."""
         return len(self._input_parameter_list)
 
     @property
     def learning_params_count(self) -> int:
+        """Number of unique learnable parameters (i.e. the length of the theta vector)."""
         return len(self._learning_parameter_list)
 
     def get_learning_params_indexes(self) -> List[int]:
+        """Return circuit-level indices of all learnable parameter slots.
+        A single learnable parameter may occupy multiple slots when ``share_with`` is used.
+
+        Returns:
+            List of gate-position indices for every learnable slot in the circuit.
+        """
         pos: List[int] = []
         for param in self._learning_parameter_list:
             for pos_in_circuit in param.positions_in_circuit:
@@ -349,13 +468,23 @@ class LearningCircuit:
         return pos
 
     def get_minimum_learning_param_indexes(self) -> List[int]:
-        """Circuit内のパラメータのうち，Circuitを構成できる最小のパラメータのインデックスを返す"""
+        """Return the minimal set of circuit-level indices needed to represent all learnable parameters.
+        Returns only the first slot for each learnable parameter, ignoring shared duplicates.
+
+        Returns:
+            List of gate-position indices, one per unique learnable parameter.
+        """
         pos: List[int] = []
         for param in self._learning_parameter_list:
             pos.append(param.positions_in_circuit[0].gate_pos)
         return pos
 
     def get_input_params_indexes(self) -> List[int]:
+        """Return circuit-level indices of all input-data-driven parameter slots.
+
+        Returns:
+            List of gate-position indices for every input parameter slot in the circuit.
+        """
         pos: List[int] = []
         for param in self._input_parameter_list:
             pos.append(param.pos)
@@ -364,13 +493,31 @@ class LearningCircuit:
     def bind_input_and_parameters(
         self, x: NDArray[np.float64], parameters: NDArray[np.float64]
     ) -> ImmutableBoundParametricQuantumCircuit:
+        """Bind input data and learnable parameters to produce a concrete circuit.
+
+        Args:
+            x: Input data array.
+            parameters: Learnable parameter vector of length ``learning_params_count``.
+
+        Returns:
+            A fully bound (non-parametric) quantum circuit.
+        """
         bound_parameters = self.generate_bound_params(x, parameters)
         return self.circuit.bind_parameters(bound_parameters)
 
     def generate_bound_params(
         self, x: NDArray[np.float64], parameters: NDArray[np.float64]
     ) -> Sequence[float]:
-        """x: Input data, theta: Learning parametersから，Circuitにbindするパラーメータを生成する"""
+        """Compute the full parameter list to bind to the circuit from input data and learnable parameters.
+
+        Args:
+            x: Input data array.
+            parameters: Learnable parameter vector of length ``learning_params_count``.
+
+        Returns:
+            Sequence of float values with length ``parameter_count``, ready to pass to
+            ``circuit.bind_parameters()``.
+        """
         bound_parameters = [0.0 for _ in range(self.parameter_count)]
         # Learning parameters
         for param in self._learning_parameter_list:
@@ -381,21 +528,20 @@ class LearningCircuit:
                 bound_parameters[pos.gate_pos] = param_value * coef
         # Input parameters
         for param in self._input_parameter_list:
-            # Input parameter is updated here, not update_parameters(),
-            # because input parameter is determined with the input data `x`.
+            # Input parameter is resolved here (not in update_parameters),
+            # because its value depends on the input data `x`.
             angle = 0.0
-            # どちらかは必ず通る
+            # Exactly one branch is taken depending on whether func needs a learning parameter
             if need_learning_parameter_guard(param.func, param.companion_parameter_id):
-                # If `companion_parameter_id` is `None`, `func` does not need a learning parameter.
+                # func takes only x (no learning parameter)
                 angle: float = param.func(x)
             elif not_needed_learning_parameter_guard(param.func, param.companion_parameter_id):
-                # companion_paramter_idの型を補完するために設置
+                # Present to help the type checker narrow companion_parameter_id to int
                 if param.companion_parameter_id is None:
                     # * unreachable
                     continue
                 theta = self._learning_parameter_list[param.companion_parameter_id]
                 angle = param.func(theta.value, x)
-                # print(f"{angle=}")
                 theta.value = angle
             bound_parameters[param.pos] = angle
 
@@ -404,9 +550,16 @@ class LearningCircuit:
     def backprop_innner_product(
         self, x: NDArray[np.float64], theta: NDArray[np.float64], state: QulacsQuantumState
     ) -> NDArray[np.float64]:
-        """
-        backprop(self, x: List[float],  state)->List[Float]
-        qulacsに回路を変換しinner_productでbackpropします。
+        """Compute gradients of learnable parameters via qulacs backpropagation using inner product.
+        Converts the circuit to qulacs format and calls ``backprop_inner_product``.
+
+        Args:
+            x: Input data array.
+            theta: Learnable parameter vector of length ``learning_params_count``.
+            state: Target qulacs quantum state used in the inner product.
+
+        Returns:
+            Gradient array of shape ``(learning_params_count,)``.
         """
         params = self.generate_bound_params(x, theta)
         (qulacs_circuit, param_mapper) = convert_parametric_circuit(self.circuit)
@@ -427,16 +580,15 @@ class LearningCircuit:
         qubit_index: int,
         hamiltonian: Operator,
     ) -> Operator:
-        """Calculate the gradient observable.
-        O_j = i[G_j, H]
+        """Calculate the gradient observable O_j = i[G_j, H].
 
         Args:
-            generator (_Axis): The axis of the generator.
-            index (int): The index of the generator.
-            hamiltonian (Operator): The Hamiltonian operator.
+            generator: Axis of the generator (X, Y, or Z).
+            qubit_index: Index of the qubit the generator acts on.
+            hamiltonian: The Hamiltonian operator H.
 
         Returns:
-            Operator: The gradient observable operator.
+            The gradient observable operator O_j.
         """
         simbol = {_Axis.X: "X", _Axis.Y: "Y", _Axis.Z: "Z"}[generator]
         generator_operator = Operator({pauli_label(f"{simbol}{qubit_index}"): 0.5})
@@ -600,6 +752,21 @@ class LearningCircuit:
         operator: Operator,
         estimator: ConcurrentQuantumEstimator,
     ) -> NDArray[np.float64]:
+        """Compute gradients of learnable parameters via the Hadamard test.
+
+        For each learnable parameter θ_j, estimates
+        ``∂⟨O⟩/∂θ_j = ⟨O ⊗ Y⟩`` on the Hadamard-test circuit,
+        where the ancilla qubit is index ``n_qubits``.
+
+        Args:
+            x: Input data array.
+            theta: Learnable parameter vector of length ``learning_params_count``.
+            operator: Observable whose expectation value gradient is computed.
+            estimator: Concurrent quantum estimator used to evaluate the Hadamard-test circuits.
+
+        Returns:
+            Gradient array of shape ``(learning_params_count,)``.
+        """
         # Calculate operator for hadamard test
         operator = self._calc_hadamard_gradient_observable(operator)
 
@@ -632,13 +799,15 @@ class LearningCircuit:
     def to_batched(
         self, data: NDArray[np.float64], parameters: NDArray[np.float64]
     ) -> Tuple[UnboundParametricQuantumCircuit, NDArray[np.float64]]:
-        """
-        scaluq(quri-parts-scaluq)に流すためのMethod
-        data: (n_data, n_features)
-        theta: (n_params)
+        """Build a batched parameter array for use with scaluq (quri-parts-scaluq).
+
+        Args:
+            data: Input data array of shape ``(n_data, n_features)``.
+            parameters: Learnable parameter vector of shape ``(n_params,)``.
 
         Returns:
-            (circuit, batched_params): (UnboundParametricQuantumCircuit, NDArray[n_data, params])
+            Tuple of ``(circuit, batched_params)`` where ``batched_params`` has shape
+            ``(n_data, parameter_count)`` with each row ready to bind to the circuit.
         """
         batched_params = np.zeros((len(data), self.parameter_count))
         # Learning parameters

@@ -22,26 +22,24 @@ EPS_abs = 1e-12
 
 
 class pqc_f_helper:
-    """
-    入力データXに対して，量子回路を計算してcacheしておくClass
-    """
+    """Helper class that evaluates and caches quantum states for input data."""
 
     def __init__(self, pqs_f: Callable[[NDArray[np.float64]], GeneralCircuitQuantumState]) -> None:
         """
         Args:
-            pqs_f: 入力データXを受け取って，量子状態を返す関数
+            pqs_f: A function that takes an input array and returns a quantum state.
         """
         self.pqs_f = pqs_f
         self.cache = {}
 
     def get(self, input: NDArray[np.float64]) -> GeneralCircuitQuantumState:
-        """
-        入力データXに対して，cacheされた量子状態を返す．もしcacheされていない場合は計算してcacheする
+        """Return the cached quantum state for the given input, computing it if not yet cached.
 
         Args:
-            input: 入力データX
+            input: Input data array.
+
         Returns:
-            GeneralCircuitQuantumState: 量子状態
+            Quantum state corresponding to the input.
         """
         hashed = hash(input.tobytes())
         state = self.cache.get(hashed, None)
@@ -52,26 +50,26 @@ class pqc_f_helper:
 
 
 class overlap_estimator:
-    """
-    quri-partsのoverlap_estimatorの代替Class
-    (n_data:500のとき,x60 faster)
+    """Alternative implementation of quri-parts' overlap estimator using qulacs directly.
+    Approximately 60x faster than the quri-parts implementation for n_data=500.
     """
 
     def __init__(self, states: List[GeneralCircuitQuantumState]):
         """
         Args:
-            states (List[GeneralCircuitQuantumState]): 量子状態のリスト
+            states: List of quantum states to compute overlaps between.
         """
         self.states = states
         self.qula_states = np.full(len(states), fill_value=None, dtype=object)
 
     def _state_to_qula_state(self, state: GeneralCircuitQuantumState) -> QuantumState:
-        """量子状態をqulacsのstateに変換
+        """Convert a quri-parts quantum state to a qulacs QuantumState.
 
         Args:
-            state (GeneralCircuitQuantumState): quri-partsの量子状態
+            state: quri-parts quantum state.
+
         Returns:
-            qulacs_state (QuantumState): qulacsの量子状態
+            Equivalent qulacs QuantumState.
         """
         circuit = convert_circuit(state.circuit)
         qulacs_state = _create_qulacs_initial_state(state)
@@ -79,24 +77,21 @@ class overlap_estimator:
         return qulacs_state
 
     def calc_all_qula_states(self):
-        """
-        cache用に予め全ての量子状態をqulacsのstateに変換
-        """
+        """Pre-compute and cache all qulacs states for later use in estimate()."""
         for i in range(len(self.states)):
             self.qula_states[i] = self._state_to_qula_state(self.states[i])
 
     def estimate(self, i: int, j: int):
-        # ? これi,jじゃなくて数値でhash取った方が使いやすそう
-        """与えられた量子状態のi番目とj番目の内積の絶対値の二乗を計算
+        """Compute the squared overlap |⟨φi|φj⟩|² between the i-th and j-th states.
 
         Args:
-            i (int): 量子状態のindex(ket)
-            j (int): 量子状態のindex(bra)
+            i: Index of the ket state.
+            j: Index of the bra state.
+
         Returns:
-            float: ``|<φi|φj>|^2``
+            Estimated value of |⟨φi|φj⟩|².
         """
         ket = self.qula_states[i]
-        # qulacsのstateを使いまわす
         if ket is None:
             ket = self._state_to_qula_state(self.states[i])
             self.qula_states[i] = ket
@@ -109,22 +104,20 @@ class overlap_estimator:
         return overlap_mag_sqrd
 
 
-# p_ijを計算するTSNE Class
 class TSNE:
-    """
-    基本的なTSNEの実装
-    """
+    """Basic t-SNE implementation for computing p and q probability matrices."""
 
     def __init__(self, perplexity=30):
         self.perplexity = perplexity
 
     def calc_probabilities_p(self, X_train: NDArray[np.float64]) -> NDArray[np.float64]:
-        """p行列を計算する
+        """Compute the t-SNE joint probability matrix P from Euclidean distances.
 
         Args:
-            X_train (NDArray[np.float64]): 入力データ
+            X_train: Input data of shape (n_samples, n_features).
+
         Returns:
-            p_probs (NDArray[np.float64]): t-sneのp行列 (X_trainのサイズ, X_trainのサイズ)
+            Symmetric joint probability matrix P of shape (n_samples, n_samples).
         """
         sq_distance = self.cdist(X_train, X_train)
         p_probs = self.joint_probabilities(sq_distance, self.perplexity)
@@ -133,17 +126,18 @@ class TSNE:
     def calc_probabilities_p_state(
         self, X_train_state: List[GeneralCircuitQuantumState]
     ) -> NDArray[np.float64]:
-        """p行列を計算する
+        """Compute the t-SNE joint probability matrix P from quantum state overlaps.
+        Uses 1 - |⟨φi|φj⟩|² as the distance metric between quantum states.
 
         Args:
-            X_train_state (List[GeneralCircuitQuantumState]): 量子状態に変換した入力データ
+            X_train_state: List of quantum states corresponding to the training inputs.
+
         Returns:
-            p_probs (NDArray[np.float64]): t-sneのp行列 (X_trainのサイズ, X_trainのサイズ)
+            Symmetric joint probability matrix P of shape (n_samples, n_samples).
         """
         n_data = len(X_train_state)
         sq_distance = np.zeros((n_data, n_data))
         estimator = overlap_estimator(X_train_state)
-        # xが量子状態の場合
         for i in range(n_data):
             for j in range(i + 1, n_data):
                 inner_prod = estimator.estimate(i, j)
@@ -155,12 +149,15 @@ class TSNE:
         return p_probs
 
     def calc_probabilities_q(self, c_data: NDArray[np.float64]) -> NDArray[np.float64]:
-        """q行列を計算する
+        """Compute the t-SNE joint probability matrix Q from the low-dimensional embedding.
+        Uses the Student's t-distribution as the similarity kernel.
 
         Args:
-            c_data (NDArray[np.float64]): 入力データ(論文ではy)
+            c_data: Low-dimensional embedding (called y in the original paper),
+                of shape (n_samples, n_components).
+
         Returns:
-            q_probs (NDArray[np.float64]): t-sneのq行列 (c_dataのサイズ, c_dataのサイズ)
+            Symmetric joint probability matrix Q of shape (n_samples, n_samples).
         """
         # Student's t-distribution
         q_tmp = 1 / (1 + self.cdist(c_data, c_data))
@@ -172,14 +169,23 @@ class TSNE:
         return q_probs
 
     def joint_probabilities(self, sq_distance: NDArray[np.float64], perplexity: int):
+        """Compute the symmetric joint probability matrix from pairwise distances.
+
+        Args:
+            sq_distance: Pairwise distance matrix of shape (n_samples, n_samples).
+            perplexity: Target perplexity for the conditional distributions.
+
+        Returns:
+            Symmetric joint probability matrix of shape (n_samples, n_samples).
+        """
         conditional_P = self.binary_search_perplexity(sq_distance, perplexity)
         P = conditional_P + conditional_P.T
         P /= np.sum(P)
         return P
 
     def binary_search_perplexity(self, sq_distance: NDArray[np.float64], perplexity: int):
-        """
-        二分探索で分散をperplexityにする
+        """Find the Gaussian kernel bandwidth for each point via binary search
+        so that the perplexity of the conditional distribution matches the target.
         """
         PERPLEXITY_TOLERANCE = 1e-5
         n = sq_distance.shape[0]
@@ -222,13 +228,28 @@ class TSNE:
         return conditional_P
 
     def kldiv(self, p_probs, q_probs):
+        """Compute the KL divergence KL(P || Q).
+
+        Args:
+            p_probs: Reference probability matrix P.
+            q_probs: Approximate probability matrix Q.
+
+        Returns:
+            Scalar KL divergence value.
+        """
         C = p_probs * np.log(p_probs / q_probs)
         c = np.sum(C)
         return c
 
     def cdist(self, X: NDArray[np.float64], X_tr: NDArray[np.float64]):
-        """
-        Calculate the distances by Euclidean distance between the data
+        """Compute pairwise Euclidean distances between rows of X and X_tr.
+
+        Args:
+            X: Array of shape (n_samples, n_features).
+            X_tr: Array of shape (m_samples, n_features).
+
+        Returns:
+            Distance matrix of shape (n_samples, m_samples).
         """
         if X_tr is None:
             raise ValueError("X_tr is None")
@@ -242,9 +263,7 @@ class TSNE:
 
 
 class quantum_kernel_tsne:
-    """
-    quantum kernel t-sneで学習するためのClass
-    """
+    """t-SNE using a quantum kernel as the similarity measure in the high-dimensional space."""
 
     def __init__(self, perplexity=30, max_iter=400):
         self.perplexity = perplexity
@@ -254,26 +273,27 @@ class quantum_kernel_tsne:
         self.estimator = create_qulacs_vector_overlap_estimator()
         self.X_train = None
 
-    # pqc_fの設定
     def init(self, pqc_f: Callable[[], LearningCircuit], theta: NDArray[np.float64]) -> None:
-        """
+        """Set up the parametric quantum circuit used to encode input data.
+
         Args:
-            pqc_f: 量子回路を返す関数
-            theta: 量子回路のパラメータ
+            pqc_f: A factory function that returns a new LearningCircuit instance.
+            theta: Parameter vector for the quantum circuit.
         """
         self.pqc_f = pqc_f
-        # parametric circuit state
         self.pqs_f = partial(self.input_quantum_state, pqc_f=self.pqc_f, theta=theta)
         self.pqs_f_helper = pqc_f_helper(self.pqs_f)
 
     def calc_loss(self, p_prob: NDArray[np.float64], q_prob: NDArray[np.float64]):
-        """最適化するためのlossを計算
+        """Compute the KL divergence loss KL(P || Q) used as the optimization objective.
 
         Args:
-            p_prob (NDArray[np.float64]): p_ij
-            q_prob (NDArray[np.float64]): q_ij
+            p_prob: High-dimensional joint probability matrix P.
+            q_prob: Low-dimensional joint probability matrix Q.
+
+        Returns:
+            Scalar KL divergence loss value.
         """
-        # ここでyを計算
         p_prob = np.maximum(p_prob, EPS_abs)
         q_prob = np.maximum(q_prob, EPS_abs)
         loss = self.tsne.kldiv(p_prob, q_prob)
@@ -282,6 +302,16 @@ class quantum_kernel_tsne:
     def _calc_grad(
         self, alpha: NDArray[np.float64], p_prob: NDArray[np.float64], fidelity: NDArray[np.float64]
     ):
+        """Compute the loss at a given alpha (helper for numerical gradient computation).
+
+        Args:
+            alpha: Flattened embedding coefficients of shape (n_samples * 2,).
+            p_prob: High-dimensional joint probability matrix P.
+            fidelity: Pairwise fidelity matrix of shape (n_samples, n_samples).
+
+        Returns:
+            Scalar loss value.
+        """
         y = self.calc_y(fidelity, alpha.reshape(len(alpha) // 2, 2))
         q_prob = self.tsne.calc_probabilities_q(y)
         loss = self.calc_loss(p_prob, q_prob)
@@ -290,6 +320,16 @@ class quantum_kernel_tsne:
     def calc_grad(
         self, alpha: NDArray[np.float64], p_prob: NDArray[np.float64], fidelity: NDArray[np.float64]
     ):
+        """Compute the numerical gradient of the loss with respect to alpha using central differences.
+
+        Args:
+            alpha: Flattened embedding coefficients of shape (n_samples * 2,).
+            p_prob: High-dimensional joint probability matrix P.
+            fidelity: Pairwise fidelity matrix of shape (n_samples, n_samples).
+
+        Returns:
+            Gradient array of the same shape as alpha.
+        """
         dx = 1e-6
         grads = np.zeros(len(alpha))
         alpha = alpha.copy()
@@ -311,9 +351,19 @@ class quantum_kernel_tsne:
         p_prob: NDArray[np.float64],
         fidelity: NDArray[np.float64],
     ):
-        # optimizerに1次元配列で渡されるので、2次元に戻す
+        """Cost function passed to the optimizer.
+
+        Args:
+            alpha: Flattened embedding coefficients of shape (n_samples * 2,).
+                The optimizer passes a 1-D array; it is reshaped to (n_samples, 2) internally.
+            p_prob: High-dimensional joint probability matrix P.
+            fidelity: Pairwise fidelity matrix of shape (n_samples, n_samples).
+
+        Returns:
+            Scalar KL divergence loss value.
+        """
+        # Reshape from 1-D (as passed by the optimizer) to (n_samples, 2)
         y = self.calc_y(fidelity, alpha.reshape(len(alpha) // 2, 2))
-        # print(f"{y=}")
         q_prob = self.tsne.calc_probabilities_q(y)
         loss = self.calc_loss(p_prob, q_prob)
         self.cost_f_iter += 1
@@ -322,12 +372,13 @@ class quantum_kernel_tsne:
         return loss
 
     def generate_X_train_state(self, X_train: NDArray[np.float64]):
-        """X_train(NDAarray[np.float64])から量子状態のリストを生成
+        """Generate quantum states for all training inputs using the cached circuit evaluator.
 
         Args:
-            X_train (NDArray[np.float64]):64入力データ
+            X_train: Training input array of shape (n_samples, n_features).
+
         Returns:
-            X_train_state (List[GeneralCircuitQuantumState]): 量子状態のリスト
+            Array of GeneralCircuitQuantumState objects of shape (n_samples,).
         """
         X_train_state = np.zeros(len(X_train), dtype=object)
         for i in range(len(X_train)):
@@ -335,6 +386,14 @@ class quantum_kernel_tsne:
         return X_train_state
 
     def train(self, X_train: NDArray[np.float64], y_label: NDArray[np.int8], method="Powell"):
+        """Fit the quantum kernel t-SNE embedding.
+
+        Args:
+            X_train: Training input array of shape (n_samples, n_features).
+            y_label: Class labels of shape (n_samples,). Used only for plotting.
+            method: Optimization method. One of ``"adam"``, ``"COBYLA"``, or ``"Powell"``.
+                Defaults to ``"Powell"``.
+        """
         if self.pqc_f is None:
             raise ValueError("please call 'init' before training")
         self.X_train = X_train
@@ -389,12 +448,13 @@ class quantum_kernel_tsne:
         self.plot(y, y_label, "after")
 
     def transform(self, X_test: NDArray[np.float64]) -> NDArray[np.float64]:
-        """学習したαを使ってyを計算
+        """Compute the low-dimensional embedding for test data using the trained alpha.
 
         Args:
-            X_test (NDArray[np.float64]): テストデータ
+            X_test: Test input array of shape (n_samples, n_features).
+
         Returns:
-            y (NDArray[np.float64]): 低次元表現
+            Low-dimensional embedding of shape (n_samples, 2).
         """
         fidelity = self.calc_fidelity_all(X_test, self.X_train, self.pqs_f_helper)
         y = self.calc_y(fidelity, self.trained_alpha.reshape(len(self.trained_alpha) // 2, 2))
@@ -403,23 +463,32 @@ class quantum_kernel_tsne:
     def calc_y(
         self, fidelity: NDArray[np.float64], alpha: NDArray[np.float64]
     ) -> NDArray[np.float64]:
-        """fidelityとαからyを計算
+        """Compute the low-dimensional embedding y = fidelity @ alpha.
 
         Args:
-            fidelity: ``|<φi|φj>|^2`` (n_data, n_data)
-            alpha: α (n_data, 2)
+            fidelity: Pairwise fidelity matrix |⟨φi|φj⟩|² of shape (n_data, n_data).
+            alpha: Embedding coefficients of shape (n_data, 2).
+
+        Returns:
+            Low-dimensional embedding of shape (n_data, 2).
         """
         return fidelity @ alpha
 
-    # ``|φi,Θ>`` を計算
     def input_quantum_state(
         self,
         input: NDArray[np.float64],
         pqc_f: Callable[[], LearningCircuit],
         theta: NDArray[np.float64],
     ) -> GeneralCircuitQuantumState:
-        """
-        入力データXとpqc_f,thetaを受け取って、量子状態を計算する
+        """Compute the quantum state |φ(input, θ)⟩ for the given input and circuit parameters.
+
+        Args:
+            input: Input data array.
+            pqc_f: Factory function that returns a new LearningCircuit instance.
+            theta: Parameter vector for the circuit.
+
+        Returns:
+            Bound quantum state corresponding to the input and parameters.
         """
         qc = pqc_f()
         bind_params = qc.generate_bound_params(input, theta)
@@ -428,11 +497,21 @@ class quantum_kernel_tsne:
         )
         return circuit_state
 
-    # Parallelに``|<φi|φj>|^2`` 計算するための関数
-    # 対称性を持つので、``j<=i`` の場合は計算しない
-    # TODO parallelize
-    # ? Cacheできそう
     def _calc_fidelity(self, j, data, data_tr, estimator: overlap_estimator):
+        """Compute the j-th row of the fidelity matrix.
+        Exploits symmetry when data == data_tr by only computing k <= j.
+        When data != data_tr, data_tr states are stored at offset n_data in the estimator.
+
+        Args:
+            j: Row index.
+            data: Query data array.
+            data_tr: Reference data array.
+            estimator: overlap_estimator holding states for [data, data_tr].
+
+        Returns:
+            Fidelity values for the j-th query against all reference states.
+        """
+        # TODO: parallelize
         n_data = len(data)
         if np.array_equal(data, data_tr):
             fidelities = np.zeros(n_data)
@@ -444,14 +523,24 @@ class quantum_kernel_tsne:
             n_data_tr = len(data_tr)
             fidelities = np.zeros(n_data_tr)
             for k in range(n_data_tr):
-                # estimatorは[data,data_tr]なので，offsetを使ってdata_trのindexを計算
+                # data_tr states are stored after data states in the estimator
                 inner_prod = estimator.estimate(j, k + n_data_offset)
                 fidelities[k] = inner_prod
         return fidelities
 
     def calc_fidelity(self, data, data_tr, pqs_f_helper: pqc_f_helper):
-        """
-        data==data_trの場合，fidelity( ``|<φi|φj>|^2`` ) を計算
+        """Compute the full symmetric fidelity matrix when data == data_tr.
+
+        Args:
+            data: Input array.
+            data_tr: Must be identical to data.
+            pqs_f_helper: Cached quantum state evaluator.
+
+        Returns:
+            Symmetric fidelity matrix of shape (n_data, n_data).
+
+        Raises:
+            ValueError: If data and data_tr are not identical.
         """
         if not np.array_equal(data, data_tr):
             raise ValueError("data and data_tr must be the same")
@@ -459,7 +548,7 @@ class quantum_kernel_tsne:
         n_data_tr = len(data_tr)
         fidelities = np.zeros((n_data, n_data_tr))
         estimator = overlap_estimator([pqs_f_helper.get(data[i]) for i in range(n_data)])
-        # どうせ全部使うので，先に全部計算する
+        # Pre-compute all qulacs states since they will all be needed
         estimator.calc_all_qula_states()
         for j in range(n_data):
             fidelities[j] = self._calc_fidelity(j, data, data_tr, estimator)
@@ -468,13 +557,20 @@ class quantum_kernel_tsne:
         return fidelities
 
     def calc_fidelity_all(self, data, data_tr, pqs_f_helper: pqc_f_helper):
-        """
-        data != data_trの場合，fidelity( ``|<φi|φj>|^2`` )を計算
+        """Compute the fidelity matrix when data != data_tr (e.g. train vs test).
+
+        Args:
+            data: Query data array of shape (n_data, n_features).
+            data_tr: Reference data array of shape (n_data_tr, n_features).
+            pqs_f_helper: Cached quantum state evaluator.
+
+        Returns:
+            Fidelity matrix of shape (n_data, n_data_tr).
         """
         n_data = len(data)
         n_data_tr = len(data_tr)
         fidelities = np.zeros((n_data, n_data_tr))
-        # dataとdata_trの両方の量子状態をestimatorに入れる
+        # Store both data and data_tr states in the estimator so indices are [data | data_tr]
         estimator = overlap_estimator(
             [pqs_f_helper.get(x) for x in np.concatenate([data, data_tr])]
         )
@@ -486,12 +582,12 @@ class quantum_kernel_tsne:
         return fidelities
 
     def plot(self, y: NDArray[np.float64], y_label: NDArray[np.int64], title: str):
-        """yをplotする
+        """Plot the 2-D embedding with class labels.
 
         Args:
-            y (NDArray[np.float64]): 低次元表現
-            y_label (NDArray[np.int64]): ラベル
-            title (str): タイトル
+            y: 2-D embedding of shape (n_samples, 2).
+            y_label: Class labels of shape (n_samples,).
+            title: Plot title.
         """
         for i in np.unique(y_label):
             plt.scatter(y[:, 0][y_label == i], y[:, 1][y_label == i])

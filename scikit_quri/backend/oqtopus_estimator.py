@@ -15,14 +15,14 @@ from .base_estimator import BaseEstimator
 
 
 class OqtopusEstimator(BaseEstimator):
-    """quri-parts-oqtopusを用いて実機で期待値を計算するEstimator Class
-    実行には`~/.oqtopus`の設定が必要
-    https://quri-parts-oqtopus.readthedocs.io/en/stable/usage/getting_started/#prepare-oqtopus-configuration-file
+    """Estimator class that computes expectation values on real quantum hardware via quri-parts-oqtopus.
+    Requires an OQTOPUS configuration file at ``~/.oqtopus``.
+    See: https://quri-parts-oqtopus.readthedocs.io/en/stable/usage/getting_started/#prepare-oqtopus-configuration-file
 
     Args:
-        device_id: 実行するデバイスのID
-        shots: ショット数. Defaults to 1000.
-        config: OqtopusのConfig. Defaults to None.
+        device_id: ID of the device to run on.
+        shots: Number of shots per circuit execution. Defaults to 1000.
+        config: OQTOPUS configuration. Defaults to None.
 
     """
 
@@ -37,27 +37,27 @@ class OqtopusEstimator(BaseEstimator):
         self.shots = shots
 
     def estimate(self, operators, states):
-        """operatorsとstatesの組み合わせに対して期待値を計算する
-        operatorsまたはstatesのどちらかが1つの場合、もう一方の数に合わせて繰り返す
-        もしくは、両方の数が同じ場合、1対1で対応させる
-        それ以外の場合、ValueErrorを投げる
+        """Compute expectation values for combinations of operators and states.
+        If either operators or states contains a single element, it is broadcast
+        to match the length of the other. If both contain multiple elements, they
+        must have the same length and are paired one-to-one.
 
         Args:
-            operators: 期待値を計算する演算子のリスト
-            states: 期待値を計算する状態のリスト
+            operators: List of operators for which to compute expectation values.
+            states: List of quantum states.
 
         Returns:
-            operatorsとstatesの組み合わせに対する期待値のリスト
+            List of expectation values for each (operator, state) pair.
 
         Raises:
-            ValueError: operatorsまたはstatesが空、もしくは両方の数が異なる場合
-            BackendError: Oqtopusでの実行に失敗した場合
+            ValueError: If operators or states is empty, or if both have multiple
+                elements with mismatched lengths.
+            BackendError: If execution on OQTOPUS fails.
 
         """
         num_ops = len(operators)
         num_states = len(states)
 
-        # operatorが1つもしくはstateが1つの場合は、もう一方の数に合わせて繰り返す
         if num_ops == 0:
             raise ValueError("No operator specified.")
 
@@ -70,7 +70,7 @@ class OqtopusEstimator(BaseEstimator):
             )
 
         if num_states == 1:
-            # memory節約のため、shallow copy
+            # Reuse the same transpiled circuit for all operators (shallow copy for memory efficiency)
             circuits = [self._transpile_circuit(states[0].circuit)] * num_ops
             return self._estimate_concurrently(operators, circuits)
         if num_ops == 1:
@@ -83,20 +83,22 @@ class OqtopusEstimator(BaseEstimator):
         operators: Sequence[Estimatable],
         circuits: Sequence[NonParametricQuantumCircuit],
     ) -> Iterable[Estimate[complex]]:
-        """operatorsとcircuitsの1対1の組み合わせに対して期待値を計算する
+        """Compute expectation values for one-to-one pairs of operators and circuits.
+
         Args:
-            operators: 期待値を計算する演算子のリスト
-            circuits: 期待値を計算する量子回路のリスト
+            operators: List of operators for which to compute expectation values.
+            circuits: List of quantum circuits, paired with operators by index.
 
         Returns:
-            operatorsとcircuitsの組み合わせに対する期待値のリスト
+            List of expectation values for each (operator, circuit) pair.
+
         Raises:
-            BackendError: Oqtopusでの実行に失敗した場合
+            BackendError: If execution on OQTOPUS fails.
 
         """
         results: list[Estimate[complex]] = []
         for circuit, operator in zip(circuits, operators):
-            # EstimatableをOperatorに統一する
+            # Normalize Estimatable to Operator
             if isinstance(operator, PauliLabel):
                 operator = Operator({operator: 1.0})
             job = self.backend.estimate(
@@ -107,8 +109,8 @@ class OqtopusEstimator(BaseEstimator):
             )
             result = job.result()
             exp_real = result.exp_value
-            # * success以外の場合、例外を投げるため、exp_valueがNoneになることはない
-            if not exp_real:
+            # On failure the backend raises an exception, so exp_value is None only when the result is 0
+            if exp_real is None:
                 exp_real = 0.0
             results.append(_Estimate(value=complex(exp_real, 0.0)))
         return results
@@ -117,17 +119,18 @@ class OqtopusEstimator(BaseEstimator):
         self,
         circuit: NonParametricQuantumCircuit,
     ) -> NonParametricQuantumCircuit:
-        """qasm変換用に量子回路をtranspileする(必要性は要検討)
+        """Transpile a circuit for submission to OQTOPUS.
 
         Args:
-            circuit: transpile前の量子回路
+            circuit: Circuit before transpilation.
+
         Returns:
-            transpile後の量子回路
+            Transpiled circuit.
 
         """
         transpiler = SequentialTranspiler(
             [
-                # quri-partsのqasmがUnitaryMatrixに対応していないため、RYRZに変換
+                # quri-parts' QASM does not support UnitaryMatrix gates; convert them to RY/RZ
                 SingleQubitUnitaryMatrix2RYRZTranspiler(),
             ],
         )
