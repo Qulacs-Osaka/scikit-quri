@@ -336,7 +336,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="BaseQSV"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">BaseQSV</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Quantum Support Vector Machineの基底クラス.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for Quantum Support Vector Machine.&quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">LearningCircuit</span><span class="p">,</span> <span class="n">sv_method_type</span><span class="p">:</span> <span class="n">SVMethodType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="o">=</span> <span class="n">circuit</span>
@@ -353,15 +353,15 @@ document.write(`
         <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e7</span><span class="p">),</span>
         <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;trainデータから学習を行う.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fit the model to the training data.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            x: 学習データの特徴量(二次元配列)</span>
-<span class="sd">            y: 学習データのラベル</span>
-<span class="sd">            sampler: sampler function</span>
-<span class="sd">            n_shots: ショット数. Defaults to 1000.</span>
-<span class="sd">            max_iter: svmの最大反復回数. Defaults to 1e6.</span>
-<span class="sd">            verbose: svmの学習過程の出力の有無. Defaults to False.</span>
+<span class="sd">            x: Training feature matrix of shape (n_samples, n_features).</span>
+<span class="sd">            y: Training labels.</span>
+<span class="sd">            sampler: Concurrent sampler function.</span>
+<span class="sd">            n_shots: Number of shots per circuit execution. Defaults to 1000.</span>
+<span class="sd">            max_iter: Maximum number of iterations for the SVM solver. Defaults to 1e7.</span>
+<span class="sd">            verbose: Whether to print the SVM training progress. Defaults to False.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">n_x</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -371,7 +371,7 @@ document.write(`
         <span class="n">gram_train</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">estimate_concurrent</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span>
         <span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_x</span><span class="p">,</span> <span class="n">n_x</span><span class="p">)</span>
-        <span class="c1"># svmのmax_iterはインスタンス作成時に指定する必要があるためここで作成</span>
+        <span class="c1"># max_iter must be specified at instantiation time for sklearn SVM</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sv_method_type</span> <span class="o">==</span> <span class="n">SVMethodType</span><span class="o">.</span><span class="n">SVC</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">sv_method</span> <span class="o">=</span> <span class="n">svm</span><span class="o">.</span><span class="n">SVC</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="s2">&quot;precomputed&quot;</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="n">max_iter</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">sv_method_type</span> <span class="o">==</span> <span class="n">SVMethodType</span><span class="o">.</span><span class="n">SVR</span><span class="p">:</span>
@@ -380,13 +380,13 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">gram_train</span> <span class="o">=</span> <span class="n">gram_train</span></div>
 
 <div class="viewcode-block" id="BaseQSV.predict"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV.predict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;testデータから予測を行う.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Predict outcomes for the given test data.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            xs: テストデータの特徴量(二次元配列)</span>
+<span class="sd">            xs: Test feature matrix of shape (n_samples, n_features).</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            pred: 予測結果</span>
+<span class="sd">            pred: Predicted values of shape (n_samples,).</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="p">:</span>
@@ -402,7 +402,7 @@ document.write(`
         <span class="k">return</span> <span class="n">pred</span></div>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_run_circuit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">QuantumCircuit</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;inputデータを回路にapplyした回路を返す.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a bound circuit with the input data applied.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">bind_input_and_parameters</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]))</span><span class="o">.</span><span class="n">get_mutable_copy</span><span class="p">()</span></div>
 
 

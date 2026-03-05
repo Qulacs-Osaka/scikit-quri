@@ -835,7 +835,7 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.pqc_f_helper">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.kernel_tsne.</span></span><span class="sig-name descname"><span class="pre">pqc_f_helper</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pqs_f</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#pqc_f_helper"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.pqc_f_helper" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>入力データXに対して，量子回路を計算してcacheしておくClass</p>
+<p>Helper class that evaluates and caches quantum states for input data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>pqs_f</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em><em>]</em><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.GeneralCircuitQuantumState" title="(in QURI Parts)"><em>GeneralCircuitQuantumState</em></a><em>]</em>) – </p>
@@ -844,16 +844,16 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.pqc_f_helper.get">
 <span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#pqc_f_helper.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.pqc_f_helper.get" title="Permalink to this definition">#</a></dt>
-<dd><p>入力データXに対して，cacheされた量子状態を返す．もしcacheされていない場合は計算してcacheする</p>
+<dd><p>Return the cached quantum state for the given input, computing it if not yet cached.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>input</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – 入力データX</p>
+<dd class="field-odd"><p><strong>input</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Input data array.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>量子状態</p>
+<dd class="field-even"><p>Quantum state corresponding to the input.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>GeneralCircuitQuantumState</p>
+<dd class="field-odd"><p><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.GeneralCircuitQuantumState" title="(in QURI Parts)"><em>GeneralCircuitQuantumState</em></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -864,8 +864,8 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.overlap_estimator">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.kernel_tsne.</span></span><span class="sig-name descname"><span class="pre">overlap_estimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#overlap_estimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>quri-partsのoverlap_estimatorの代替Class
-(n_data:500のとき,x60 faster)</p>
+<p>Alternative implementation of quri-parts’ overlap estimator using qulacs directly.
+Approximately 60x faster than the quri-parts implementation for n_data=500.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>states</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.GeneralCircuitQuantumState" title="(in QURI Parts)"><em>GeneralCircuitQuantumState</em></a><em>]</em>) – </p>
@@ -874,25 +874,22 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.overlap_estimator.calc_all_qula_states">
 <span class="sig-name descname"><span class="pre">calc_all_qula_states</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#overlap_estimator.calc_all_qula_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator.calc_all_qula_states" title="Permalink to this definition">#</a></dt>
-<dd><p>cache用に予め全ての量子状態をqulacsのstateに変換</p>
+<dd><p>Pre-compute and cache all qulacs states for later use in estimate().</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.overlap_estimator.estimate">
 <span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#overlap_estimator.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator.estimate" title="Permalink to this definition">#</a></dt>
-<dd><p>与えられた量子状態のi番目とj番目の内積の絶対値の二乗を計算</p>
+<dd><p>Compute the squared overlap <a href="#id1"><span class="problematic" id="id2">|</span></a>⟨φi|φj⟩|² between the i-th and j-th states.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>i</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – 量子状態のindex(ket)</p></li>
-<li><p><strong>j</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – 量子状態のindex(bra)</p></li>
+<li><p><strong>i</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Index of the ket state.</p></li>
+<li><p><strong>j</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Index of the bra state.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">|&lt;φi|φj&gt;|^2</span></code></p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
+<dd class="field-even"><p>Estimated value of <a href="#id3"><span class="problematic" id="id4">|</span></a>⟨φi|φj⟩|².</p>
 </dd>
 </dl>
 </dd></dl>
@@ -903,20 +900,20 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.kernel_tsne.</span></span><span class="sig-name descname"><span class="pre">TSNE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">perplexity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>基本的なTSNEの実装</p>
+<p>Basic t-SNE implementation for computing p and q probability matrices.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p">
 <span class="sig-name descname"><span class="pre">calc_probabilities_p</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_train</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE.calc_probabilities_p"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p" title="Permalink to this definition">#</a></dt>
-<dd><p>p行列を計算する</p>
+<dd><p>Compute the t-SNE joint probability matrix P from Euclidean distances.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>X_train</strong> (<em>NDArray</em><em>[</em><em>np.float64</em><em>]</em>) – 入力データ</p>
+<dd class="field-odd"><p><strong>X_train</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Input data of shape (n_samples, n_features).</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>t-sneのp行列 (X_trainのサイズ, X_trainのサイズ)</p>
+<dd class="field-even"><p>Symmetric joint probability matrix P of shape (n_samples, n_samples).</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>p_probs (NDArray[np.float64])</p>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>float64</em>]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -924,16 +921,17 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p_state">
 <span class="sig-name descname"><span class="pre">calc_probabilities_p_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_train_state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE.calc_probabilities_p_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p_state" title="Permalink to this definition">#</a></dt>
-<dd><p>p行列を計算する</p>
+<dd><p>Compute the t-SNE joint probability matrix P from quantum state overlaps.
+Uses 1 - <a href="#id5"><span class="problematic" id="id6">|</span></a>⟨φi|φj⟩|² as the distance metric between quantum states.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>X_train_state</strong> (<em>List</em><em>[</em><em>GeneralCircuitQuantumState</em><em>]</em>) – 量子状態に変換した入力データ</p>
+<dd class="field-odd"><p><strong>X_train_state</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.GeneralCircuitQuantumState" title="(in QURI Parts)"><em>GeneralCircuitQuantumState</em></a><em>]</em>) – List of quantum states corresponding to the training inputs.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>t-sneのp行列 (X_trainのサイズ, X_trainのサイズ)</p>
+<dd class="field-even"><p>Symmetric joint probability matrix P of shape (n_samples, n_samples).</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>p_probs (NDArray[np.float64])</p>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>float64</em>]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -941,16 +939,18 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_q">
 <span class="sig-name descname"><span class="pre">calc_probabilities_q</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE.calc_probabilities_q"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_q" title="Permalink to this definition">#</a></dt>
-<dd><p>q行列を計算する</p>
+<dd><p>Compute the t-SNE joint probability matrix Q from the low-dimensional embedding.
+Uses the Student’s t-distribution as the similarity kernel.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>c_data</strong> (<em>NDArray</em><em>[</em><em>np.float64</em><em>]</em>) – 入力データ(論文ではy)</p>
+<dd class="field-odd"><p><strong>c_data</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Low-dimensional embedding (called y in the original paper),
+of shape (n_samples, n_components).</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>t-sneのq行列 (c_dataのサイズ, c_dataのサイズ)</p>
+<dd class="field-even"><p>Symmetric joint probability matrix Q of shape (n_samples, n_samples).</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>q_probs (NDArray[np.float64])</p>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>float64</em>]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -958,12 +958,16 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE.joint_probabilities">
 <span class="sig-name descname"><span class="pre">joint_probabilities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sq_distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perplexity</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE.joint_probabilities"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE.joint_probabilities" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
+<dd><p>Compute the symmetric joint probability matrix from pairwise distances.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>sq_distance</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
-<li><p><strong>perplexity</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – </p></li>
+<li><p><strong>sq_distance</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Pairwise distance matrix of shape (n_samples, n_samples).</p></li>
+<li><p><strong>perplexity</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Target perplexity for the conditional distributions.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Symmetric joint probability matrix of shape (n_samples, n_samples).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -971,7 +975,8 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE.binary_search_perplexity">
 <span class="sig-name descname"><span class="pre">binary_search_perplexity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sq_distance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">perplexity</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE.binary_search_perplexity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE.binary_search_perplexity" title="Permalink to this definition">#</a></dt>
-<dd><p>二分探索で分散をperplexityにする</p>
+<dd><p>Find the Gaussian kernel bandwidth for each point via binary search
+so that the perplexity of the conditional distribution matches the target.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -985,18 +990,33 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE.kldiv">
 <span class="sig-name descname"><span class="pre">kldiv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_probs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_probs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE.kldiv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE.kldiv" title="Permalink to this definition">#</a></dt>
-<dd></dd></dl>
+<dd><p>Compute the KL divergence KL(P || Q).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p_probs</strong> – Reference probability matrix P.</p></li>
+<li><p><strong>q_probs</strong> – Approximate probability matrix Q.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scalar KL divergence value.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE.cdist">
 <span class="sig-name descname"><span class="pre">cdist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_tr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE.cdist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE.cdist" title="Permalink to this definition">#</a></dt>
-<dd><p>Calculate the distances by Euclidean distance between the data</p>
+<dd><p>Compute pairwise Euclidean distances between rows of X and X_tr.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
-<li><p><strong>X_tr</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>X</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Array of shape (n_samples, n_features).</p></li>
+<li><p><strong>X_tr</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Array of shape (m_samples, n_features).</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Distance matrix of shape (n_samples, m_samples).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1007,15 +1027,16 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.kernel_tsne.</span></span><span class="sig-name descname"><span class="pre">quantum_kernel_tsne</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">perplexity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">400</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>quantum kernel t-sneで学習するためのClass</p>
+<p>t-SNE using a quantum kernel as the similarity measure in the high-dimensional space.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.init">
 <span class="sig-name descname"><span class="pre">init</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pqc_f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.init"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.init" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
+<dd><p>Set up the parametric quantum circuit used to encode input data.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pqc_f</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><em>Callable</em></a><em>[</em><em>[</em><em>]</em><em>, </em><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit" title="scikit_quri.circuit.circuit.LearningCircuit"><em>LearningCircuit</em></a><em>]</em>) – 量子回路を返す関数</p></li>
-<li><p><strong>theta</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – 量子回路のパラメータ</p></li>
+<li><p><strong>pqc_f</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><em>Callable</em></a><em>[</em><em>[</em><em>]</em><em>, </em><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit" title="scikit_quri.circuit.circuit.LearningCircuit"><em>LearningCircuit</em></a><em>]</em>) – A factory function that returns a new LearningCircuit instance.</p></li>
+<li><p><strong>theta</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Parameter vector for the quantum circuit.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -1027,13 +1048,16 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_loss">
 <span class="sig-name descname"><span class="pre">calc_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_prob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_prob</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.calc_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_loss" title="Permalink to this definition">#</a></dt>
-<dd><p>最適化するためのlossを計算</p>
+<dd><p>Compute the KL divergence loss KL(P || Q) used as the optimization objective.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>p_prob</strong> (<em>NDArray</em><em>[</em><em>np.float64</em><em>]</em>) – p_ij</p></li>
-<li><p><strong>q_prob</strong> (<em>NDArray</em><em>[</em><em>np.float64</em><em>]</em>) – q_ij</p></li>
+<li><p><strong>p_prob</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – High-dimensional joint probability matrix P.</p></li>
+<li><p><strong>q_prob</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Low-dimensional joint probability matrix Q.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scalar KL divergence loss value.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1041,13 +1065,17 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_grad">
 <span class="sig-name descname"><span class="pre">calc_grad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_prob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fidelity</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.calc_grad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_grad" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
+<dd><p>Compute the numerical gradient of the loss with respect to alpha using central differences.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>alpha</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
-<li><p><strong>p_prob</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
-<li><p><strong>fidelity</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>alpha</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Flattened embedding coefficients of shape (n_samples * 2,).</p></li>
+<li><p><strong>p_prob</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – High-dimensional joint probability matrix P.</p></li>
+<li><p><strong>fidelity</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Pairwise fidelity matrix of shape (n_samples, n_samples).</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Gradient array of the same shape as alpha.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1055,13 +1083,18 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.cost_f">
 <span class="sig-name descname"><span class="pre">cost_f</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_prob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fidelity</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.cost_f"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.cost_f" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
+<dd><p>Cost function passed to the optimizer.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>alpha</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
-<li><p><strong>p_prob</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
-<li><p><strong>fidelity</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>alpha</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Flattened embedding coefficients of shape (n_samples * 2,).
+The optimizer passes a 1-D array; it is reshaped to (n_samples, 2) internally.</p></li>
+<li><p><strong>p_prob</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – High-dimensional joint probability matrix P.</p></li>
+<li><p><strong>fidelity</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Pairwise fidelity matrix of shape (n_samples, n_samples).</p></li>
 </ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scalar KL divergence loss value.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1069,16 +1102,13 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.generate_X_train_state">
 <span class="sig-name descname"><span class="pre">generate_X_train_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_train</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.generate_X_train_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.generate_X_train_state" title="Permalink to this definition">#</a></dt>
-<dd><p>X_train(NDAarray[np.float64])から量子状態のリストを生成</p>
+<dd><p>Generate quantum states for all training inputs using the cached circuit evaluator.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>X_train</strong> (<em>NDArray</em><em>[</em><em>np.float64</em><em>]</em>) – 64入力データ</p>
+<dd class="field-odd"><p><strong>X_train</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Training input array of shape (n_samples, n_features).</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>量子状態のリスト</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>X_train_state (List[GeneralCircuitQuantumState])</p>
+<dd class="field-even"><p>Array of GeneralCircuitQuantumState objects of shape (n_samples,).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1086,11 +1116,14 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.train">
 <span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_train</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Powell'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.train"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.train" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
+<dd><p>Fit the quantum kernel t-SNE embedding.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X_train</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
-<li><p><strong>y_label</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>int8</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>X_train</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Training input array of shape (n_samples, n_features).</p></li>
+<li><p><strong>y_label</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>int8</em><em>]</em><em>]</em>) – Class labels of shape (n_samples,). Used only for plotting.</p></li>
+<li><p><strong>method</strong> – Optimization method. One of <code class="docutils literal notranslate"><span class="pre">&quot;adam&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;COBYLA&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;Powell&quot;</span></code>.
+Defaults to <code class="docutils literal notranslate"><span class="pre">&quot;Powell&quot;</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1099,16 +1132,16 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.transform">
 <span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_test</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.transform" title="Permalink to this definition">#</a></dt>
-<dd><p>学習したαを使ってyを計算</p>
+<dd><p>Compute the low-dimensional embedding for test data using the trained alpha.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>X_test</strong> (<em>NDArray</em><em>[</em><em>np.float64</em><em>]</em>) – テストデータ</p>
+<dd class="field-odd"><p><strong>X_test</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Test input array of shape (n_samples, n_features).</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>低次元表現</p>
+<dd class="field-even"><p>Low-dimensional embedding of shape (n_samples, 2).</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>y (NDArray[np.float64])</p>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>float64</em>]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1116,16 +1149,19 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_y">
 <span class="sig-name descname"><span class="pre">calc_y</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fidelity</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.calc_y"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_y" title="Permalink to this definition">#</a></dt>
-<dd><p>fidelityとαからyを計算</p>
+<dd><p>Compute the low-dimensional embedding y = fidelity &#64; alpha.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>fidelity</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – <code class="docutils literal notranslate"><span class="pre">|&lt;φi|φj&gt;|^2</span></code> (n_data, n_data)</p></li>
-<li><p><strong>alpha</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – α (n_data, 2)</p></li>
+<li><p><strong>fidelity</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Pairwise fidelity matrix <a href="#id7"><span class="problematic" id="id8">|</span></a>⟨φi|φj⟩|² of shape (n_data, n_data).</p></li>
+<li><p><strong>alpha</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Embedding coefficients of shape (n_data, 2).</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>float64</em>]]</p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Low-dimensional embedding of shape (n_data, 2).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>float64</em>]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1133,17 +1169,20 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.input_quantum_state">
 <span class="sig-name descname"><span class="pre">input_quantum_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pqc_f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.input_quantum_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.input_quantum_state" title="Permalink to this definition">#</a></dt>
-<dd><p>入力データXとpqc_f,thetaを受け取って、量子状態を計算する</p>
+<dd><p>Compute the quantum state <a href="#id9"><span class="problematic" id="id10">|</span></a>φ(input, θ)⟩ for the given input and circuit parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>input</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
-<li><p><strong>pqc_f</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><em>Callable</em></a><em>[</em><em>[</em><em>]</em><em>, </em><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit" title="scikit_quri.circuit.circuit.LearningCircuit"><em>LearningCircuit</em></a><em>]</em>) – </p></li>
-<li><p><strong>theta</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>input</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Input data array.</p></li>
+<li><p><strong>pqc_f</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><em>Callable</em></a><em>[</em><em>[</em><em>]</em><em>, </em><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit" title="scikit_quri.circuit.circuit.LearningCircuit"><em>LearningCircuit</em></a><em>]</em>) – Factory function that returns a new LearningCircuit instance.</p></li>
+<li><p><strong>theta</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Parameter vector for the circuit.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.GeneralCircuitQuantumState" title="(in QURI Parts)"><em>GeneralCircuitQuantumState</em></a></p>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Bound quantum state corresponding to the input and parameters.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.GeneralCircuitQuantumState" title="(in QURI Parts)"><em>GeneralCircuitQuantumState</em></a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1151,10 +1190,20 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_fidelity">
 <span class="sig-name descname"><span class="pre">calc_fidelity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_tr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pqs_f_helper</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.calc_fidelity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_fidelity" title="Permalink to this definition">#</a></dt>
-<dd><p>data==data_trの場合，fidelity( <code class="docutils literal notranslate"><span class="pre">|&lt;φi|φj&gt;|^2</span></code> ) を計算</p>
+<dd><p>Compute the full symmetric fidelity matrix when data == data_tr.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pqs_f_helper</strong> (<a class="reference internal" href="#scikit_quri.qnn.kernel_tsne.pqc_f_helper" title="scikit_quri.qnn.kernel_tsne.pqc_f_helper"><em>pqc_f_helper</em></a>) – </p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – Input array.</p></li>
+<li><p><strong>data_tr</strong> – Must be identical to data.</p></li>
+<li><p><strong>pqs_f_helper</strong> (<a class="reference internal" href="#scikit_quri.qnn.kernel_tsne.pqc_f_helper" title="scikit_quri.qnn.kernel_tsne.pqc_f_helper"><em>pqc_f_helper</em></a>) – Cached quantum state evaluator.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Symmetric fidelity matrix of shape (n_data, n_data).</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.14)"><strong>ValueError</strong></a> – If data and data_tr are not identical.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1162,10 +1211,17 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_fidelity_all">
 <span class="sig-name descname"><span class="pre">calc_fidelity_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_tr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pqs_f_helper</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.calc_fidelity_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_fidelity_all" title="Permalink to this definition">#</a></dt>
-<dd><p>data != data_trの場合，fidelity( <code class="docutils literal notranslate"><span class="pre">|&lt;φi|φj&gt;|^2</span></code> )を計算</p>
+<dd><p>Compute the fidelity matrix when data != data_tr (e.g. train vs test).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pqs_f_helper</strong> (<a class="reference internal" href="#scikit_quri.qnn.kernel_tsne.pqc_f_helper" title="scikit_quri.qnn.kernel_tsne.pqc_f_helper"><em>pqc_f_helper</em></a>) – </p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> – Query data array of shape (n_data, n_features).</p></li>
+<li><p><strong>data_tr</strong> – Reference data array of shape (n_data_tr, n_features).</p></li>
+<li><p><strong>pqs_f_helper</strong> (<a class="reference internal" href="#scikit_quri.qnn.kernel_tsne.pqc_f_helper" title="scikit_quri.qnn.kernel_tsne.pqc_f_helper"><em>pqc_f_helper</em></a>) – Cached quantum state evaluator.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Fidelity matrix of shape (n_data, n_data_tr).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1173,13 +1229,13 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.plot">
 <span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.plot" title="Permalink to this definition">#</a></dt>
-<dd><p>yをplotする</p>
+<dd><p>Plot the 2-D embedding with class labels.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>y</strong> (<em>NDArray</em><em>[</em><em>np.float64</em><em>]</em>) – 低次元表現</p></li>
-<li><p><strong>y_label</strong> (<em>NDArray</em><em>[</em><em>np.int64</em><em>]</em>) – ラベル</p></li>
-<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – タイトル</p></li>
+<li><p><strong>y</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – 2-D embedding of shape (n_samples, 2).</p></li>
+<li><p><strong>y_label</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>int64</em><em>]</em><em>]</em>) – Class labels of shape (n_samples,).</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Plot title.</p></li>
 </ul>
 </dd>
 </dl>

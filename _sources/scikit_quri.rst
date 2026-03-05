@@ -18,5 +18,6 @@ Module contents
 ---------------
 
 .. automodule:: scikit_quri
+   :members:
    :undoc-members:
    :show-inheritance:

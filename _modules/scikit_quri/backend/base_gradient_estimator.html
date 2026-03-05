@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scikit_quri.backend.sim_gradient_estimator &#8212; scikit_quri  documentation</title>
+    <title>scikit_quri.backend.base_gradient_estimator &#8212; scikit_quri  documentation</title>
   
   
   
@@ -44,7 +44,7 @@
     <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/sphinx_highlight.js"></script>
     <script src="../../../_static/scripts/sphinx-book-theme.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/scikit_quri/backend/sim_gradient_estimator';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/scikit_quri/backend/base_gradient_estimator';</script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -237,7 +237,7 @@
       
       
       
-      <li><a href="https://github.com/Qulacs-Osaka/scikit-quri/issues/new?title=Issue%20on%20page%20%2F_modules/scikit_quri/backend/sim_gradient_estimator.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/Qulacs-Osaka/scikit-quri/issues/new?title=Issue%20on%20page%20%2F_modules/scikit_quri/backend/base_gradient_estimator.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -315,63 +315,63 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <h1>Source code for scikit_quri.backend.sim_gradient_estimator</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">get_args</span>
+  <h1>Source code for scikit_quri.backend.base_gradient_estimator</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">LearningCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Estimatable</span><span class="p">,</span> <span class="n">Estimates</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator.gradient</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">_ParametricStateT</span><span class="p">,</span>
-    <span class="n">create_numerical_gradient_estimator</span><span class="p">,</span>
-    <span class="n">create_parameter_shift_gradient_estimator</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.state</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParametricCircuitQuantumState</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.qulacs.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_qulacs_vector_concurrent_parametric_estimator</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.circuit.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">LearningCircuit</span>
-
-<span class="kn">from</span><span class="w"> </span><span class="nn">.base_gradient_estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseGradientEstimator</span>
-
-<span class="n">METHOD</span> <span class="o">=</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;numerical&quot;</span><span class="p">,</span> <span class="s2">&quot;parameter_shift&quot;</span><span class="p">]</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator.gradient</span><span class="w"> </span><span class="kn">import</span> <span class="n">_ParametricStateT</span>
 
 
-<div class="viewcode-block" id="SimGradientEstimator"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.sim_gradient_estimator.SimGradientEstimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SimGradientEstimator</span><span class="p">(</span><span class="n">BaseGradientEstimator</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;quri-parts-qulacsを用いて勾配を計算するSimulation用Gradient Estimator Class</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        method: 勾配計算に用いる手法。 &quot;numerical&quot;または&quot;parameter_shift&quot;を指定可能。デフォルトは&quot;parameter_shift&quot;</span>
-<span class="sd">        delta: 数値微分を行う際の差分。methodが&quot;numerical&quot;の場合にのみ使用される。デフォルトは1e-5</span>
-
-<span class="sd">    Raises:</span>
-<span class="sd">        ValueError: 不正なmethod名が指定された場合に発生</span>
+<div class="viewcode-block" id="BaseGradientEstimator"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.base_gradient_estimator.BaseGradientEstimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">BaseGradientEstimator</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gradient Estimatorを実行する際の基底クラス</span>
+<span class="sd">    estimate_gradientメソッドに対するinterfaceを定義</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">:</span> <span class="n">METHOD</span> <span class="o">=</span> <span class="s2">&quot;parameter_shift&quot;</span><span class="p">,</span> <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">get_args</span><span class="p">(</span><span class="n">METHOD</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid method: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">. Supported methods are </span><span class="si">{</span><span class="n">get_args</span><span class="p">(</span><span class="n">METHOD</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">method</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span>
-
-<div class="viewcode-block" id="SimGradientEstimator.estimate_gradient"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.sim_gradient_estimator.SimGradientEstimator.estimate_gradient">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_gradient</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">operators</span><span class="p">:</span> <span class="n">Estimatable</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">_ParametricStateT</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+<div class="viewcode-block" id="BaseGradientEstimator.estimate_gradient"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.base_gradient_estimator.BaseGradientEstimator.estimate_gradient">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_gradient</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">operators</span><span class="p">:</span> <span class="n">Estimatable</span><span class="p">,</span>
+        <span class="n">state</span><span class="p">:</span> <span class="n">_ParametricStateT</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Estimates</span><span class="p">[</span><span class="nb">complex</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;numerical&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="n">create_numerical_gradient_estimator</span><span class="p">(</span>
-                <span class="n">create_qulacs_vector_concurrent_parametric_estimator</span><span class="p">(),</span> <span class="n">delta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">delta</span>
-            <span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;parameter_shift&quot;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="n">create_parameter_shift_gradient_estimator</span><span class="p">(</span>
-                <span class="n">create_qulacs_vector_concurrent_parametric_estimator</span><span class="p">()</span>
-            <span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="p">(</span><span class="n">operators</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        operatorsとstatesの組み合わせに対して勾配を計算する</span>
+<span class="sd">        operatorsまたはstatesのどちらかが1つの場合、もう一方の数に合わせて繰り返す</span>
+<span class="sd">        もしくは、両方の数が同じ場合、1対1で対応させる</span>
+<span class="sd">        それ以外の場合、ValueErrorを投げる</span>
 
-<div class="viewcode-block" id="SimGradientEstimator.estimate_learning_param_gradient"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.sim_gradient_estimator.SimGradientEstimator.estimate_learning_param_gradient">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_learning_param_gradient</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">operators</span><span class="p">:</span> <span class="n">Estimatable</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">LearningCircuit</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+<span class="sd">        Args:</span>
+<span class="sd">            operators: 勾配を計算する演算子のリスト</span>
+<span class="sd">            states: 勾配を計算する状態のリスト</span>
+<span class="sd">            params: 勾配を計算するパラメータのリスト</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            operatorsとstatesの組み合わせに対する勾配のリスト</span>
+<span class="sd">        &quot;&quot;&quot;</span></div>
+
+<div class="viewcode-block" id="BaseGradientEstimator.estimate_learning_param_gradient"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.base_gradient_estimator.BaseGradientEstimator.estimate_learning_param_gradient">[docs]</a>    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_learning_param_gradient</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">operators</span><span class="p">:</span> <span class="n">Estimatable</span><span class="p">,</span>
+        <span class="n">circuit</span><span class="p">:</span> <span class="n">LearningCircuit</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">complex</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;学習パラメータに対する勾配を計算する&quot;&quot;&quot;</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="n">ParametricCircuitQuantumState</span><span class="p">(</span><span class="n">circuit</span><span class="o">.</span><span class="n">n_qubits</span><span class="p">,</span> <span class="n">circuit</span><span class="o">.</span><span class="n">circuit</span><span class="p">)</span>
-        <span class="n">estimate_gradients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_gradient</span><span class="p">(</span><span class="n">operators</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">estimate_gradients</span><span class="o">.</span><span class="n">values</span><span class="p">)[</span><span class="n">circuit</span><span class="o">.</span><span class="n">get_learning_params_indexes</span><span class="p">()]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div></div>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        学習パラメータに対する勾配を計算する</span>
+<span class="sd">        operatorsまたはstatesのどちらかが1つの場合、もう一方の数に合わせて繰り返す</span>
+<span class="sd">        もしくは、両方の数が同じ場合、1対1で対応させる</span>
+<span class="sd">        それ以外の場合、ValueErrorを投げる</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            operators: 勾配を計算する演算子のリスト</span>
+<span class="sd">            states: 勾配を計算する状態のリスト</span>
+<span class="sd">            params: 勾配を計算するパラメータのリスト</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            operatorsとstatesの組み合わせに対する学習パラメータの勾配のリスト</span>
+<span class="sd">        &quot;&quot;&quot;</span></div></div>
 </pre></div>
 
                 </article>

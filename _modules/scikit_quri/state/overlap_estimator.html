@@ -324,13 +324,13 @@ document.write(`
 
 
 <div class="viewcode-block" id="overlap_estimator"><a class="viewcode-back" href="../../../scikit_quri.state.html#scikit_quri.state.overlap_estimator.overlap_estimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">overlap_estimator</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;quri-partsのoverlap_estimatorの代替Class.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Alternative implementation of quri-parts&#39; overlap estimator.&quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">concurrent_sampler</span><span class="p">:</span> <span class="n">ConcurrentSampler</span><span class="p">,</span> <span class="n">n_shots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
-<span class="sd">            sampler (ConcurrentSampler): サンプリング関数</span>
-<span class="sd">            n_shots (int): ショット数 defaults to 1000.</span>
+<span class="sd">            concurrent_sampler: Concurrent sampler function.</span>
+<span class="sd">            n_shots: Number of shots per circuit execution. Defaults to 1000.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">concurrent_sampler</span> <span class="o">=</span> <span class="n">concurrent_sampler</span>
@@ -340,30 +340,32 @@ document.write(`
 <div class="viewcode-block" id="overlap_estimator.create_overlap_circuit"><a class="viewcode-back" href="../../../scikit_quri.state.html#scikit_quri.state.overlap_estimator.overlap_estimator.create_overlap_circuit">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">create_overlap_circuit</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">ket_circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">bra_circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QuantumCircuit</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;ket_circuitとbra_circuitからoverlapを計算するための量子回路を作成する関数</span>
-<span class="sd">        引数に対して非破壊的に動作</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a circuit to compute the overlap between two quantum states.</span>
+<span class="sd">        Operates non-destructively on the input circuits.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            ket_circuit (QuantumCircuit): 量子回路(ket)</span>
-<span class="sd">            bra_circuit (QuantumCircuit): 量子回路(bra)</span>
+<span class="sd">            ket_circuit: Quantum circuit representing the ket state.</span>
+<span class="sd">            bra_circuit: Quantum circuit representing the bra state.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            QuantumCircuit: overlapを計算するための量子回路</span>
+<span class="sd">            A quantum circuit of the form U_ket U_bra†, whose |0⟩ measurement</span>
+<span class="sd">            probability approximates |⟨ψ_ket|ψ_bra⟩|².</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ket_circuit</span> <span class="o">=</span> <span class="n">ket_circuit</span><span class="o">.</span><span class="n">get_mutable_copy</span><span class="p">()</span>
         <span class="n">bra_circuit</span> <span class="o">=</span> <span class="n">bra_circuit</span><span class="o">.</span><span class="n">get_mutable_copy</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">ket_circuit</span> <span class="o">+</span> <span class="n">inverse_circuit</span><span class="p">(</span><span class="n">bra_circuit</span><span class="p">)</span></div>
 
-    <span class="c1"># TODO list化に対応したい</span>
 <div class="viewcode-block" id="overlap_estimator.estimate"><a class="viewcode-back" href="../../../scikit_quri.state.html#scikit_quri.state.overlap_estimator.overlap_estimator.estimate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ket_circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">,</span> <span class="n">bra_circuit</span><span class="p">:</span> <span class="n">QuantumCircuit</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;与えられた量子回路のi番目とj番目の内積の絶対値の二乗を計算</span>
-<span class="sd">        引数に対して非破壊的に動作</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Estimate the squared overlap |⟨ψ_ket|ψ_bra⟩|² between two quantum states.</span>
+<span class="sd">        Operates non-destructively on the input circuits.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            ket_circuit (QuantumCircuit): 量子回路(ket)</span>
-<span class="sd">            bra_circuit (QuantumCircuit): 量子回路(bra)</span>
+<span class="sd">            ket_circuit: Quantum circuit representing the ket state.</span>
+<span class="sd">            bra_circuit: Quantum circuit representing the bra state.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            float: |&lt;φi|φj&gt;|^2</span>
+<span class="sd">            Estimated value of |⟨ψ_ket|ψ_bra⟩|².</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_overlap_circuit</span><span class="p">(</span><span class="n">ket_circuit</span><span class="p">,</span> <span class="n">bra_circuit</span><span class="p">)</span>
@@ -377,22 +379,21 @@ document.write(`
 <div class="viewcode-block" id="overlap_estimator.estimate_concurrent"><a class="viewcode-back" href="../../../scikit_quri.state.html#scikit_quri.state.overlap_estimator.overlap_estimator.estimate_concurrent">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_concurrent</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">ket_circuits</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">],</span> <span class="n">bra_circuits</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        circuitsの各量子回路の相関行列を計算する関数</span>
-<span class="sd">        ket_circuitsとbra_circuitsのすべての組み合わせに対してestimateを行う。</span>
-<span class="sd">        predictが正方行列ではないため、相関行列のflattenを返す</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Estimate |⟨ψ_i|ψ_j⟩|² for all combinations of ket and bra circuits.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            ket_circuits (list[QuantumCircuit]): 量子回路のリスト(ket)</span>
-<span class="sd">            bra_circuits (list[QuantumCircuit]): 量子回路のリスト(bra)</span>
+<span class="sd">            ket_circuits: List of quantum circuits representing ket states.</span>
+<span class="sd">            bra_circuits: List of quantum circuits representing bra states.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            list[list[float]]: 内積の絶対値の二乗の行列</span>
+<span class="sd">            Flat array of shape (n_ket * n_bra,) containing the squared overlaps</span>
+<span class="sd">            for all (ket, bra) pairs in row-major order.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">overlap_circuits</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">n_ket</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ket_circuits</span><span class="p">)</span>
         <span class="n">n_bra</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bra_circuits</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_ket</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_bra</span><span class="p">):</span>
-                <span class="c1"># 一旦後先考えず全部Circuit作る</span>
                 <span class="n">overlap_circuits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">create_overlap_circuit</span><span class="p">(</span><span class="n">ket_circuits</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">bra_circuits</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
                 <span class="p">)</span>

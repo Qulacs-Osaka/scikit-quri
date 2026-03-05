@@ -332,7 +332,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">.oqtopus_estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">OqtopusEstimator</span>
 
 
-<span class="nd">@dataclass</span>
+<div class="viewcode-block" id="LearningCircuitParameter"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.LearningCircuitParameter">[docs]</a><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">LearningCircuitParameter</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;学習回路のパラメータを保持するデータクラス。</span>
 
@@ -342,7 +342,7 @@ document.write(`
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">input_param</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
-    <span class="n">learning_param</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
+    <span class="n">learning_param</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span></div>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_parametric_estimate</span><span class="p">(</span>
@@ -370,7 +370,7 @@ document.write(`
     <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">estimates</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">numerical_gradient_estimates</span><span class="p">(</span>
+<div class="viewcode-block" id="numerical_gradient_estimates"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.numerical_gradient_estimates">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">numerical_gradient_estimates</span><span class="p">(</span>
     <span class="n">op</span><span class="p">:</span> <span class="n">Estimatable</span><span class="p">,</span>
     <span class="n">circuit</span><span class="p">:</span> <span class="n">LearningCircuit</span><span class="p">,</span>
     <span class="n">params</span><span class="p">:</span> <span class="n">LearningCircuitParameter</span><span class="p">,</span>
@@ -404,7 +404,7 @@ document.write(`
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">learning_param</span><span class="p">)):</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">estimates</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">estimates</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
         <span class="n">grad</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span> <span class="o">/</span> <span class="n">delta</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">grad</span>
+    <span class="k">return</span> <span class="n">grad</span></div>
 
 
 <span class="c1"># def parameter_shift_gradient_estimates(</span>
@@ -441,13 +441,13 @@ document.write(`
 <span class="c1"># pass</span>
 
 
-<div class="viewcode-block" id="OqtopusGradientEstimator"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.OqtopusGradientEstimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">OqtopusGradientEstimator</span><span class="p">(</span><span class="n">BaseGradientEstimator</span><span class="p">):</span>
+<div class="viewcode-block" id="OqtopusGradientEstimator"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.OqtopusGradientEstimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">OqtopusGradientEstimator</span><span class="p">(</span><span class="n">BaseGradientEstimator</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Oqtopusを用いて勾配を計算するGradient Estimator Class。</span>
 
 <span class="sd">    OqtopusEstimatorを内部で使用し、数値微分により勾配を計算する。</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="OqtopusGradientEstimator.estimate_gradient"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.OqtopusGradientEstimator.estimate_gradient">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operators</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+<div class="viewcode-block" id="OqtopusGradientEstimator.estimate_gradient"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.OqtopusGradientEstimator.estimate_gradient">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operators</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;全パラメータに対する勾配を計算する。</span>
 
 <span class="sd">        Note:</span>
@@ -458,7 +458,7 @@ document.write(`
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;OqtopusGradientEstimator is not implemented yet.&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="OqtopusGradientEstimator.estimate_learning_param_gradient"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.OqtopusGradientEstimator.estimate_learning_param_gradient">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_learning_param_gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operators</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">complex</span><span class="p">]:</span>
+<div class="viewcode-block" id="OqtopusGradientEstimator.estimate_learning_param_gradient"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.OqtopusGradientEstimator.estimate_learning_param_gradient">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_learning_param_gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operators</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">complex</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;学習パラメータに対する勾配を計算する。</span>
 
 <span class="sd">        入力パラメータは固定し、学習パラメータのみに対する勾配を計算する。</span>

@@ -333,14 +333,14 @@ document.write(`
 
 
 <div class="viewcode-block" id="OqtopusEstimator"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_estimator.OqtopusEstimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">OqtopusEstimator</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;quri-parts-oqtopusを用いて実機で期待値を計算するEstimator Class</span>
-<span class="sd">    実行には`~/.oqtopus`の設定が必要</span>
-<span class="sd">    https://quri-parts-oqtopus.readthedocs.io/en/stable/usage/getting_started/#prepare-oqtopus-configuration-file</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Estimator class that computes expectation values on real quantum hardware via quri-parts-oqtopus.</span>
+<span class="sd">    Requires an OQTOPUS configuration file at ``~/.oqtopus``.</span>
+<span class="sd">    See: https://quri-parts-oqtopus.readthedocs.io/en/stable/usage/getting_started/#prepare-oqtopus-configuration-file</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        device_id: 実行するデバイスのID</span>
-<span class="sd">        shots: ショット数. Defaults to 1000.</span>
-<span class="sd">        config: OqtopusのConfig. Defaults to None.</span>
+<span class="sd">        device_id: ID of the device to run on.</span>
+<span class="sd">        shots: Number of shots per circuit execution. Defaults to 1000.</span>
+<span class="sd">        config: OQTOPUS configuration. Defaults to None.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -355,27 +355,27 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">shots</span> <span class="o">=</span> <span class="n">shots</span>
 
 <div class="viewcode-block" id="OqtopusEstimator.estimate"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_estimator.OqtopusEstimator.estimate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operators</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;operatorsとstatesの組み合わせに対して期待値を計算する</span>
-<span class="sd">        operatorsまたはstatesのどちらかが1つの場合、もう一方の数に合わせて繰り返す</span>
-<span class="sd">        もしくは、両方の数が同じ場合、1対1で対応させる</span>
-<span class="sd">        それ以外の場合、ValueErrorを投げる</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute expectation values for combinations of operators and states.</span>
+<span class="sd">        If either operators or states contains a single element, it is broadcast</span>
+<span class="sd">        to match the length of the other. If both contain multiple elements, they</span>
+<span class="sd">        must have the same length and are paired one-to-one.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            operators: 期待値を計算する演算子のリスト</span>
-<span class="sd">            states: 期待値を計算する状態のリスト</span>
+<span class="sd">            operators: List of operators for which to compute expectation values.</span>
+<span class="sd">            states: List of quantum states.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            operatorsとstatesの組み合わせに対する期待値のリスト</span>
+<span class="sd">            List of expectation values for each (operator, state) pair.</span>
 
 <span class="sd">        Raises:</span>
-<span class="sd">            ValueError: operatorsまたはstatesが空、もしくは両方の数が異なる場合</span>
-<span class="sd">            BackendError: Oqtopusでの実行に失敗した場合</span>
+<span class="sd">            ValueError: If operators or states is empty, or if both have multiple</span>
+<span class="sd">                elements with mismatched lengths.</span>
+<span class="sd">            BackendError: If execution on OQTOPUS fails.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">num_ops</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">operators</span><span class="p">)</span>
         <span class="n">num_states</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
 
-        <span class="c1"># operatorが1つもしくはstateが1つの場合は、もう一方の数に合わせて繰り返す</span>
         <span class="k">if</span> <span class="n">num_ops</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No operator specified.&quot;</span><span class="p">)</span>
 
@@ -388,7 +388,7 @@ document.write(`
             <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">num_states</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="c1"># memory節約のため、shallow copy</span>
+            <span class="c1"># Reuse the same transpiled circuit for all operators (shallow copy for memory efficiency)</span>
             <span class="n">circuits</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_transpile_circuit</span><span class="p">(</span><span class="n">states</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">circuit</span><span class="p">)]</span> <span class="o">*</span> <span class="n">num_ops</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_estimate_concurrently</span><span class="p">(</span><span class="n">operators</span><span class="p">,</span> <span class="n">circuits</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">num_ops</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -401,20 +401,22 @@ document.write(`
         <span class="n">operators</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Estimatable</span><span class="p">],</span>
         <span class="n">circuits</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">NonParametricQuantumCircuit</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Estimate</span><span class="p">[</span><span class="nb">complex</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;operatorsとcircuitsの1対1の組み合わせに対して期待値を計算する</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute expectation values for one-to-one pairs of operators and circuits.</span>
+
 <span class="sd">        Args:</span>
-<span class="sd">            operators: 期待値を計算する演算子のリスト</span>
-<span class="sd">            circuits: 期待値を計算する量子回路のリスト</span>
+<span class="sd">            operators: List of operators for which to compute expectation values.</span>
+<span class="sd">            circuits: List of quantum circuits, paired with operators by index.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            operatorsとcircuitsの組み合わせに対する期待値のリスト</span>
+<span class="sd">            List of expectation values for each (operator, circuit) pair.</span>
+
 <span class="sd">        Raises:</span>
-<span class="sd">            BackendError: Oqtopusでの実行に失敗した場合</span>
+<span class="sd">            BackendError: If execution on OQTOPUS fails.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">results</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Estimate</span><span class="p">[</span><span class="nb">complex</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">operator</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">circuits</span><span class="p">,</span> <span class="n">operators</span><span class="p">):</span>
-            <span class="c1"># EstimatableをOperatorに統一する</span>
+            <span class="c1"># Normalize Estimatable to Operator</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">operator</span><span class="p">,</span> <span class="n">PauliLabel</span><span class="p">):</span>
                 <span class="n">operator</span> <span class="o">=</span> <span class="n">Operator</span><span class="p">({</span><span class="n">operator</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">})</span>
             <span class="n">job</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">estimate</span><span class="p">(</span>
@@ -425,8 +427,8 @@ document.write(`
             <span class="p">)</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">job</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
             <span class="n">exp_real</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">exp_value</span>
-            <span class="c1"># * success以外の場合、例外を投げるため、exp_valueがNoneになることはない</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">exp_real</span><span class="p">:</span>
+            <span class="c1"># On failure the backend raises an exception, so exp_value is None only when the result is 0</span>
+            <span class="k">if</span> <span class="n">exp_real</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">exp_real</span> <span class="o">=</span> <span class="mf">0.0</span>
             <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_Estimate</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="nb">complex</span><span class="p">(</span><span class="n">exp_real</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)))</span>
         <span class="k">return</span> <span class="n">results</span>
@@ -435,17 +437,18 @@ document.write(`
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">circuit</span><span class="p">:</span> <span class="n">NonParametricQuantumCircuit</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NonParametricQuantumCircuit</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;qasm変換用に量子回路をtranspileする(必要性は要検討)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transpile a circuit for submission to OQTOPUS.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            circuit: transpile前の量子回路</span>
+<span class="sd">            circuit: Circuit before transpilation.</span>
+
 <span class="sd">        Returns:</span>
-<span class="sd">            transpile後の量子回路</span>
+<span class="sd">            Transpiled circuit.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">transpiler</span> <span class="o">=</span> <span class="n">SequentialTranspiler</span><span class="p">(</span>
             <span class="p">[</span>
-                <span class="c1"># quri-partsのqasmがUnitaryMatrixに対応していないため、RYRZに変換</span>
+                <span class="c1"># quri-parts&#39; QASM does not support UnitaryMatrix gates; convert them to RY/RZ</span>
                 <span class="n">SingleQubitUnitaryMatrix2RYRZTranspiler</span><span class="p">(),</span>
             <span class="p">],</span>
         <span class="p">)</span>
