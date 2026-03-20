@@ -44,7 +44,7 @@ def test_oqtopus_sampler() -> None:
 def test_oqtopus_concurrent_sampler() -> None:
     """create_oqtopus_concurrent_sampler関数のテスト"""
     circuits: list[NonParametricQuantumCircuit] = [create_simple_circuit(), create_simple_circuit()]
-    concurrent_sampler = create_oqtopus_concurrent_sampler(device_id="qulacs")
+    concurrent_sampler = create_oqtopus_concurrent_sampler(device_id="qulacs", is_combine=False)
     counts_list = list(concurrent_sampler(zip(circuits, [500, 500])))
     assert len(counts_list) == 2
     for counts in counts_list:
@@ -79,7 +79,7 @@ def test_svc_oqtopus_sampler() -> None:
     y_test = y_test[:N_test]
     n_qubit = 4  # x_train の次元数以上必要。あまり小さいと結果が悪くなる。
     circuit = create_ibm_embedding_circuit(n_qubit)
-    sampler = create_oqtopus_concurrent_sampler(device_id="qulacs")
+    sampler = create_oqtopus_concurrent_sampler(device_id="qulacs", is_combine=False)
     qsvm = QSVC(circuit)
     qsvm.fit(x_train, y_train, sampler, n_shots=1024)
     y_pred = qsvm.predict(x_test)
