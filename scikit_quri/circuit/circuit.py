@@ -792,7 +792,8 @@ class LearningCircuit:
             )
 
         operators = [operator] * len(_generalCircuitQuantumStates)
-        results = estimator(operators, _generalCircuitQuantumStates)
+        estimates = estimator(operators, _generalCircuitQuantumStates)
+        results = [estimate.value for estimate in estimates]
 
         return np.array([res.value for res in results])
 
