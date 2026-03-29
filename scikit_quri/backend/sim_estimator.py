@@ -14,7 +14,7 @@ from quri_parts_scaluq import _backend
 
 
 class SimEstimator(BaseEstimator):
-    """quri-parts-qulacsを用いて期待値を計算するSimulation用Estimator Class
+    """Simulation estimator that computes expectation values using quri-parts-qulacs.
 
     Args:
         use_scaluq: If True, use scaluq batched estimation for predict_inner.

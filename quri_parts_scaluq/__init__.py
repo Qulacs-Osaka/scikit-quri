@@ -8,7 +8,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Union, cast
+import importlib
+import os
+from typing import Any, Sequence, Union, cast
 
 from numpy.typing import ArrayLike
 from typing_extensions import TypeAlias, TypeVar
@@ -19,9 +21,6 @@ from quri_parts.core.state import (
     ParametricQuantumStateVector,
     QuantumStateVector,
 )
-import os
-import importlib
-from typing import Any
 
 
 scaluqStateT: TypeAlias = Union[
@@ -41,28 +40,23 @@ def cast_to_list(int_sequence: Union[Sequence[Numerics], ArrayLike]) -> list[Num
     return cast(list[Numerics], int_sequence)
 
 
-def helper_function():
-    print("helper function from quri_parts")
-
-
-# 環境変数から精度を選択
+# Select precision from environment variable
 _precision = os.environ.get("SCALUQ_PRECISION", "f64").lower()
 if _precision not in ["f32", "f64"]:
     raise ImportError(
-        f"環境変数 SCALUQ_PRECISION に不正な値 '{_precision}' が指定されました。"
-        " 'f32' または 'f64' を選択してください。"
+        f"Invalid value '{_precision}' for environment variable SCALUQ_PRECISION."
+        " Choose 'f32' or 'f64'."
     )
 
-# モジュールを動的に import
+# Dynamically import the selected backend module
 _module_name = f"scaluq.default.{_precision}"
 try:
     _backend: Any = importlib.import_module(_module_name)
-    print(f"[Info] Library 'scaluq' is using backend: {_module_name}")
 except ImportError as e:
     raise ImportError(
-        f"指定された scaluq バックエンド '{_module_name}' のインポートに失敗しました。"
+        f"Failed to import scaluq backend '{_module_name}'."
     ) from e
 
 
-def get_scaluq_accuracy():
+def get_scaluq_accuracy() -> str:
     return _precision

@@ -827,7 +827,6 @@ class LearningCircuit:
                         continue
                     theta = self._learning_parameter_list[param.companion_parameter_id]
                     angle = param.func(theta.value, x)
-                    theta.value = angle
                 batched_params[i, param.pos] = angle
         return self.circuit, batched_params
 

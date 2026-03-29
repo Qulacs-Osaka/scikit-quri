@@ -9,20 +9,12 @@
 # limitations under the License.
 
 from collections.abc import Iterable
-from typing import Union, Any
-import os
-import importlib
-import sys
+from typing import Union
 
 from typing_extensions import TypeAlias
-import scaluq
 from quri_parts.core.operator import Operator, PauliLabel, pauli_name
 
-
-from .. import cast_to_list, _backend
-
-_OperatorKey: TypeAlias = Union[PauliLabel, frozenset[tuple[PauliLabel, complex]]]
-_operator_cache: dict[tuple[_OperatorKey, int], _backend.Operator] = {}
+from .. import _backend
 
 
 def _scaluq_pauli(pauli_label: PauliLabel, coef: complex) -> _backend.PauliOperator:
@@ -31,7 +23,6 @@ def _scaluq_pauli(pauli_label: PauliLabel, coef: complex) -> _backend.PauliOpera
     return sq_pauli_op
 
 
-# TODO cashe
 def convert_operator(operator: Union[Operator, PauliLabel], n_qubits: int) -> _backend.Operator:
     op = _backend.Operator(n_qubits)
 

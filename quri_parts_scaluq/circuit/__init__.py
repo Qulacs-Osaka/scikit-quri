@@ -12,7 +12,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Callable, Union, cast
-from typing import Any
 import numpy as np
 from numpy.typing import ArrayLike
 from typing_extensions import assert_never
@@ -45,10 +44,6 @@ from quri_parts.circuit.gate_names import (
 )
 
 from .. import cast_to_list, _backend
-
-
-def scaluq_circuit_helper_function():
-    print("helper function from scaluq/circuit")
 
 
 _single_qubit_gate_scaluq: Mapping[SingleQubitGateNameType, Callable[[int], _backend.Gate]] = {
@@ -180,9 +175,10 @@ def convert_gate(
             pauli = _backend.PauliOperator(target_indices, pauli_ids)
             angle = gate.params[0]
             return _multi_pauli_rotation_gate_scaluq[gate.name](pauli, angle)
+        else:
+            assert False, "Unreachable"
     elif is_unitary_matrix_gate_name(gate.name):
         return dense_matrix_gate_scaluq(gate.target_indices, gate.unitary_matrix)
-    # TODO
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported")
     else:
@@ -210,7 +206,6 @@ def convert_circuit(circuit: ImmutableQuantumCircuit) -> _backend.Circuit:
     scaluq_circuit = _backend.Circuit(circuit.qubit_count)
 
     for gate in circuit.gates:
-        # print(convert_gate(gate))
         scaluq_circuit.add_gate(convert_gate(gate))
 
     return scaluq_circuit
@@ -249,15 +244,13 @@ def convert_parametric_circuit(
         raise ValueError(f"Unsupported parametric circuit type: {type(circuit)}")
 
     scaluq_circuit = _backend.Circuit(circuit.qubit_count)
-    # TODO rotatetion　ゲートと扱い同じで良いのか？
     param_count = 0
     for gate, _ in param_circuit._gates:
         if is_parametric_gate_name(gate.name):
             if gate.name == gate_names.ParametricRX:
-                # TODO arg 1?
                 scaluq_circuit.add_param_gate(
                     _backend.gate.ParamRX(*gate.target_indices), str(param_count)
-                )  # arg1 paramgate , arg2 str
+                )
             elif gate.name == gate_names.ParametricRY:
                 scaluq_circuit.add_param_gate(
                     _backend.gate.ParamRY(*gate.target_indices), str(param_count)
@@ -266,7 +259,7 @@ def convert_parametric_circuit(
                 scaluq_circuit.add_param_gate(
                     _backend.gate.ParamRZ(*gate.target_indices), str(param_count)
                 )
-            # TODO　仕様確認 テストまだ
+            # TODO: Confirm ParametricPauliRotation spec and add tests
             elif gate.name == gate_names.ParametricPauliRotation:
                 target_indices = cast_to_list(gate.target_indices)
                 pauli_ids = cast_to_list(gate.pauli_ids)
@@ -281,7 +274,6 @@ def convert_parametric_circuit(
 
             param_count += 1
 
-        # In else of parametric gate
         else:
             scaluq_circuit.add_gate(convert_gate(gate))
 
