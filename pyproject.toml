@@ -21,6 +21,7 @@ dependencies = [
     "quri-parts-openfermion>=0.23.0,<0.24",
     "quri-parts-oqtopus==1.0.3",
     "quri-parts==0.24.1",
+    "scaluq>=0.1.0",
 ]
 
 [project.urls]
