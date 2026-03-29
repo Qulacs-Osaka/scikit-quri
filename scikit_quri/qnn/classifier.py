@@ -3,27 +3,16 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import NDArray
-from quri_parts.algo.optimizer import Optimizer, Params
-from quri_parts.core.estimator import (
-    ConcurrentQuantumEstimator,
-    Estimatable,
-    GradientEstimator,
-)
-from quri_parts.core.estimator.gradient import _ParametricStateT
-from quri_parts.core.state import ParametricCircuitQuantumState, quantum_state
-from quri_parts.algo.optimizer import OptimizerStatus
-from quri_parts.qulacs import QulacsStateT
+from quri_parts.algo.optimizer import Optimizer, Params, OptimizerStatus
+from quri_parts.core.estimator import Estimatable
 from scikit_quri.circuit import LearningCircuit
 from scikit_quri.backend import BaseEstimator
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import log_loss
 from quri_parts.core.operator import Operator, pauli_label
-from quri_parts.circuit import ParametricQuantumCircuitProtocol
-from typing_extensions import TypeAlias
 
-EstimatorType: TypeAlias = ConcurrentQuantumEstimator[QulacsStateT]
-GradientEstimatorType: TypeAlias = GradientEstimator[_ParametricStateT]
+from ._qnn_common import GradientEstimatorType, predict_inner, estimate_grad
 
 
 @dataclass
@@ -86,10 +75,6 @@ class QNNClassifier:
     trained_param: Optional[Params] = field(default=None)
 
     n_qubit: int = field(init=False)
-
-    predict_inner_cache: Dict[Tuple[bytes, bytes], NDArray[np.float64]] = field(
-        default_factory=dict
-    )
 
     def __post_init__(self) -> None:
         if not issubclass(type(self.estimator), BaseEstimator):
@@ -203,42 +188,14 @@ class QNNClassifier:
     def _predict_inner(
         self, x_scaled: NDArray[np.float64], params: NDArray[np.float64]
     ) -> NDArray[np.float64]:
-        """
-        Predict inner function.
-
-        Parameters:
-            x_scaled: Input data whose shape is (batch_size, n_features).
-            params: Parameters for the quantum circuit.
-
-        Returns:
-            res: Predicted outcome.
-        """
-        key = (x_scaled.tobytes(), params.tobytes())
-        cache = self.predict_inner_cache.get(key)
-        if cache is not None:
-            # print("cache hit")
-            return cache
-        res = np.zeros((len(x_scaled), self.num_class))
-        circuit_states = []
-        # 入力ごとのcircuit_state生成
-        for x in x_scaled:
-            circuit_params = self.ansatz.generate_bound_params(x, params)
-            circuit: ParametricQuantumCircuitProtocol = self.ansatz.circuit
-            # !overrideがやばすぎてType Annotationが通らない
-            param_circuit_state: ParametricCircuitQuantumState = quantum_state(  # type: ignore
-                n_qubits=self.n_qubit, circuit=circuit
-            )
-            circuit_state = param_circuit_state.bind_parameters(circuit_params)
-            circuit_states.append(circuit_state)
-
-        for i in range(self.num_class):
-            # print("\r", f"pred_inner:{i}/{self.num_class}", end="")
-            op = self.operator[i]
-            estimates = self.estimator.estimate([op], circuit_states)
-            estimates = [e.value.real * self.y_exp_ratio for e in estimates]
-            res[:, i] = estimates.copy()
-        self.predict_inner_cache[(x_scaled.tobytes(), params.tobytes())] = res
-        return res
+        return predict_inner(
+            self.ansatz,
+            self.estimator,
+            self.operator,
+            x_scaled,
+            params,
+            self.y_exp_ratio,
+        )
 
     def cost_func(
         self,
@@ -278,17 +235,13 @@ class QNNClassifier:
     def _estimate_grad(
         self, x_scaled: NDArray[np.float64], params: NDArray[np.float64]
     ) -> NDArray[np.float64]:
-        grads = []
-        # learning_param_indexes = self.ansatz.get_learning_param_indexes()
         learning_param_indexes = self.ansatz.get_minimum_learning_param_indexes()
-        for x in x_scaled:
-            _grads = []
-            for op in self.operator:
-                circuit_params = self.ansatz.generate_bound_params(x, params)
-                param_state = quantum_state(n_qubits=self.n_qubit, circuit=self.ansatz.circuit)
-                estimate = self.gradient_estimator(op, param_state, circuit_params)
-                # input用のparamsを取り除く
-                grad = np.array(estimate.values)[learning_param_indexes]
-                _grads.append([g.real for g in grad])
-            grads.append(_grads)
-        return np.asarray(grads)
+        return estimate_grad(
+            self.ansatz,
+            self.gradient_estimator,
+            self.operator,
+            x_scaled,
+            params,
+            learning_param_indexes,
+            estimator=self.estimator,
+        )

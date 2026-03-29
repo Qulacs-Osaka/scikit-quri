@@ -5,22 +5,14 @@ from typing import List, Optional
 import numpy as np
 from numpy.typing import NDArray
 from quri_parts.algo.optimizer import Optimizer, OptimizerStatus, Params
-from quri_parts.core.estimator import ConcurrentQuantumEstimator, Estimatable, GradientEstimator
-from quri_parts.core.estimator.gradient import _ParametricStateT
+from quri_parts.core.estimator import Estimatable
 from quri_parts.core.operator import Operator, pauli_label
-from quri_parts.core.state import ParametricCircuitQuantumState, quantum_state
-from quri_parts.qulacs import QulacsStateT
 from sklearn.preprocessing import MinMaxScaler
-from typing_extensions import TypeAlias
 
 from scikit_quri.backend import BaseEstimator
 from scikit_quri.circuit import LearningCircuit
 
-# from sklearn.metrics import mean_squared_error
-
-
-EstimatorType: TypeAlias = ConcurrentQuantumEstimator[QulacsStateT]
-GradientEstimatorType: TypeAlias = GradientEstimator[_ParametricStateT]
+from ._qnn_common import GradientEstimatorType, predict_inner, estimate_grad
 
 
 def mean_squared_error(y_true: NDArray[np.float64], y_pred: NDArray[np.float64]) -> float:
@@ -249,58 +241,23 @@ class QNNRegressor:
         return grads
 
     def _estimate_grad(self, x_scaled: NDArray[np.float64], params: Params) -> NDArray[np.float64]:
-        """
-        Estimate the gradient of the cost function.
-
-        Parameters:
-            x_scaled: Input data whose shape is (batch_size, n_features).
-            params: Parameters for the quantum circuit.
-
-        Returns:
-            grads: Gradients of the cost function.
-        """
         learning_params_indexes = self.ansatz.get_learning_params_indexes()
-        grads = []
-        for x in x_scaled:
-            circuit_params = self.ansatz.generate_bound_params(x, params)
-            circuit = quantum_state(n_qubits=self.n_qubit, circuit=self.ansatz.circuit)
-            grad = np.zeros((self.n_outputs, len(learning_params_indexes)), dtype=np.float64)
-            # obsのi qubitにx[i]が対応
-
-            for i, operator in enumerate(self.operator):
-                # concurrentにgradientを計算
-                estimate = self.gradient_estimator(operator, circuit, circuit_params)
-                _grad: NDArray[np.complex64] = np.array(estimate.values)[learning_params_indexes]
-                grad[i, :] = _grad.real
-            grads.append(grad)
-        # return grads / len(x_scaled)
-        return np.asarray(grads)
+        return estimate_grad(
+            self.ansatz,
+            self.gradient_estimator,
+            self.operator,
+            x_scaled,
+            params,
+            learning_params_indexes,
+            estimator=self.estimator,
+        )
 
     def _predict_inner(self, x_scaled: NDArray[np.float64], params: Params) -> NDArray[np.float64]:
-        """
-        Predict inner function.
-
-        Parameters:
-            x_scaled: Input data whose shape is (batch_size, n_features).
-            params: Parameters for the quantum circuit.
-
-        Returns:
-            res: Predicted outcome.
-        """
-        circuit_states: List[QulacsStateT] = []
-
-        for x in x_scaled:
-            circuit_params = self.ansatz.generate_bound_params(x, params)
-            # Classifier参照
-            param_circuit_state: ParametricCircuitQuantumState = quantum_state(  # type: ignore
-                n_qubits=self.n_qubit, circuit=self.ansatz.circuit
-            )
-            circuit_state = param_circuit_state.bind_parameters(circuit_params)
-            circuit_states.append(circuit_state)
-        res = np.zeros((len(circuit_states), self.n_outputs), dtype=np.float64)
-        for i, operator in enumerate(self.operator):
-            # Operatorが1じゃない時は，stateの数と，operatorの数が一致しないといけない
-            estimates = self.estimator.estimate([operator], circuit_states)
-            res[:, i] = np.array([e.value.real for e in estimates])
-        res *= self.y_exp_ratio
-        return res
+        return predict_inner(
+            self.ansatz,
+            self.estimator,
+            self.operator,
+            x_scaled,
+            params,
+            self.y_exp_ratio,
+        )
