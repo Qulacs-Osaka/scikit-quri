@@ -1849,6 +1849,29 @@ wheels = [
 ]
 
 [[package]]
+name = "scaluq"
+version = "0.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "numpy", version = "2.3.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "scipy", version = "1.16.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f3/0d/92d3e767924111deed30b52f4125358579e7e0ee0b3c2e297838cb22ad76/scaluq-0.1.0.tar.gz", hash = "sha256:f480dc07616759a1cf700a876ca80702fa6bd96179c089faf016ec99933855f1", size = 116441, upload-time = "2025-06-27T00:42:40.14Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8d/5c/3db801d1cf1489d116db4d5aadd22c37314219fb0fa4cd2bd227d42bda59/scaluq-0.1.0-cp310-cp310-macosx_13_0_x86_64.whl", hash = "sha256:666a950fb2427c61d61affb1e480b06af2af8a4fa901d64a2b559fc707b5b7a8", size = 9232030, upload-time = "2025-06-27T01:01:23.467Z" },
+    { url = "https://files.pythonhosted.org/packages/01/71/21fafe3f57bbc3e307f33a000ff2eff2faab48044cad7bb336c1a6c2dd44/scaluq-0.1.0-cp310-cp310-macosx_14_0_arm64.whl", hash = "sha256:32e9164d97cfe1968e0c4208020a975b6134da6d27f753e97b1bfd4fe0c1a3cd", size = 8746254, upload-time = "2025-06-27T01:04:01.001Z" },
+    { url = "https://files.pythonhosted.org/packages/46/23/a883102cc4606e30654fdf06f6d425cd52f2e56225b7647e55481706b24b/scaluq-0.1.0-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:40c27b98f4bf4a36ceffa95fc5801496d541c3fc0b8bfb55bd8c38a9a4e84af2", size = 8295723, upload-time = "2025-06-27T00:49:02.756Z" },
+    { url = "https://files.pythonhosted.org/packages/10/9a/471c57cd68ffc5fdda400adff6a87e3f473d0dd911036f278446383a551e/scaluq-0.1.0-cp311-cp311-macosx_13_0_x86_64.whl", hash = "sha256:947d1d370178ca2aa6097482fdd41baefb514a58a63a5164aeb5e2a56d4b34ec", size = 9232207, upload-time = "2025-06-27T01:06:52.303Z" },
+    { url = "https://files.pythonhosted.org/packages/37/5d/521ea8a3cabadb29e6cf893433823b9f009e6d002654ba79ac37121e3645/scaluq-0.1.0-cp311-cp311-macosx_14_0_arm64.whl", hash = "sha256:0a3f2490ae700d0d5bcb35d405bffeb86ecdb83a2c17ef012c1ad3cf72430f4a", size = 8746190, upload-time = "2025-06-27T01:03:41.029Z" },
+    { url = "https://files.pythonhosted.org/packages/a1/dd/ba9b13b9921488ac7195193602e02953733a415689b6538eee457ea2bdeb/scaluq-0.1.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:5c59c8a027628f8df38b891631777c2b8af9c671dbb6611c88b759378a23ac4b", size = 8296014, upload-time = "2025-06-27T00:48:26.999Z" },
+    { url = "https://files.pythonhosted.org/packages/7b/26/996991167d9695023f558b427387ec19e6c614fa5fbd9a3ca5180c658b07/scaluq-0.1.0-cp312-abi3-macosx_13_0_x86_64.whl", hash = "sha256:3f61e821642c3134ccef1880e68b423ee161646d441ff95f18bcf8110a99de55", size = 9231606, upload-time = "2025-06-27T00:50:28.343Z" },
+    { url = "https://files.pythonhosted.org/packages/58/1a/9b5d394c56f0eb8becffd909196ebd6442be501c696442d1d30a36b333a4/scaluq-0.1.0-cp312-abi3-macosx_14_0_arm64.whl", hash = "sha256:7d84a15a2e71606957493767d1adbf19c329b2cd8233fa1583ff9f5e4ba538e6", size = 8739535, upload-time = "2025-06-27T00:58:53.5Z" },
+    { url = "https://files.pythonhosted.org/packages/3e/ae/654c237e536bec7249dd613277007e482810585135c4f8fee1d35e3ccc51/scaluq-0.1.0-cp312-abi3-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:5375aeaef5ebe4f7642a29d85c770a27336c91360ea70c7e6f401cc011df03c1", size = 8294856, upload-time = "2025-06-27T00:47:10.288Z" },
+]
+
+[[package]]
 name = "scikit-learn"
 version = "1.7.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1882,6 +1905,7 @@ dependencies = [
     { name = "quri-parts" },
     { name = "quri-parts-openfermion" },
     { name = "quri-parts-oqtopus" },
+    { name = "scaluq" },
     { name = "scikit-learn" },
 ]
 
@@ -1914,6 +1938,7 @@ requires-dist = [
     { name = "quri-parts", marker = "extra == 'qulacs'", specifier = ">=0.24.1" },
     { name = "quri-parts-openfermion", specifier = ">=0.23.0,<0.24" },
     { name = "quri-parts-oqtopus", specifier = "==1.0.3" },
+    { name = "scaluq", specifier = ">=0.1.0" },
     { name = "scikit-learn", specifier = ">=1.4.0,<2" },
 ]
 provides-extras = ["qulacs"]

@@ -134,3 +134,7 @@ dmypy.json
 .pyre/
 
 .benchmarks
+
+# Benchmark / profile scripts and outputs
+samples/profile_*.py
+samples/profile_*.png

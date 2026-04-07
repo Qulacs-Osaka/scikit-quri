@@ -827,9 +827,58 @@ class LearningCircuit:
                         continue
                     theta = self._learning_parameter_list[param.companion_parameter_id]
                     angle = param.func(theta.value, x)
-                    theta.value = angle
                 batched_params[i, param.pos] = angle
         return self.circuit, batched_params
+
+    def to_batched_for_gradient(
+        self,
+        data: NDArray[np.float64],
+        parameters: NDArray[np.float64],
+        delta: float = 1e-5,
+    ) -> Tuple[UnboundParametricQuantumCircuit, NDArray[np.float64]]:
+        """Build shifted parameter arrays for numerical gradient estimation.
+
+        For each sample and each learning parameter, creates two rows with the
+        parameter shifted by +delta/2 and -delta/2. The resulting array has shape
+        ``(n_samples * 2 * learning_params_count, parameter_count)``.
+
+        Row layout: for sample i and learning param j,
+          plus  row = i * 2 * learning_params_count + 2 * j
+          minus row = i * 2 * learning_params_count + 2 * j + 1
+
+        Args:
+            data: Input data array of shape ``(n_data, n_features)``.
+            parameters: Learnable parameter vector of shape ``(learning_params_count,)``.
+            delta: Finite difference step size.
+
+        Returns:
+            Tuple of ``(circuit, shifted_params)`` where ``shifted_params`` has shape
+            ``(n_data * 2 * learning_params_count, parameter_count)``.
+        """
+        n_samples = len(data)
+        n_learning = self.learning_params_count
+        total = n_samples * 2 * n_learning
+
+        # Build base params once via to_batched: (n_samples, parameter_count)
+        _, base_params = self.to_batched(data, parameters)
+
+        # Repeat each sample's base params 2*n_learning times
+        # base_params[s] -> shifted_params[s*2*n_learning .. (s+1)*2*n_learning - 1]
+        shifted_params = np.repeat(base_params, 2 * n_learning, axis=0)
+
+        # Build shift vectors: for each learning param j, get its circuit positions and coefs
+        half_delta = delta / 2
+        for j, lp in enumerate(self._learning_parameter_list):
+            for pos in lp.positions_in_circuit:
+                coef = pos.coef if pos.coef is not None else 1.0
+                shift = half_delta * coef
+                # Apply +shift to plus rows, -shift to minus rows for all samples
+                for s in range(n_samples):
+                    base = s * 2 * n_learning
+                    shifted_params[base + 2 * j, pos.gate_pos] += shift
+                    shifted_params[base + 2 * j + 1, pos.gate_pos] -= shift
+
+        return self.circuit, shifted_params
 
 
 def preprocess_x(x: NDArray[np.float64], i: int) -> float:
