@@ -1145,9 +1145,58 @@ document.write(`
                         <span class="k">continue</span>
                     <span class="n">theta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learning_parameter_list</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">companion_parameter_id</span><span class="p">]</span>
                     <span class="n">angle</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">theta</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
-                    <span class="n">theta</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">angle</span>
                 <span class="n">batched_params</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">param</span><span class="o">.</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">angle</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="p">,</span> <span class="n">batched_params</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="p">,</span> <span class="n">batched_params</span></div>
+
+<div class="viewcode-block" id="LearningCircuit.to_batched_for_gradient"><a class="viewcode-back" href="../../../scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.to_batched_for_gradient">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">to_batched_for_gradient</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
+        <span class="n">parameters</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
+        <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-5</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">UnboundParametricQuantumCircuit</span><span class="p">,</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Build shifted parameter arrays for numerical gradient estimation.</span>
+
+<span class="sd">        For each sample and each learning parameter, creates two rows with the</span>
+<span class="sd">        parameter shifted by +delta/2 and -delta/2. The resulting array has shape</span>
+<span class="sd">        ``(n_samples * 2 * learning_params_count, parameter_count)``.</span>
+
+<span class="sd">        Row layout: for sample i and learning param j,</span>
+<span class="sd">          plus  row = i * 2 * learning_params_count + 2 * j</span>
+<span class="sd">          minus row = i * 2 * learning_params_count + 2 * j + 1</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            data: Input data array of shape ``(n_data, n_features)``.</span>
+<span class="sd">            parameters: Learnable parameter vector of shape ``(learning_params_count,)``.</span>
+<span class="sd">            delta: Finite difference step size.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple of ``(circuit, shifted_params)`` where ``shifted_params`` has shape</span>
+<span class="sd">            ``(n_data * 2 * learning_params_count, parameter_count)``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">n_learning</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">learning_params_count</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="n">n_samples</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_learning</span>
+
+        <span class="c1"># Build base params once via to_batched: (n_samples, parameter_count)</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">base_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_batched</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">parameters</span><span class="p">)</span>
+
+        <span class="c1"># Repeat each sample&#39;s base params 2*n_learning times</span>
+        <span class="c1"># base_params[s] -&gt; shifted_params[s*2*n_learning .. (s+1)*2*n_learning - 1]</span>
+        <span class="n">shifted_params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">base_params</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_learning</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Build shift vectors: for each learning param j, get its circuit positions and coefs</span>
+        <span class="n">half_delta</span> <span class="o">=</span> <span class="n">delta</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">lp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learning_parameter_list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">lp</span><span class="o">.</span><span class="n">positions_in_circuit</span><span class="p">:</span>
+                <span class="n">coef</span> <span class="o">=</span> <span class="n">pos</span><span class="o">.</span><span class="n">coef</span> <span class="k">if</span> <span class="n">pos</span><span class="o">.</span><span class="n">coef</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">1.0</span>
+                <span class="n">shift</span> <span class="o">=</span> <span class="n">half_delta</span> <span class="o">*</span> <span class="n">coef</span>
+                <span class="c1"># Apply +shift to plus rows, -shift to minus rows for all samples</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_samples</span><span class="p">):</span>
+                    <span class="n">base</span> <span class="o">=</span> <span class="n">s</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_learning</span>
+                    <span class="n">shifted_params</span><span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">j</span><span class="p">,</span> <span class="n">pos</span><span class="o">.</span><span class="n">gate_pos</span><span class="p">]</span> <span class="o">+=</span> <span class="n">shift</span>
+                    <span class="n">shifted_params</span><span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">.</span><span class="n">gate_pos</span><span class="p">]</span> <span class="o">-=</span> <span class="n">shift</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="p">,</span> <span class="n">shifted_params</span></div></div>
 
 
 <div class="viewcode-block" id="preprocess_x"><a class="viewcode-back" href="../../../scikit_quri.circuit.html#scikit_quri.circuit.circuit.preprocess_x">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">preprocess_x</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>

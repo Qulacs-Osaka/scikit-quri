@@ -321,27 +321,16 @@ document.write(`
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.algo.optimizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optimizer</span><span class="p">,</span> <span class="n">Params</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">ConcurrentQuantumEstimator</span><span class="p">,</span>
-    <span class="n">Estimatable</span><span class="p">,</span>
-    <span class="n">GradientEstimator</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator.gradient</span><span class="w"> </span><span class="kn">import</span> <span class="n">_ParametricStateT</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.state</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParametricCircuitQuantumState</span><span class="p">,</span> <span class="n">quantum_state</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.algo.optimizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptimizerStatus</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.qulacs</span><span class="w"> </span><span class="kn">import</span> <span class="n">QulacsStateT</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.algo.optimizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optimizer</span><span class="p">,</span> <span class="n">Params</span><span class="p">,</span> <span class="n">OptimizerStatus</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Estimatable</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">LearningCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEstimator</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.preprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">MinMaxScaler</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">log_loss</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Operator</span><span class="p">,</span> <span class="n">pauli_label</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParametricQuantumCircuitProtocol</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing_extensions</span><span class="w"> </span><span class="kn">import</span> <span class="n">TypeAlias</span>
 
-<span class="n">EstimatorType</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">ConcurrentQuantumEstimator</span><span class="p">[</span><span class="n">QulacsStateT</span><span class="p">]</span>
-<span class="n">GradientEstimatorType</span><span class="p">:</span> <span class="n">TypeAlias</span> <span class="o">=</span> <span class="n">GradientEstimator</span><span class="p">[</span><span class="n">_ParametricStateT</span><span class="p">]</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._qnn_common</span><span class="w"> </span><span class="kn">import</span> <span class="n">GradientEstimatorType</span><span class="p">,</span> <span class="n">predict_inner</span><span class="p">,</span> <span class="n">estimate_grad</span>
 
 
 <div class="viewcode-block" id="QNNClassifier"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier">[docs]</a><span class="nd">@dataclass</span>
@@ -404,10 +393,6 @@ document.write(`
     <span class="n">trained_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Params</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
     <span class="n">n_qubit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">init</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-
-    <span class="n">predict_inner_cache</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">],</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span>
-        <span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span>
-    <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="p">),</span> <span class="n">BaseEstimator</span><span class="p">):</span>
@@ -521,42 +506,14 @@ document.write(`
     <span class="k">def</span><span class="w"> </span><span class="nf">_predict_inner</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">x_scaled</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">params</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Predict inner function.</span>
-
-<span class="sd">        Parameters:</span>
-<span class="sd">            x_scaled: Input data whose shape is (batch_size, n_features).</span>
-<span class="sd">            params: Parameters for the quantum circuit.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            res: Predicted outcome.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_scaled</span><span class="o">.</span><span class="n">tobytes</span><span class="p">(),</span> <span class="n">params</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())</span>
-        <span class="n">cache</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict_inner_cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">cache</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># print(&quot;cache hit&quot;)</span>
-            <span class="k">return</span> <span class="n">cache</span>
-        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">x_scaled</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_class</span><span class="p">))</span>
-        <span class="n">circuit_states</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="c1"># 入力ごとのcircuit_state生成</span>
-        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">x_scaled</span><span class="p">:</span>
-            <span class="n">circuit_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ansatz</span><span class="o">.</span><span class="n">generate_bound_params</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-            <span class="n">circuit</span><span class="p">:</span> <span class="n">ParametricQuantumCircuitProtocol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ansatz</span><span class="o">.</span><span class="n">circuit</span>
-            <span class="c1"># !overrideがやばすぎてType Annotationが通らない</span>
-            <span class="n">param_circuit_state</span><span class="p">:</span> <span class="n">ParametricCircuitQuantumState</span> <span class="o">=</span> <span class="n">quantum_state</span><span class="p">(</span>  <span class="c1"># type: ignore</span>
-                <span class="n">n_qubits</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span><span class="p">,</span> <span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span>
-            <span class="p">)</span>
-            <span class="n">circuit_state</span> <span class="o">=</span> <span class="n">param_circuit_state</span><span class="o">.</span><span class="n">bind_parameters</span><span class="p">(</span><span class="n">circuit_params</span><span class="p">)</span>
-            <span class="n">circuit_states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">circuit_state</span><span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_class</span><span class="p">):</span>
-            <span class="c1"># print(&quot;\r&quot;, f&quot;pred_inner:{i}/{self.num_class}&quot;, end=&quot;&quot;)</span>
-            <span class="n">op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">operator</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-            <span class="n">estimates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">estimate</span><span class="p">([</span><span class="n">op</span><span class="p">],</span> <span class="n">circuit_states</span><span class="p">)</span>
-            <span class="n">estimates</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">real</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_exp_ratio</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">estimates</span><span class="p">]</span>
-            <span class="n">res</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">estimates</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">predict_inner_cache</span><span class="p">[(</span><span class="n">x_scaled</span><span class="o">.</span><span class="n">tobytes</span><span class="p">(),</span> <span class="n">params</span><span class="o">.</span><span class="n">tobytes</span><span class="p">())]</span> <span class="o">=</span> <span class="n">res</span>
-        <span class="k">return</span> <span class="n">res</span>
+        <span class="k">return</span> <span class="n">predict_inner</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ansatz</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">operator</span><span class="p">,</span>
+            <span class="n">x_scaled</span><span class="p">,</span>
+            <span class="n">params</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">y_exp_ratio</span><span class="p">,</span>
+        <span class="p">)</span>
 
 <div class="viewcode-block" id="QNNClassifier.cost_func"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier.cost_func">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">cost_func</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -596,20 +553,16 @@ document.write(`
     <span class="k">def</span><span class="w"> </span><span class="nf">_estimate_grad</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">x_scaled</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">params</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
-        <span class="n">grads</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="c1"># learning_param_indexes = self.ansatz.get_learning_param_indexes()</span>
         <span class="n">learning_param_indexes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ansatz</span><span class="o">.</span><span class="n">get_minimum_learning_param_indexes</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">x_scaled</span><span class="p">:</span>
-            <span class="n">_grads</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">op</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">operator</span><span class="p">:</span>
-                <span class="n">circuit_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ansatz</span><span class="o">.</span><span class="n">generate_bound_params</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-                <span class="n">param_state</span> <span class="o">=</span> <span class="n">quantum_state</span><span class="p">(</span><span class="n">n_qubits</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span><span class="p">,</span> <span class="n">circuit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ansatz</span><span class="o">.</span><span class="n">circuit</span><span class="p">)</span>
-                <span class="n">estimate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gradient_estimator</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">param_state</span><span class="p">,</span> <span class="n">circuit_params</span><span class="p">)</span>
-                <span class="c1"># input用のparamsを取り除く</span>
-                <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">estimate</span><span class="o">.</span><span class="n">values</span><span class="p">)[</span><span class="n">learning_param_indexes</span><span class="p">]</span>
-                <span class="n">_grads</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">g</span><span class="o">.</span><span class="n">real</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">grad</span><span class="p">])</span>
-            <span class="n">grads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_grads</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">grads</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">estimate_grad</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ansatz</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gradient_estimator</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">operator</span><span class="p">,</span>
+            <span class="n">x_scaled</span><span class="p">,</span>
+            <span class="n">params</span><span class="p">,</span>
+            <span class="n">learning_param_indexes</span><span class="p">,</span>
+            <span class="n">estimator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="p">,</span>
+        <span class="p">)</span></div>
 </pre></div>
 
                 </article>

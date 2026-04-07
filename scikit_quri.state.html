@@ -371,15 +371,7 @@ document.write(`
 </li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.state">Module contents</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator"><code class="docutils literal notranslate"><span class="pre">overlap_estimator</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.create_overlap_circuit"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.create_overlap_circuit()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.estimate"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.estimate_concurrent"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate_concurrent()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module contents</a></li>
 </ul>
             </nav>
         </div>
@@ -478,11 +470,11 @@ for all (ket, bra) pairs in row-major order.</p>
 </dd></dl>
 
 </section>
-<section id="module-scikit_quri.state">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-scikit_quri.state" title="Permalink to this heading">#</a></h2>
+<section id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this heading">#</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="scikit_quri.state.overlap_estimator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.state.</span></span><span class="sig-name descname"><span class="pre">overlap_estimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">concurrent_sampler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_shots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.state.overlap_estimator" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.state.</span></span><span class="sig-name descname"><span class="pre">overlap_estimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">concurrent_sampler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_shots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Alternative implementation of quri-parts’ overlap estimator.</p>
 <dl class="field-list simple">
@@ -494,8 +486,8 @@ for all (ket, bra) pairs in row-major order.</p>
 </dd>
 </dl>
 <dl class="py method">
-<dt class="sig sig-object py" id="scikit_quri.state.overlap_estimator.create_overlap_circuit">
-<span class="sig-name descname"><span class="pre">create_overlap_circuit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ket_circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bra_circuit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator.create_overlap_circuit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.state.overlap_estimator.create_overlap_circuit" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">create_overlap_circuit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ket_circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bra_circuit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator.create_overlap_circuit"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Create a circuit to compute the overlap between two quantum states.
 Operates non-destructively on the input circuits.</p>
 <dl class="field-list simple">
@@ -516,8 +508,8 @@ probability approximates <a href="#id13"><span class="problematic" id="id14">|</
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="scikit_quri.state.overlap_estimator.estimate">
-<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ket_circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bra_circuit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.state.overlap_estimator.estimate" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ket_circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bra_circuit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Estimate the squared overlap <a href="#id15"><span class="problematic" id="id16">|</span></a>⟨ψ_ket|ψ_bra⟩|² between two quantum states.
 Operates non-destructively on the input circuits.</p>
 <dl class="field-list simple">
@@ -537,8 +529,8 @@ Operates non-destructively on the input circuits.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="scikit_quri.state.overlap_estimator.estimate_concurrent">
-<span class="sig-name descname"><span class="pre">estimate_concurrent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ket_circuits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bra_circuits</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator.estimate_concurrent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.state.overlap_estimator.estimate_concurrent" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">estimate_concurrent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ket_circuits</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bra_circuits</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/state/overlap_estimator.html#overlap_estimator.estimate_concurrent"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Estimate <a href="#id19"><span class="problematic" id="id20">|</span></a>⟨ψ_i|ψ_j⟩|² for all combinations of ket and bra circuits.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -608,15 +600,7 @@ for all (ket, bra) pairs in row-major order.</p>
 </li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.state">Module contents</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator"><code class="docutils literal notranslate"><span class="pre">overlap_estimator</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.create_overlap_circuit"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.create_overlap_circuit()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.estimate"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.state.overlap_estimator.estimate_concurrent"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate_concurrent()</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-contents">Module contents</a></li>
 </ul>
   </nav></div>
 
