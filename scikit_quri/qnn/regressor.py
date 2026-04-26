@@ -241,14 +241,12 @@ class QNNRegressor:
         return grads
 
     def _estimate_grad(self, x_scaled: NDArray[np.float64], params: Params) -> NDArray[np.float64]:
-        learning_params_indexes = self.ansatz.get_learning_params_indexes()
         return estimate_grad(
             self.ansatz,
             self.gradient_estimator,
             self.operator,
             x_scaled,
             params,
-            learning_params_indexes,
             estimator=self.estimator,
         )
 

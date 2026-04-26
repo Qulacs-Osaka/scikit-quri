@@ -5,7 +5,7 @@ from quri_parts.circuit.inverse import inverse_circuit
 from quri_parts.core.sampling import ConcurrentSampler
 
 
-class overlap_estimator:
+class OverlapEstimator:
     """Alternative implementation of quri-parts' overlap estimator."""
 
     def __init__(self, concurrent_sampler: ConcurrentSampler, n_shots: int = 1000):
@@ -17,7 +17,6 @@ class overlap_estimator:
         """
         self.concurrent_sampler = concurrent_sampler
         self.n_shots = n_shots
-        self.cache = {}
 
     def create_overlap_circuit(
         self, ket_circuit: QuantumCircuit, bra_circuit: QuantumCircuit
@@ -59,28 +58,39 @@ class overlap_estimator:
         return p
 
     def estimate_concurrent(
-        self, ket_circuits: list[QuantumCircuit], bra_circuits: list[QuantumCircuit]
+        self,
+        ket_circuits: list[QuantumCircuit],
+        bra_circuits: list[QuantumCircuit],
+        batch_size: int = 100,
     ) -> NDArray[np.float64]:
         """Estimate |⟨ψ_i|ψ_j⟩|² for all combinations of ket and bra circuits.
 
         Args:
             ket_circuits: List of quantum circuits representing ket states.
             bra_circuits: List of quantum circuits representing bra states.
+            batch_size: Number of circuits sent to the sampler at once. Bounds
+                peak memory at O(batch_size) instead of O(n_ket * n_bra).
 
         Returns:
             Flat array of shape (n_ket * n_bra,) containing the squared overlaps
             for all (ket, bra) pairs in row-major order.
         """
-        overlap_circuits = []
         n_ket = len(ket_circuits)
         n_bra = len(bra_circuits)
-        for i in range(n_ket):
-            for j in range(n_bra):
-                overlap_circuits.append(
-                    self.create_overlap_circuit(ket_circuits[i], bra_circuits[j])
+        total = n_ket * n_bra
+        overlaps = np.empty(total, dtype=np.float64)
+        for start in range(0, total, batch_size):
+            end = min(start + batch_size, total)
+            batch = [
+                (
+                    self.create_overlap_circuit(
+                        ket_circuits[idx // n_bra], bra_circuits[idx % n_bra]
+                    ),
+                    self.n_shots,
                 )
-        sampling_counts = self.concurrent_sampler(
-            [(circuit, self.n_shots) for circuit in overlap_circuits]
-        )
-        overlaps = np.array([count.get(0, 0) / self.n_shots for count in sampling_counts])
+                for idx in range(start, end)
+            ]
+            sampling_counts = self.concurrent_sampler(batch)
+            for k, count in enumerate(sampling_counts):
+                overlaps[start + k] = count.get(0, 0) / self.n_shots
         return overlaps

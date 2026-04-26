@@ -33,18 +33,18 @@ class SimGradientEstimator(BaseGradientEstimator):
             raise ValueError(f"Invalid method: {method}. Supported methods are {get_args(METHOD)}")
         self.method = method
         self.delta = delta
+        if method == "numerical":
+            self.estimator = create_numerical_gradient_estimator(
+                create_qulacs_vector_concurrent_parametric_estimator(), delta=self.delta
+            )
+        else:
+            self.estimator = create_parameter_shift_gradient_estimator(
+                create_qulacs_vector_concurrent_parametric_estimator()
+            )
 
     def estimate_gradient(
         self, operators: Estimatable, state: _ParametricStateT, params: Sequence[float]
     ) -> Estimates[complex]:
-        if self.method == "numerical":
-            self.estimator = create_numerical_gradient_estimator(
-                create_qulacs_vector_concurrent_parametric_estimator(), delta=self.delta
-            )
-        elif self.method == "parameter_shift":
-            self.estimator = create_parameter_shift_gradient_estimator(
-                create_qulacs_vector_concurrent_parametric_estimator()
-            )
         return self.estimator(operators, state, params)
 
     def estimate_learning_param_gradient(

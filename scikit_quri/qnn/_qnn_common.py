@@ -118,7 +118,6 @@ def estimate_grad(
     operators: Sequence[Estimatable],
     x_scaled: NDArray[np.float64],
     params: Params,
-    learning_param_indexes: Sequence[int],
     estimator: BaseEstimator | None = None,
     delta: float = 1e-5,
 ) -> NDArray[np.float64]:
@@ -130,7 +129,6 @@ def estimate_grad(
         operators: List of measurement operators. Length: n_operators.
         x_scaled: Scaled input data. Shape: (n_samples, n_features).
         params: Learning parameters.
-        learning_param_indexes: Indices to extract learning parameters from full parameter vector.
         estimator: Optional estimator. If SimEstimator with use_scaluq=True, uses scaluq batched path.
         delta: Finite difference step size for scaluq numerical gradient.
 
@@ -151,14 +149,24 @@ def estimate_grad(
         )
 
     n_ops = len(operators)
-    n_learning_params = len(learning_param_indexes)
+    n_learning_params = ansatz.learning_params_count
     grads = []
+
+    # Build aggregation map from the circuit: for each learnable parameter,
+    # list of (gate_pos, coef) spanning all shared gate positions.
+    agg_map = ansatz.get_learning_param_grad_aggregators()
+
     for x in x_scaled:
         circuit_params = ansatz.generate_bound_params(x, params)
         param_state = quantum_state(n_qubits=ansatz.n_qubits, circuit=ansatz.circuit)
         grad = np.zeros((n_ops, n_learning_params), dtype=np.float64)
         for i, op in enumerate(operators):
             estimate = gradient_estimator(op, param_state, circuit_params)
-            grad[i, :] = np.array(estimate.values)[learning_param_indexes].real
+            values = np.array(estimate.values).real
+            for j, param_aggs in enumerate(agg_map):
+                total = 0.0
+                for gate_pos, coef in param_aggs:
+                    total += values[gate_pos] * coef
+                grad[i, j] = total
         grads.append(grad)
     return np.asarray(grads)

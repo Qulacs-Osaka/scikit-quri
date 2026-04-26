@@ -479,6 +479,27 @@ class LearningCircuit:
             pos.append(param.positions_in_circuit[0].gate_pos)
         return pos
 
+    def get_learning_param_grad_aggregators(self) -> List[List[Tuple[int, float]]]:
+        """Return aggregation info for computing parameter-shift gradients.
+
+        Each learnable parameter may occupy multiple circuit-level gate positions
+        when ``share_with`` is used. This method returns, for each parameter, the
+        list of ``(gate_pos, coef)`` tuples that must be summed with their
+        respective coefficients to obtain the total gradient w.r.t. that parameter.
+
+        Returns:
+            List of length ``learning_params_count``, where element ``[j]`` is a
+            list of ``(gate_pos, coef)`` tuples for the j-th learnable parameter.
+        """
+        aggregators: List[List[Tuple[int, float]]] = []
+        for param in self._learning_parameter_list:
+            param_aggs: List[Tuple[int, float]] = []
+            for pos in param.positions_in_circuit:
+                coef = pos.coef if pos.coef is not None else 1.0
+                param_aggs.append((pos.gate_pos, coef))
+            aggregators.append(param_aggs)
+        return aggregators
+
     def get_input_params_indexes(self) -> List[int]:
         """Return circuit-level indices of all input-data-driven parameter slots.
 
@@ -547,7 +568,7 @@ class LearningCircuit:
 
         return bound_parameters
 
-    def backprop_innner_product(
+    def backprop_inner_product(
         self, x: NDArray[np.float64], theta: NDArray[np.float64], state: QulacsQuantumState
     ) -> NDArray[np.float64]:
         """Compute gradients of learnable parameters via qulacs backpropagation using inner product.
@@ -879,11 +900,6 @@ class LearningCircuit:
                     shifted_params[base + 2 * j + 1, pos.gate_pos] -= shift
 
         return self.circuit, shifted_params
-
-
-def preprocess_x(x: NDArray[np.float64], i: int) -> float:
-    a: float = x[i % len(x)]
-    return a
 
 
 if __name__ == "__main__":
