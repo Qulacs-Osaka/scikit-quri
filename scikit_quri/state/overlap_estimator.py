@@ -78,6 +78,35 @@ class OverlapEstimator:
         n_ket = len(ket_circuits)
         n_bra = len(bra_circuits)
         total = n_ket * n_bra
+
+        # Symmetric case: caller passed the same list for ket and bra
+        # (e.g. Gram matrix construction during fit). Compute only the strict
+        # upper triangle, set the diagonal to 1.0, mirror to the lower triangle.
+        if ket_circuits is bra_circuits and n_ket == n_bra:
+            n = n_ket
+            # Upper-triangle pair indices (i < j)
+            iu, ju = np.triu_indices(n, k=1)
+            n_pairs = iu.size
+            upper = np.empty(n_pairs, dtype=np.float64)
+            for start in range(0, n_pairs, batch_size):
+                end = min(start + batch_size, n_pairs)
+                batch = [
+                    (
+                        self.create_overlap_circuit(
+                            ket_circuits[int(iu[idx])], bra_circuits[int(ju[idx])]
+                        ),
+                        self.n_shots,
+                    )
+                    for idx in range(start, end)
+                ]
+                sampling_counts = self.concurrent_sampler(batch)
+                for k, count in enumerate(sampling_counts):
+                    upper[start + k] = count.get(0, 0) / self.n_shots
+            matrix = np.eye(n, dtype=np.float64)
+            matrix[iu, ju] = upper
+            matrix[ju, iu] = upper
+            return matrix.ravel()
+
         overlaps = np.empty(total, dtype=np.float64)
         for start in range(0, total, batch_size):
             end = min(start + batch_size, total)
