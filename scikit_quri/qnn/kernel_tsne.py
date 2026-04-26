@@ -135,7 +135,6 @@ class TSNE:
         Returns:
             Symmetric joint probability matrix P of shape (n_samples, n_samples).
         """
-        n_data = len(X_train_state)
         estimator = overlap_estimator(X_train_state)
         # Materialize every qulacs state up front so the pairwise loop only does
         # inner products (was: pair-by-pair estimate() with per-call None checks).

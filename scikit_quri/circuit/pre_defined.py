@@ -5,7 +5,7 @@ from typing import List, Optional
 import numpy as np
 from numpy.random import Generator, default_rng
 from numpy.typing import NDArray
-from quri_parts.circuit import CNOT, CZ, QuantumCircuit, QuantumGate
+from quri_parts.circuit import CNOT, CZ, QuantumCircuit
 
 from .circuit import LearningCircuit
 
