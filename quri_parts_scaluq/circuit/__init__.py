@@ -11,8 +11,8 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from functools import lru_cache
 from typing import TYPE_CHECKING, Callable, Union, cast
+import threading
 import numpy as np
 from numpy.typing import ArrayLike
 from typing_extensions import assert_never
@@ -212,13 +212,24 @@ def convert_circuit(circuit: ImmutableQuantumCircuit) -> _backend.Circuit:
     return scaluq_circuit
 
 
-@lru_cache(maxsize=None)
+_convert_cache: dict[
+    int, tuple[ScaluqCircuit, Callable[[Sequence[float]], dict[str, list[float]]]]
+] = {}
+_convert_cache_lock = threading.Lock()
+
+
 def convert_parametric_circuit(
     circuit: ParametricQuantumCircuitProtocol,
 ) -> tuple[
     ScaluqCircuit,
     Callable[[Sequence[float]], dict[str, list[float]]],
 ]:
+    circuit_id = id(circuit)
+    with _convert_cache_lock:
+        cached = _convert_cache.get(circuit_id)
+        if cached is not None:
+            return cached
+
     param_circuit: ImmutableParametricQuantumCircuit
     param_mapper: Callable[[Sequence[float]], dict[str, list[float]]]
     if isinstance(circuit, ImmutableLinearMappedParametricQuantumCircuit):
@@ -279,4 +290,7 @@ def convert_parametric_circuit(
         else:
             scaluq_circuit.add_gate(convert_gate(gate))
 
-    return scaluq_circuit, param_mapper
+    result = (scaluq_circuit, param_mapper)
+    with _convert_cache_lock:
+        _convert_cache[circuit_id] = result
+    return result
