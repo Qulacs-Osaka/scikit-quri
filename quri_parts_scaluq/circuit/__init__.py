@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from functools import lru_cache
 from typing import TYPE_CHECKING, Callable, Union, cast
 import numpy as np
 from numpy.typing import ArrayLike
@@ -211,6 +212,7 @@ def convert_circuit(circuit: ImmutableQuantumCircuit) -> _backend.Circuit:
     return scaluq_circuit
 
 
+@lru_cache(maxsize=None)
 def convert_parametric_circuit(
     circuit: ParametricQuantumCircuitProtocol,
 ) -> tuple[

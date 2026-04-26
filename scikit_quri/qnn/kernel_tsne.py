@@ -136,15 +136,18 @@ class TSNE:
             Symmetric joint probability matrix P of shape (n_samples, n_samples).
         """
         n_data = len(X_train_state)
-        sq_distance = np.zeros((n_data, n_data))
         estimator = overlap_estimator(X_train_state)
-        for i in range(n_data):
-            for j in range(i + 1, n_data):
-                inner_prod = estimator.estimate(i, j)
-                sq_distance[i][j] = 1 - inner_prod
-                sq_distance[j][i] = sq_distance[i][j]
-            print("\r", f"{i}/{n_data}", end="")
-        print()
+        # Materialize every qulacs state up front so the pairwise loop only does
+        # inner products (was: pair-by-pair estimate() with per-call None checks).
+        estimator.calc_all_qula_states()
+        # Stack all state vectors into a single matrix and compute the full Gram
+        # matrix in one BLAS call: |⟨φi|φj⟩|² = |conj(v_i) · v_j|².
+        vectors = np.stack([qs.get_vector() for qs in estimator.qula_states])
+        overlap_matrix = vectors.conj() @ vectors.T
+        fidelity = np.abs(overlap_matrix) ** 2
+        sq_distance = 1.0 - fidelity
+        # Diagonal must be zero: floating-point noise can leave it slightly off.
+        np.fill_diagonal(sq_distance, 0.0)
         p_probs = self.joint_probabilities(sq_distance, self.perplexity)
         return p_probs
 

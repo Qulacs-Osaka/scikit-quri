@@ -12,7 +12,11 @@ from sklearn.preprocessing import MinMaxScaler
 from scikit_quri.backend import BaseEstimator
 from scikit_quri.circuit import LearningCircuit
 
-from ._qnn_common import GradientEstimatorType, predict_inner, estimate_grad
+from ._qnn_common import (
+    GradientEstimatorType,
+    predict_inner_cached,
+    estimate_grad,
+)
 
 
 def mean_squared_error(y_true: NDArray[np.float64], y_pred: NDArray[np.float64]) -> float:
@@ -82,6 +86,8 @@ class QNNRegressor:
     y_exp_ratio: float = field(default=2.2)
 
     trained_param: Optional[Params] = field(default=None)
+
+    _pred_cache: dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not issubclass(type(self.estimator), BaseEstimator):
@@ -245,11 +251,12 @@ class QNNRegressor:
         )
 
     def _predict_inner(self, x_scaled: NDArray[np.float64], params: Params) -> NDArray[np.float64]:
-        return predict_inner(
+        return predict_inner_cached(
             self.ansatz,
             self.estimator,
             self.operator,
             x_scaled,
             params,
             self.y_exp_ratio,
+            self._pred_cache,
         )

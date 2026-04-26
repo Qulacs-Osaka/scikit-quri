@@ -141,6 +141,12 @@ class LearningCircuit:
 
     def __post_init__(self) -> None:
         self.circuit = UnboundParametricQuantumCircuit(self.n_qubits)
+        # Cache for the learning-only portion of bound_parameters.
+        # During fit, `parameters` is identical across all samples in a batch, so we
+        # rebuild this template only when `parameters` changes; per-sample calls only
+        # overwrite the input slots.
+        self._learning_template_params: Optional[NDArray[np.float64]] = None
+        self._learning_template: Optional[NDArray[np.float64]] = None
 
     def _new_parameter_position(self) -> int:
         """
@@ -539,18 +545,33 @@ class LearningCircuit:
             Sequence of float values with length ``parameter_count``, ready to pass to
             ``circuit.bind_parameters()``.
         """
-        bound_parameters = [0.0 for _ in range(self.parameter_count)]
-        # Learning parameters
-        for param in self._learning_parameter_list:
-            param_value = parameters[param.parameter_id]
-            param.value = param_value
-            for pos in param.positions_in_circuit:
-                coef = pos.coef if pos.coef is not None else 1.0
-                bound_parameters[pos.gate_pos] = param_value * coef
-        # Input parameters
+        # Build / refresh the learning-parameter template when *parameters* changes.
+        # During fitting, *parameters* is identical across all samples in a batch,
+        # so we only need to rebuild the template once per batch.
+        if (
+            self._learning_template is None
+            or self._learning_template_params is None
+            or not np.array_equal(self._learning_template_params, parameters)
+        ):
+            template = np.zeros(self.parameter_count)
+            for param in self._learning_parameter_list:
+                param_value = parameters[param.parameter_id]
+                param.value = param_value
+                for pos in param.positions_in_circuit:
+                    coef = pos.coef if pos.coef is not None else 1.0
+                    template[pos.gate_pos] = param_value * coef
+            self._learning_template = template
+            self._learning_template_params = parameters.copy()
+        else:
+            # Template is current; still update param.value for downstream
+            # consumers (e.g. parametric-input gates) that read theta.value.
+            for param in self._learning_parameter_list:
+                param.value = parameters[param.parameter_id]
+
+        bound_parameters = self._learning_template.copy()
+
+        # Input parameters — always recomputed because they depend on x.
         for param in self._input_parameter_list:
-            # Input parameter is resolved here (not in update_parameters),
-            # because its value depends on the input data `x`.
             angle = 0.0
             # Exactly one branch is taken depending on whether func needs a learning parameter
             if need_learning_parameter_guard(param.func, param.companion_parameter_id):
@@ -878,7 +899,6 @@ class LearningCircuit:
         """
         n_samples = len(data)
         n_learning = self.learning_params_count
-        total = n_samples * 2 * n_learning
 
         # Build base params once via to_batched: (n_samples, parameter_count)
         _, base_params = self.to_batched(data, parameters)
@@ -887,17 +907,32 @@ class LearningCircuit:
         # base_params[s] -> shifted_params[s*2*n_learning .. (s+1)*2*n_learning - 1]
         shifted_params = np.repeat(base_params, 2 * n_learning, axis=0)
 
-        # Build shift vectors: for each learning param j, get its circuit positions and coefs
+        # The shift pattern is identical across samples: for each learning param j, the
+        # plus row sits at offset 2*j and the minus row at 2*j+1 within each sample's
+        # 2*n_learning-row block. Build per-sample row offsets once and broadcast.
         half_delta = delta / 2
+        sample_offsets = np.arange(n_samples, dtype=np.int64) * (2 * n_learning)
         for j, lp in enumerate(self._learning_parameter_list):
-            for pos in lp.positions_in_circuit:
-                coef = pos.coef if pos.coef is not None else 1.0
-                shift = half_delta * coef
-                # Apply +shift to plus rows, -shift to minus rows for all samples
-                for s in range(n_samples):
-                    base = s * 2 * n_learning
-                    shifted_params[base + 2 * j, pos.gate_pos] += shift
-                    shifted_params[base + 2 * j + 1, pos.gate_pos] -= shift
+            plus_rows = sample_offsets + 2 * j
+            minus_rows = plus_rows + 1
+
+            # Fancy indexing: extract all gate positions and coefficients for this
+            # learning parameter into arrays, then update all samples and all
+            # positions simultaneously via np.add.at with broadcasted indices.
+            gate_positions = np.array([p.gate_pos for p in lp.positions_in_circuit], dtype=np.int64)
+            coefs = np.array(
+                [p.coef if p.coef is not None else 1.0 for p in lp.positions_in_circuit],
+                dtype=np.float64,
+            )
+            shifts = half_delta * coefs
+            # Broadcast shapes: (n_samples, 1) @ (1, n_positions) + (1, n_positions)
+            # -> adds shifts[k] at (plus_rows[i], gate_positions[k]) for all i,k
+            np.add.at(
+                shifted_params, (plus_rows[:, None], gate_positions[None, :]), shifts[None, :]
+            )
+            np.add.at(
+                shifted_params, (minus_rows[:, None], gate_positions[None, :]), -shifts[None, :]
+            )
 
         return self.circuit, shifted_params
 

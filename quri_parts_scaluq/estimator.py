@@ -226,10 +226,11 @@ def estimate_numerical_gradient(
     for op_idx, op in enumerate(operators):
         scaluq_op = convert_operator(op, n_qubits)
         exps = scaluq_op.get_expectation_value(state)
-        for s in range(n_samples):
-            for j in range(n_learning_params):
-                plus_idx = s * 2 * n_learning_params + 2 * j
-                minus_idx = plus_idx + 1
-                grads[s, op_idx, j] = (exps[plus_idx].real - exps[minus_idx].real) / delta
+        exps_real = np.fromiter((e.real for e in exps), dtype=np.float64, count=total_batch)
+        plus_vals = exps_real[0::2]
+        minus_vals = exps_real[1::2]
+        grads[:, op_idx, :] = ((plus_vals - minus_vals) / delta).reshape(
+            n_samples, n_learning_params
+        )
 
     return grads

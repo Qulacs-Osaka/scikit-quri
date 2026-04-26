@@ -121,6 +121,55 @@ def predict_inner(
     return compute_expectations(estimator, operators, circuit_states, y_exp_ratio)
 
 
+def predict_inner_cached(
+    ansatz: LearningCircuit,
+    estimator: BaseEstimator,
+    operators: Sequence[Estimatable],
+    x_scaled: NDArray[np.float64],
+    params: Params,
+    y_exp_ratio: float,
+    cache: dict,
+) -> NDArray[np.float64]:
+    """Compute predictions with caching of the last (params, x_scaled) pair.
+
+    During optimization ``cost_func`` and ``grad_func`` are called back-to-back
+    with the same parameters. This cache avoids running the circuit twice per
+    step by storing the most recent result keyed on ``cached_params`` (compared
+    with ``np.array_equal``) and ``cached_x_id`` (``id()`` of the input array).
+
+    Args:
+        ansatz: Learning circuit.
+        estimator: Expectation value estimator.
+        operators: List of measurement operators. Shape: (n_operators,).
+        x_scaled: Scaled input data. Shape: (n_samples, n_features).
+        params: Learning parameters.
+        y_exp_ratio: Scaling factor applied to expectation values.
+        cache: Mutable dict with keys ``cached_params`` (Optional[NDArray]),
+            ``y_pred`` (Optional[NDArray]), ``cached_x_id`` (Optional[int]).
+
+    Returns:
+        Prediction matrix. Shape: (n_samples, n_operators).
+    """
+    params_arr = np.asarray(params)
+    x_id = id(x_scaled)
+    cached_params: NDArray[np.float64] | None = cache.get("cached_params")
+    cached_y_pred: NDArray[np.float64] | None = cache.get("y_pred")
+    cached_x_id: int | None = cache.get("cached_x_id")
+    if (
+        cached_params is not None
+        and cached_y_pred is not None
+        and cached_x_id == x_id
+        and cached_params.shape == params_arr.shape
+        and np.array_equal(cached_params, params_arr)
+    ):
+        return cached_y_pred
+    y_pred = predict_inner(ansatz, estimator, operators, x_scaled, params, y_exp_ratio)
+    cache["cached_params"] = params_arr.copy()
+    cache["y_pred"] = y_pred
+    cache["cached_x_id"] = x_id
+    return y_pred
+
+
 def estimate_grad(
     ansatz: LearningCircuit,
     gradient_estimator: GradientEstimatorType,
