@@ -11,7 +11,7 @@ from sklearn.model_selection import RandomizedSearchCV
 
 
 from scikit_quri.circuit import LearningCircuit
-from scikit_quri.state.overlap_estimator import overlap_estimator
+from scikit_quri.state.overlap_estimator import OverlapEstimator
 
 
 class QKRR:
@@ -40,7 +40,7 @@ class QKRR:
         for i in range(len(x)):
             self.data_circuits.append(self._run_circuit(x[i]))
 
-        self.estimator = overlap_estimator(sampler)
+        self.estimator = OverlapEstimator(sampler)
         kar = self.estimator.estimate_concurrent(self.data_circuits, self.data_circuits).reshape(
             len(x), len(x)
         )
@@ -49,7 +49,7 @@ class QKRR:
         # hyperparameter tuning
         alpha_low = 1e-3
         alpha_high = 1e2
-        n_iteration = 5
+        n_iteration = self.n_iteration
         random_state = 0
         param_distributions = {
             "alpha": loguniform(

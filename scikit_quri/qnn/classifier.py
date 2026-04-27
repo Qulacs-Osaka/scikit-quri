@@ -12,7 +12,11 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import log_loss
 from quri_parts.core.operator import Operator, pauli_label
 
-from ._qnn_common import GradientEstimatorType, predict_inner, estimate_grad
+from ._qnn_common import (
+    GradientEstimatorType,
+    predict_inner_cached,
+    estimate_grad,
+)
 
 
 @dataclass
@@ -65,47 +69,31 @@ class QNNClassifier:
     operator: List[Estimatable] = field(default_factory=list)
 
     x_norm_range: float = field(default=1.0)
-    y_norm_range: float = field(default=0.7)
 
     do_x_scale: bool = field(default=True)
-    do_y_scale: bool = field(default=True)
-    n_outputs: int = field(default=1)
     y_exp_ratio: float = field(default=2.2)
 
     trained_param: Optional[Params] = field(default=None)
 
     n_qubit: int = field(init=False)
+    _pred_cache: dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not issubclass(type(self.estimator), BaseEstimator):
             raise TypeError("estimator must be a subclass of BaseEstimator")
         self.n_qubit = self.ansatz.n_qubits
+        if self.num_class > self.n_qubit:
+            raise ValueError(f"num_class ({self.num_class}) must be <= n_qubits ({self.n_qubit})")
         if self.do_x_scale:
             self.scale_x_scaler = MinMaxScaler(
                 feature_range=(-self.x_norm_range, self.x_norm_range)  # type: ignore
             )
 
-    def _softmax(self, x: NDArray[np.float64], axis=None) -> NDArray[np.float64]:
+    @staticmethod
+    def _softmax(x: NDArray[np.float64], axis=None) -> NDArray[np.float64]:
         x_max = np.amax(x, axis=axis, keepdims=True)
         exp_x_shifted = np.exp(x - x_max)
         return exp_x_shifted / np.sum(exp_x_shifted, axis=axis, keepdims=True)
-
-    def _cost(
-        self,
-        x_train: NDArray[np.float64],
-        y_train: NDArray[np.int64],
-        params: NDArray[np.float64],
-    ):
-        if x_train.ndim == 1:
-            x_train = x_train.reshape(-1, 1)
-
-        if self.do_x_scale:
-            x_scaled = self.scale_x_scaler.fit_transform(x_train)
-        else:
-            x_scaled = x_train
-
-        cost = self.cost_func(x_scaled, y_train, params)
-        return cost
 
     def fit(
         self,
@@ -154,7 +142,7 @@ class QNNClassifier:
         c = 0
         while maxiter > c:
             optimizer_state = self.optimizer.step(optimizer_state, cost_func, grad_func)
-            print("\r", f"iter:{c}/{maxiter} cost:{optimizer_state.cost=}", end="")
+            print(f"\riter:{c}/{maxiter} cost:{optimizer_state.cost=}", end="", flush=True)
 
             if optimizer_state.status == OptimizerStatus.CONVERGED:
                 break
@@ -188,13 +176,14 @@ class QNNClassifier:
     def _predict_inner(
         self, x_scaled: NDArray[np.float64], params: NDArray[np.float64]
     ) -> NDArray[np.float64]:
-        return predict_inner(
+        return predict_inner_cached(
             self.ansatz,
             self.estimator,
             self.operator,
             x_scaled,
             params,
             self.y_exp_ratio,
+            self._pred_cache,
         )
 
     def cost_func(
@@ -214,34 +203,30 @@ class QNNClassifier:
     def cost_func_grad(
         self, x_scaled: NDArray[np.float64], y_train: NDArray[np.int64], params: Params
     ) -> NDArray[np.float64]:
-        # start = time.perf_counter()
         y_pred = self._predict_inner(x_scaled, params)
         y_pred_sm = self._softmax(y_pred, axis=1)
         raw_grads = self._estimate_grad(x_scaled, params)
-        # print(f"{raw_grads.shape=}")
-        grads = np.zeros(self.ansatz.learning_params_count)
-        # print(f"{grads.shape=}")
-        # print(f"{raw_grads=}")
-        for sample_index in range(len(x_scaled)):
-            for current_class in range(self.num_class):
-                expected = 1.0 if current_class == y_train[sample_index] else 0.0
-                coef = self.y_exp_ratio * (-expected + y_pred_sm[sample_index][current_class])
-                grads += coef * raw_grads[sample_index][current_class]
-        grads /= len(x_scaled)
-        # print(f"{time.perf_counter()-start=}")
+
+        # One-hot encode labels: y_one_hot[s, c] = 1 if c == y_train[s] else 0
+        y_one_hot = np.zeros((len(x_scaled), self.num_class), dtype=np.float64)
+        y_one_hot[np.arange(len(x_scaled)), y_train] = 1.0
+
+        # coef[s, c] = y_exp_ratio * (pred[s, c] - one_hot[s, c])
+        coef = self.y_exp_ratio * (y_pred_sm - y_one_hot)
+
+        # grads[p] = 1/N * sum_s sum_c coef[s,c] * raw_grads[s,c,p]
+        grads = np.einsum("sc,scp->p", coef, raw_grads) / len(x_scaled)
 
         return grads
 
     def _estimate_grad(
         self, x_scaled: NDArray[np.float64], params: NDArray[np.float64]
     ) -> NDArray[np.float64]:
-        learning_param_indexes = self.ansatz.get_minimum_learning_param_indexes()
         return estimate_grad(
             self.ansatz,
             self.gradient_estimator,
             self.operator,
             x_scaled,
             params,
-            learning_param_indexes,
             estimator=self.estimator,
         )

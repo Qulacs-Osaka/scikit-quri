@@ -12,7 +12,11 @@ from sklearn.preprocessing import MinMaxScaler
 from scikit_quri.backend import BaseEstimator
 from scikit_quri.circuit import LearningCircuit
 
-from ._qnn_common import GradientEstimatorType, predict_inner, estimate_grad
+from ._qnn_common import (
+    GradientEstimatorType,
+    predict_inner_cached,
+    estimate_grad,
+)
 
 
 def mean_squared_error(y_true: NDArray[np.float64], y_pred: NDArray[np.float64]) -> float:
@@ -82,6 +86,8 @@ class QNNRegressor:
     y_exp_ratio: float = field(default=2.2)
 
     trained_param: Optional[Params] = field(default=None)
+
+    _pred_cache: dict = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not issubclass(type(self.estimator), BaseEstimator):
@@ -228,36 +234,29 @@ class QNNRegressor:
         # for MSE
         y_pred = self._predict_inner(x_scaled, params)
         y_pred_grads = self._estimate_grad(x_scaled, params)
-        grads = np.zeros(len(self.ansatz.get_learning_params_indexes()))
         diff = y_pred - y_scaled
-        for i in range(len(diff)):
-            # (self.n_outputs, params)
-            grad: np.ndarray = 2 * diff[i][:, np.newaxis] * y_pred_grads[i, :, :]
-            # (params)
-            grad = grad.mean(axis=0)
-            grads += grad
-        grads /= len(diff)
-
+        n_samples = len(diff)
+        # grads[p] = (1/N) * sum_s (1/n_outputs) * sum_o 2 * diff[s,o] * y_pred_grads[s,o,p]
+        grads = (2.0 / (n_samples * self.n_outputs)) * np.einsum("so,sop->p", diff, y_pred_grads)
         return grads
 
     def _estimate_grad(self, x_scaled: NDArray[np.float64], params: Params) -> NDArray[np.float64]:
-        learning_params_indexes = self.ansatz.get_learning_params_indexes()
         return estimate_grad(
             self.ansatz,
             self.gradient_estimator,
             self.operator,
             x_scaled,
             params,
-            learning_params_indexes,
             estimator=self.estimator,
         )
 
     def _predict_inner(self, x_scaled: NDArray[np.float64], params: Params) -> NDArray[np.float64]:
-        return predict_inner(
+        return predict_inner_cached(
             self.ansatz,
             self.estimator,
             self.operator,
             x_scaled,
             params,
             self.y_exp_ratio,
+            self._pred_cache,
         )
