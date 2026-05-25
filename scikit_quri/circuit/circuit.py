@@ -1,24 +1,20 @@
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import List, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, List, Optional, Sequence, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
-from qulacs import QuantumState as QulacsQuantumState
-from quri_parts.circuit import (
-    Parameter,
-    ParametricQuantumGate,
-    QuantumCircuit,
-    QuantumGate,
-    UnboundParametricQuantumCircuit,
-)
-from quri_parts.core.estimator import ConcurrentQuantumEstimator
-from quri_parts.core.operator import Operator, commutator, pauli_label
-from quri_parts.core.state import GeneralCircuitQuantumState
-from quri_parts.qulacs.circuit import convert_parametric_circuit
+from quri_parts.circuit import Parameter, QuantumGate, UnboundParametricQuantumCircuit
 from quri_parts.rust.circuit.circuit_parametric import ImmutableBoundParametricQuantumCircuit
 
 from .parameters import InputFunc, InputFuncWithParam, ParameterRegistry
+
+if TYPE_CHECKING:
+    from qulacs import QuantumState as QulacsQuantumState
+    from quri_parts.core.estimator import ConcurrentQuantumEstimator
+    from quri_parts.core.operator import Operator
 
 
 class _Axis(Enum):
@@ -347,203 +343,36 @@ class LearningCircuit:
 
         return self.circuit, shifted_params
 
-    # --- Backprop gradient (qulacs) ----------------------------------------
+    # --- Gradient methods (thin delegators to circuit/gradient/) -----------
 
     def backprop_inner_product(
-        self, x: NDArray[np.float64], theta: NDArray[np.float64], state: QulacsQuantumState
-    ) -> NDArray[np.float64]:
-        """Compute gradients of learnable parameters via qulacs backpropagation using inner product.
-
-        Args:
-            x: Input data array.
-            theta: Learnable parameter vector of length ``learning_params_count``.
-            state: Target qulacs quantum state used in the inner product.
-
-        Returns:
-            Gradient array of shape ``(learning_params_count,)``.
-        """
-        params = self.generate_bound_params(x, theta)
-        (qulacs_circuit, param_mapper) = convert_parametric_circuit(self.circuit)
-        for i, v in enumerate(param_mapper(params)):
-            qulacs_circuit.set_parameter(i, v)
-        ret = qulacs_circuit.backprop_inner_product(state)
-        ans = np.zeros(self.learning_params_count)
-        for param in self._registry.learning_parameters:
-            if param.is_input:
-                continue
-            for pos in param.positions_in_circuit:
-                ans[param.parameter_id] += ret[pos.gate_pos] * (pos.coef or 1.0)
-        return ans
-
-    # Deprecated alias for the old typo'd name. Remove once callers migrate.
-    backprop_innner_product = backprop_inner_product
-
-    # --- Hadamard test gradient --------------------------------------------
-
-    def _calc_gradient_observable(
-        self,
-        generator: _Axis,
-        qubit_index: int,
-        hamiltonian: Operator,
-    ) -> Operator:
-        """Calculate the gradient observable O_j = i[G_j, H]."""
-        symbol = {_Axis.X: "X", _Axis.Y: "Y", _Axis.Z: "Z"}[generator]
-        generator_operator = Operator({pauli_label(f"{symbol}{qubit_index}"): 0.5})
-        return 1j * commutator(generator_operator, hamiltonian)
-
-    def _get_gate_axis(self, gate: QuantumGate) -> _Axis:
-        match gate.name:
-            case "ParametricRX":
-                return _Axis.X
-            case "ParametricRY":
-                return _Axis.Y
-            case "ParametricRZ":
-                return _Axis.Z
-            case _:
-                raise NotImplementedError("Unknown gate type found: ", gate.name)
-
-    def _apply_gates_to_qc(
-        self,
-        qc: QuantumCircuit,
-        gates: Sequence[QuantumGate],
-        parameters: Sequence[float],
-    ) -> None:
-        """Apply gates with parameters to QuantumCircuit."""
-        i = 0
-        for gate in gates:
-            if isinstance(gate, QuantumGate):
-                qc.add_gate(gate)
-            elif isinstance(gate, ParametricQuantumGate):
-                param = parameters[i]
-                g_axis = self._get_gate_axis(gate)
-                g_qubit = gate.target_indices[0]
-                match g_axis:
-                    case _Axis.X:
-                        qc.add_RX_gate(g_qubit, param)
-                    case _Axis.Y:
-                        qc.add_RY_gate(g_qubit, param)
-                    case _Axis.Z:
-                        qc.add_RZ_gate(g_qubit, param)
-                i += 1
-            else:
-                raise NotImplementedError("Unknown gate type found: ", gate.name)
-
-    def _get_inverse_gate(self, gate: QuantumGate) -> QuantumGate:
-        return QuantumGate(
-            name=gate.name,
-            target_indices=gate.target_indices,
-            control_indices=gate.control_indices,
-            classical_indices=gate.classical_indices,
-            params=[-p for p in gate.params],
-            pauli_ids=gate.pauli_ids,
-            unitary_matrix=gate.unitary_matrix,
-        )
-
-    def _create_hadamard_test_circuit(
         self,
         x: NDArray[np.float64],
         theta: NDArray[np.float64],
-        gate_index: int,
-    ) -> QuantumCircuit:
-        """Create a circuit for Hadamard test.
+        state: "QulacsQuantumState",
+    ) -> NDArray[np.float64]:
+        """Compute gradients of learnable parameters via qulacs backpropagation using inner product.
 
-        When differentiating with respect to θj:
-        U = U{>j} Uj(θj) U{<j}, G is the generator of Uj(θj): RX->X/2, RY->Y/2, RZ->Z/2.
-        The circuit is: U{>j} control{G} U†{>j} U |+ψ〉.
+        Thin delegator to :func:`scikit_quri.circuit.gradient.backprop_inner_product`.
         """
-        _circuit = QuantumCircuit(self.n_qubits + 1)
-        ancilla_index = self.n_qubits
-        _circuit.add_H_gate(ancilla_index)
-        bound_params = self.generate_bound_params(x, theta)
-        gates_length = len(self.circuit.gates)
+        from .gradient.backprop import backprop_inner_product as _impl
 
-        # U |+ψ〉
-        self._apply_gates_to_qc(_circuit, self.circuit.gates, bound_params)
+        return _impl(self, x, theta, state)
 
-        # U†{>j}
-        gates_backward: List[QuantumGate] = []
-        params_backward: List[float] = []
-        j = len([_ for _ in self.circuit.gates if isinstance(_, ParametricQuantumGate)])
-        for i in range(gates_length - 1, gate_index, -1):
-            gate = self.circuit.gates[i]
-            if isinstance(gate, QuantumGate):
-                gates_backward.append(self._get_inverse_gate(gate))
-            elif isinstance(gate, ParametricQuantumGate):
-                gates_backward.append(gate)
-                params_backward.append(-bound_params[j - 1])
-                j -= 1
-        self._apply_gates_to_qc(_circuit, gates_backward, params_backward)
-
-        # control{G}
-        gate = self.circuit.gates[gate_index]
-        if isinstance(gate, ParametricQuantumGate):
-            axis = self._get_gate_axis(gate)
-            target_qubit = gate.target_indices[0]
-            match axis:
-                case _Axis.X:
-                    _circuit.add_CNOT_gate(ancilla_index, target_qubit)
-                case _Axis.Y:
-                    _circuit.add_Sdag_gate(target_qubit)
-                    _circuit.add_CNOT_gate(ancilla_index, target_qubit)
-                    _circuit.add_S_gate(target_qubit)
-                case _Axis.Z:
-                    _circuit.add_CZ_gate(ancilla_index, target_qubit)
-                case _:
-                    raise NotImplementedError
-
-        # U{>j}
-        gates_forward: List[QuantumGate] = []
-        params_forward: List[float] = []
-        for i in range(gate_index + 1, gates_length):
-            gate = self.circuit.gates[i]
-            gates_forward.append(gate)
-            if isinstance(gate, ParametricQuantumGate):
-                params_forward.append(bound_params[j])
-                j += 1
-        self._apply_gates_to_qc(_circuit, gates_forward, params_forward)
-
-        return _circuit
-
-    def _calc_hadamard_gradient_observable(self, operator: Operator) -> Operator:
-        # O ⊗ Y
-        result_terms: dict = {}
-        for p1, c1 in operator.items():
-            new_label = pauli_label(f"{str(p1)} Y{self.n_qubits}")
-            result_terms[new_label] = result_terms.get(new_label, 0) + c1
-        return Operator(result_terms)
+    # Deprecated alias for the old typo'd name. Remove once callers migrate.
+    backprop_innner_product = backprop_inner_product
 
     def hadamard_gradient(
         self,
         x: NDArray[np.float64],
         theta: NDArray[np.float64],
-        operator: Operator,
-        estimator: ConcurrentQuantumEstimator,
+        operator: "Operator",
+        estimator: "ConcurrentQuantumEstimator",
     ) -> NDArray[np.float64]:
         """Compute gradients of learnable parameters via the Hadamard test.
 
-        Args:
-            x: Input data array.
-            theta: Learnable parameter vector of length ``learning_params_count``.
-            operator: Observable whose expectation value gradient is computed.
-            estimator: Concurrent quantum estimator used to evaluate the Hadamard-test circuits.
-
-        Returns:
-            Gradient array of shape ``(learning_params_count,)``.
+        Thin delegator to :func:`scikit_quri.circuit.gradient.hadamard_gradient`.
         """
-        operator = self._calc_hadamard_gradient_observable(operator)
-        learning_param_indexes = self.get_learning_params_indexes()
+        from .gradient.hadamard import hadamard_gradient as _impl
 
-        states = []
-        param_gate_count = -1
-        for i, gate in enumerate(self.circuit.gates):
-            if not isinstance(gate, ParametricQuantumGate):
-                continue
-            param_gate_count += 1
-            if param_gate_count not in learning_param_indexes:
-                continue
-            test_circuit = self._create_hadamard_test_circuit(x, theta, i)
-            states.append(GeneralCircuitQuantumState(self.n_qubits + 1, test_circuit))
-
-        operators = [operator] * len(states)
-        results = estimator(operators, states)
-        return np.array([res.value for res in results])
+        return _impl(self, x, theta, operator, estimator)

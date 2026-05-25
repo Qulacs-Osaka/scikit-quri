@@ -151,6 +151,34 @@ class ParameterRegistry:
     def input_param_positions(self) -> List[int]:
         return [ip.gate_pos for ip in self._input_parameters]
 
+    def aggregate_gate_gradients(
+        self, gate_gradients: NDArray[np.float64], skip_is_input: bool = True
+    ) -> NDArray[np.float64]:
+        """Aggregate per-gate-position gradients into per-learning-parameter gradients.
+
+        For each learning parameter, sums ``gate_gradients[gate_pos] * coef`` across
+        all gate positions that share that parameter. When ``skip_is_input`` is True,
+        parameters created as companions of parametric-input gates are excluded — their
+        gradient w.r.t. the *learning* parameter is not captured by per-gate backprop
+        because of the chain rule through ``f(theta, x)``.
+
+        Args:
+            gate_gradients: Per-gate-position gradient array of length ``parameter_count``.
+            skip_is_input: If True (default), zero out gradients for ``is_input=True``
+                learning parameters.
+
+        Returns:
+            Per-learning-parameter gradient array of length ``learning_params_count``.
+        """
+        ans = np.zeros(len(self._learning_parameters), dtype=np.float64)
+        for param in self._learning_parameters:
+            if skip_is_input and param.is_input:
+                continue
+            for pos in param.positions_in_circuit:
+                coef = pos.coef if pos.coef is not None else 1.0
+                ans[param.parameter_id] += gate_gradients[pos.gate_pos] * coef
+        return ans
+
     # --- Resolution (pure) --------------------------------------------------
 
     def resolve_bound(
