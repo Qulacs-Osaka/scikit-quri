@@ -329,7 +329,7 @@ document.write(`
 
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">LearningCircuit</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.state.overlap_estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">overlap_estimator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.state.overlap_estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">OverlapEstimator</span>
 
 
 <div class="viewcode-block" id="QKRR"><a class="viewcode-back" href="../../../scikit_quri.qkrr.html#scikit_quri.qkrr.qkrr.QKRR">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QKRR</span><span class="p">:</span>
@@ -358,7 +358,7 @@ document.write(`
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run_circuit</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="n">overlap_estimator</span><span class="p">(</span><span class="n">sampler</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="n">OverlapEstimator</span><span class="p">(</span><span class="n">sampler</span><span class="p">)</span>
         <span class="n">kar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">estimate_concurrent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
             <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="p">)</span>
@@ -367,7 +367,7 @@ document.write(`
         <span class="c1"># hyperparameter tuning</span>
         <span class="n">alpha_low</span> <span class="o">=</span> <span class="mf">1e-3</span>
         <span class="n">alpha_high</span> <span class="o">=</span> <span class="mf">1e2</span>
-        <span class="n">n_iteration</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="n">n_iteration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_iteration</span>
         <span class="n">random_state</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">param_distributions</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;alpha&quot;</span><span class="p">:</span> <span class="n">loguniform</span><span class="p">(</span>

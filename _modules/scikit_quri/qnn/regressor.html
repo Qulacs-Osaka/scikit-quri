@@ -318,7 +318,7 @@ document.write(`
   <h1>Source code for scikit_quri.qnn.regressor</h1><div class="highlight"><pre>
 <span></span><span class="c1"># mypy: ignore-errors</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
@@ -330,7 +330,11 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEstimator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">LearningCircuit</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">._qnn_common</span><span class="w"> </span><span class="kn">import</span> <span class="n">GradientEstimatorType</span><span class="p">,</span> <span class="n">predict_inner</span><span class="p">,</span> <span class="n">estimate_grad</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">._qnn_common</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">GradientEstimatorType</span><span class="p">,</span>
+    <span class="n">predict_inner_cached</span><span class="p">,</span>
+    <span class="n">estimate_grad</span><span class="p">,</span>
+<span class="p">)</span>
 
 
 <div class="viewcode-block" id="mean_squared_error"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.regressor.mean_squared_error">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">mean_squared_error</span><span class="p">(</span><span class="n">y_true</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">y_pred</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
@@ -400,6 +404,8 @@ document.write(`
     <span class="n">y_exp_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">2.2</span><span class="p">)</span>
 
     <span class="n">trained_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Params</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">_pred_cache</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">dict</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="p">),</span> <span class="n">BaseEstimator</span><span class="p">):</span>
@@ -477,6 +483,9 @@ document.write(`
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">trained_param</span> <span class="o">=</span> <span class="n">optimizer_state</span><span class="o">.</span><span class="n">params</span>
+        <span class="c1"># Drop cached training-batch prediction so it doesn&#39;t pin the y_pred matrix</span>
+        <span class="c1"># for the remainder of the instance&#39;s lifetime.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pred_cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">optimizer_state</span><span class="o">.</span><span class="n">cost</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="QNNRegressor.cost_fn"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.cost_fn">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">cost_fn</span><span class="p">(</span>
@@ -546,38 +555,31 @@ document.write(`
         <span class="c1"># for MSE</span>
         <span class="n">y_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_predict_inner</span><span class="p">(</span><span class="n">x_scaled</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
         <span class="n">y_pred_grads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_estimate_grad</span><span class="p">(</span><span class="n">x_scaled</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-        <span class="n">grads</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ansatz</span><span class="o">.</span><span class="n">get_learning_params_indexes</span><span class="p">()))</span>
         <span class="n">diff</span> <span class="o">=</span> <span class="n">y_pred</span> <span class="o">-</span> <span class="n">y_scaled</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">diff</span><span class="p">)):</span>
-            <span class="c1"># (self.n_outputs, params)</span>
-            <span class="n">grad</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">diff</span><span class="p">[</span><span class="n">i</span><span class="p">][:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">*</span> <span class="n">y_pred_grads</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
-            <span class="c1"># (params)</span>
-            <span class="n">grad</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-            <span class="n">grads</span> <span class="o">+=</span> <span class="n">grad</span>
-        <span class="n">grads</span> <span class="o">/=</span> <span class="nb">len</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
-
+        <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
+        <span class="c1"># grads[p] = (1/N) * sum_s (1/n_outputs) * sum_o 2 * diff[s,o] * y_pred_grads[s,o,p]</span>
+        <span class="n">grads</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">n_samples</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_outputs</span><span class="p">))</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;so,sop-&gt;p&quot;</span><span class="p">,</span> <span class="n">diff</span><span class="p">,</span> <span class="n">y_pred_grads</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">grads</span></div>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_estimate_grad</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_scaled</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">params</span><span class="p">:</span> <span class="n">Params</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
-        <span class="n">learning_params_indexes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ansatz</span><span class="o">.</span><span class="n">get_learning_params_indexes</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">estimate_grad</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ansatz</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">gradient_estimator</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">operator</span><span class="p">,</span>
             <span class="n">x_scaled</span><span class="p">,</span>
             <span class="n">params</span><span class="p">,</span>
-            <span class="n">learning_params_indexes</span><span class="p">,</span>
             <span class="n">estimator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_predict_inner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_scaled</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">params</span><span class="p">:</span> <span class="n">Params</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="n">predict_inner</span><span class="p">(</span>
+        <span class="k">return</span> <span class="n">predict_inner_cached</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ansatz</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">operator</span><span class="p">,</span>
             <span class="n">x_scaled</span><span class="p">,</span>
             <span class="n">params</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">y_exp_ratio</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pred_cache</span><span class="p">,</span>
         <span class="p">)</span></div>
 </pre></div>
 

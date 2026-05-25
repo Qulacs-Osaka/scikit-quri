@@ -453,16 +453,18 @@ document.write(`
 <span class="sd">        Returns:</span>
 <span class="sd">            Symmetric joint probability matrix P of shape (n_samples, n_samples).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">n_data</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">X_train_state</span><span class="p">)</span>
-        <span class="n">sq_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_data</span><span class="p">,</span> <span class="n">n_data</span><span class="p">))</span>
         <span class="n">estimator</span> <span class="o">=</span> <span class="n">overlap_estimator</span><span class="p">(</span><span class="n">X_train_state</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_data</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_data</span><span class="p">):</span>
-                <span class="n">inner_prod</span> <span class="o">=</span> <span class="n">estimator</span><span class="o">.</span><span class="n">estimate</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
-                <span class="n">sq_distance</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">inner_prod</span>
-                <span class="n">sq_distance</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">sq_distance</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">j</span><span class="p">]</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">n_data</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">()</span>
+        <span class="c1"># Materialize every qulacs state up front so the pairwise loop only does</span>
+        <span class="c1"># inner products (was: pair-by-pair estimate() with per-call None checks).</span>
+        <span class="n">estimator</span><span class="o">.</span><span class="n">calc_all_qula_states</span><span class="p">()</span>
+        <span class="c1"># Stack all state vectors into a single matrix and compute the full Gram</span>
+        <span class="c1"># matrix in one BLAS call: |⟨φi|φj⟩|² = |conj(v_i) · v_j|².</span>
+        <span class="n">vectors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">qs</span><span class="o">.</span><span class="n">get_vector</span><span class="p">()</span> <span class="k">for</span> <span class="n">qs</span> <span class="ow">in</span> <span class="n">estimator</span><span class="o">.</span><span class="n">qula_states</span><span class="p">])</span>
+        <span class="n">overlap_matrix</span> <span class="o">=</span> <span class="n">vectors</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span> <span class="o">@</span> <span class="n">vectors</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">fidelity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">overlap_matrix</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="n">sq_distance</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">fidelity</span>
+        <span class="c1"># Diagonal must be zero: floating-point noise can leave it slightly off.</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">sq_distance</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
         <span class="n">p_probs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_probabilities</span><span class="p">(</span><span class="n">sq_distance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">perplexity</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">p_probs</span></div>
 

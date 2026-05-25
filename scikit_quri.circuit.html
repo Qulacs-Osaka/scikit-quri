@@ -394,16 +394,16 @@ document.write(`
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.learning_params_count"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.learning_params_count</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.get_learning_params_indexes"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_learning_params_indexes()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.get_minimum_learning_param_indexes"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_minimum_learning_param_indexes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.get_learning_param_grad_aggregators"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_learning_param_grad_aggregators()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.get_input_params_indexes"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_input_params_indexes()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.bind_input_and_parameters"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.bind_input_and_parameters()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.generate_bound_params"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.generate_bound_params()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.backprop_innner_product"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.backprop_innner_product()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.backprop_inner_product"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.backprop_inner_product()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.hadamard_gradient"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.hadamard_gradient()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.to_batched"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.to_batched()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.to_batched_for_gradient"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.to_batched_for_gradient()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.preprocess_x"><code class="docutils literal notranslate"><span class="pre">preprocess_x()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.circuit.pre_defined">scikit_quri.circuit.pre_defined module</a><ul class="nav section-nav flex-column">
@@ -891,6 +891,25 @@ Returns only the first slot for each learnable parameter, ignoring shared duplic
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.circuit.circuit.LearningCircuit.get_learning_param_grad_aggregators">
+<span class="sig-name descname"><span class="pre">get_learning_param_grad_aggregators</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/circuit/circuit.html#LearningCircuit.get_learning_param_grad_aggregators"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.circuit.circuit.LearningCircuit.get_learning_param_grad_aggregators" title="Permalink to this definition">#</a></dt>
+<dd><p>Return aggregation info for computing parameter-shift gradients.</p>
+<p>Each learnable parameter may occupy multiple circuit-level gate positions
+when <code class="docutils literal notranslate"><span class="pre">share_with</span></code> is used. This method returns, for each parameter, the
+list of <code class="docutils literal notranslate"><span class="pre">(gate_pos,</span> <span class="pre">coef)</span></code> tuples that must be summed with their
+respective coefficients to obtain the total gradient w.r.t. that parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of length <code class="docutils literal notranslate"><span class="pre">learning_params_count</span></code>, where element <code class="docutils literal notranslate"><span class="pre">[j]</span></code> is a
+list of <code class="docutils literal notranslate"><span class="pre">(gate_pos,</span> <span class="pre">coef)</span></code> tuples for the j-th learnable parameter.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a>]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.circuit.circuit.LearningCircuit.get_input_params_indexes">
 <span class="sig-name descname"><span class="pre">get_input_params_indexes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/circuit/circuit.html#LearningCircuit.get_input_params_indexes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.circuit.circuit.LearningCircuit.get_input_params_indexes" title="Permalink to this definition">#</a></dt>
 <dd><p>Return circuit-level indices of all input-data-driven parameter slots.</p>
@@ -946,8 +965,8 @@ Returns only the first slot for each learnable parameter, ignoring shared duplic
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="scikit_quri.circuit.circuit.LearningCircuit.backprop_innner_product">
-<span class="sig-name descname"><span class="pre">backprop_innner_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/circuit/circuit.html#LearningCircuit.backprop_innner_product"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.circuit.circuit.LearningCircuit.backprop_innner_product" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="scikit_quri.circuit.circuit.LearningCircuit.backprop_inner_product">
+<span class="sig-name descname"><span class="pre">backprop_inner_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/circuit/circuit.html#LearningCircuit.backprop_inner_product"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.circuit.circuit.LearningCircuit.backprop_inner_product" title="Permalink to this definition">#</a></dt>
 <dd><p>Compute gradients of learnable parameters via qulacs backpropagation using inner product.
 Converts the circuit to qulacs format and calls <code class="docutils literal notranslate"><span class="pre">backprop_inner_product</span></code>.</p>
 <dl class="field-list simple">
@@ -1043,22 +1062,6 @@ minus row = i * 2 * learning_params_count + 2 * j + 1</p>
 </dl>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="scikit_quri.circuit.circuit.preprocess_x">
-<span class="sig-prename descclassname"><span class="pre">scikit_quri.circuit.circuit.</span></span><span class="sig-name descname"><span class="pre">preprocess_x</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/circuit/circuit.html#preprocess_x"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.circuit.circuit.preprocess_x" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
-<li><p><strong>i</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – </p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
-</dd>
-</dl>
 </dd></dl>
 
 </section>
@@ -1626,6 +1629,25 @@ Returns only the first slot for each learnable parameter, ignoring shared duplic
 
 <dl class="py method">
 <dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">get_learning_param_grad_aggregators</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/circuit/circuit.html#LearningCircuit.get_learning_param_grad_aggregators"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Return aggregation info for computing parameter-shift gradients.</p>
+<p>Each learnable parameter may occupy multiple circuit-level gate positions
+when <code class="docutils literal notranslate"><span class="pre">share_with</span></code> is used. This method returns, for each parameter, the
+list of <code class="docutils literal notranslate"><span class="pre">(gate_pos,</span> <span class="pre">coef)</span></code> tuples that must be summed with their
+respective coefficients to obtain the total gradient w.r.t. that parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List of length <code class="docutils literal notranslate"><span class="pre">learning_params_count</span></code>, where element <code class="docutils literal notranslate"><span class="pre">[j]</span></code> is a
+list of <code class="docutils literal notranslate"><span class="pre">(gate_pos,</span> <span class="pre">coef)</span></code> tuples for the j-th learnable parameter.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a>[<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a>]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
 <span class="sig-name descname"><span class="pre">get_input_params_indexes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/circuit/circuit.html#LearningCircuit.get_input_params_indexes"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Return circuit-level indices of all input-data-driven parameter slots.</p>
 <dl class="field-list simple">
@@ -1681,7 +1703,7 @@ Returns only the first slot for each learnable parameter, ignoring shared duplic
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">backprop_innner_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/circuit/circuit.html#LearningCircuit.backprop_innner_product"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="sig-name descname"><span class="pre">backprop_inner_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/circuit/circuit.html#LearningCircuit.backprop_inner_product"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Compute gradients of learnable parameters via qulacs backpropagation using inner product.
 Converts the circuit to qulacs format and calls <code class="docutils literal notranslate"><span class="pre">backprop_inner_product</span></code>.</p>
 <dl class="field-list simple">
@@ -1919,16 +1941,16 @@ minus row = i * 2 * learning_params_count + 2 * j + 1</p>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.learning_params_count"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.learning_params_count</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.get_learning_params_indexes"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_learning_params_indexes()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.get_minimum_learning_param_indexes"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_minimum_learning_param_indexes()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.get_learning_param_grad_aggregators"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_learning_param_grad_aggregators()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.get_input_params_indexes"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_input_params_indexes()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.bind_input_and_parameters"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.bind_input_and_parameters()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.generate_bound_params"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.generate_bound_params()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.backprop_innner_product"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.backprop_innner_product()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.backprop_inner_product"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.backprop_inner_product()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.hadamard_gradient"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.hadamard_gradient()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.to_batched"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.to_batched()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.LearningCircuit.to_batched_for_gradient"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.to_batched_for_gradient()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.circuit.circuit.preprocess_x"><code class="docutils literal notranslate"><span class="pre">preprocess_x()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.circuit.pre_defined">scikit_quri.circuit.pre_defined module</a><ul class="nav section-nav flex-column">

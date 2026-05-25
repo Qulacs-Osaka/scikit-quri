@@ -327,7 +327,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn</span><span class="w"> </span><span class="kn">import</span> <span class="n">svm</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">LearningCircuit</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.state</span><span class="w"> </span><span class="kn">import</span> <span class="n">overlap_estimator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.state</span><span class="w"> </span><span class="kn">import</span> <span class="n">OverlapEstimator</span>
 
 
 <div class="viewcode-block" id="SVMethodType"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.SVMethodType">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SVMethodType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
@@ -343,6 +343,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">sv_method_type</span> <span class="o">=</span> <span class="n">sv_method_type</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">n_qubits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="BaseQSV.fit"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV.fit">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -367,7 +368,7 @@ document.write(`
         <span class="n">n_x</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">gram_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_x</span><span class="p">,</span> <span class="n">n_x</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_run_circuit</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_x</span><span class="p">)]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="n">overlap_estimator</span><span class="p">(</span><span class="n">sampler</span><span class="p">,</span> <span class="n">n_shots</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="n">OverlapEstimator</span><span class="p">(</span><span class="n">sampler</span><span class="p">,</span> <span class="n">n_shots</span><span class="p">)</span>
         <span class="n">gram_train</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">estimate_concurrent</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span>
         <span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_x</span><span class="p">,</span> <span class="n">n_x</span><span class="p">)</span>
@@ -389,7 +390,7 @@ document.write(`
 <span class="sd">            pred: Predicted values of shape (n_samples,).</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;run fit() before predict&quot;</span><span class="p">)</span>
         <span class="n">n_x</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">xs</span><span class="p">)</span>
         <span class="n">gram_test</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_x</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span><span class="p">)))</span>

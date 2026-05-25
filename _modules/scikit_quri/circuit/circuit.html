@@ -459,6 +459,12 @@ document.write(`
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__post_init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="o">=</span> <span class="n">UnboundParametricQuantumCircuit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_qubits</span><span class="p">)</span>
+        <span class="c1"># Cache for the learning-only portion of bound_parameters.</span>
+        <span class="c1"># During fit, `parameters` is identical across all samples in a batch, so we</span>
+        <span class="c1"># rebuild this template only when `parameters` changes; per-sample calls only</span>
+        <span class="c1"># overwrite the input slots.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learning_template_params</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learning_template</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_new_parameter_position</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -797,6 +803,27 @@ document.write(`
             <span class="n">pos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">positions_in_circuit</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">gate_pos</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pos</span></div>
 
+<div class="viewcode-block" id="LearningCircuit.get_learning_param_grad_aggregators"><a class="viewcode-back" href="../../../scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.get_learning_param_grad_aggregators">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_learning_param_grad_aggregators</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return aggregation info for computing parameter-shift gradients.</span>
+
+<span class="sd">        Each learnable parameter may occupy multiple circuit-level gate positions</span>
+<span class="sd">        when ``share_with`` is used. This method returns, for each parameter, the</span>
+<span class="sd">        list of ``(gate_pos, coef)`` tuples that must be summed with their</span>
+<span class="sd">        respective coefficients to obtain the total gradient w.r.t. that parameter.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List of length ``learning_params_count``, where element ``[j]`` is a</span>
+<span class="sd">            list of ``(gate_pos, coef)`` tuples for the j-th learnable parameter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">aggregators</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learning_parameter_list</span><span class="p">:</span>
+            <span class="n">param_aggs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">param</span><span class="o">.</span><span class="n">positions_in_circuit</span><span class="p">:</span>
+                <span class="n">coef</span> <span class="o">=</span> <span class="n">pos</span><span class="o">.</span><span class="n">coef</span> <span class="k">if</span> <span class="n">pos</span><span class="o">.</span><span class="n">coef</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">1.0</span>
+                <span class="n">param_aggs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">pos</span><span class="o">.</span><span class="n">gate_pos</span><span class="p">,</span> <span class="n">coef</span><span class="p">))</span>
+            <span class="n">aggregators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param_aggs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">aggregators</span></div>
+
 <div class="viewcode-block" id="LearningCircuit.get_input_params_indexes"><a class="viewcode-back" href="../../../scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.get_input_params_indexes">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_input_params_indexes</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return circuit-level indices of all input-data-driven parameter slots.</span>
 
@@ -836,18 +863,33 @@ document.write(`
 <span class="sd">            Sequence of float values with length ``parameter_count``, ready to pass to</span>
 <span class="sd">            ``circuit.bind_parameters()``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">bound_parameters</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_count</span><span class="p">)]</span>
-        <span class="c1"># Learning parameters</span>
-        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learning_parameter_list</span><span class="p">:</span>
-            <span class="n">param_value</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">parameter_id</span><span class="p">]</span>
-            <span class="n">param</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">param_value</span>
-            <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">param</span><span class="o">.</span><span class="n">positions_in_circuit</span><span class="p">:</span>
-                <span class="n">coef</span> <span class="o">=</span> <span class="n">pos</span><span class="o">.</span><span class="n">coef</span> <span class="k">if</span> <span class="n">pos</span><span class="o">.</span><span class="n">coef</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">1.0</span>
-                <span class="n">bound_parameters</span><span class="p">[</span><span class="n">pos</span><span class="o">.</span><span class="n">gate_pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">param_value</span> <span class="o">*</span> <span class="n">coef</span>
-        <span class="c1"># Input parameters</span>
+        <span class="c1"># Build / refresh the learning-parameter template when *parameters* changes.</span>
+        <span class="c1"># During fitting, *parameters* is identical across all samples in a batch,</span>
+        <span class="c1"># so we only need to rebuild the template once per batch.</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_learning_template</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learning_template_params</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learning_template_params</span><span class="p">,</span> <span class="n">parameters</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">template</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_count</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learning_parameter_list</span><span class="p">:</span>
+                <span class="n">param_value</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">parameter_id</span><span class="p">]</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">param_value</span>
+                <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">param</span><span class="o">.</span><span class="n">positions_in_circuit</span><span class="p">:</span>
+                    <span class="n">coef</span> <span class="o">=</span> <span class="n">pos</span><span class="o">.</span><span class="n">coef</span> <span class="k">if</span> <span class="n">pos</span><span class="o">.</span><span class="n">coef</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">1.0</span>
+                    <span class="n">template</span><span class="p">[</span><span class="n">pos</span><span class="o">.</span><span class="n">gate_pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">param_value</span> <span class="o">*</span> <span class="n">coef</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_learning_template</span> <span class="o">=</span> <span class="n">template</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_learning_template_params</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Template is current; still update param.value for downstream</span>
+            <span class="c1"># consumers (e.g. parametric-input gates) that read theta.value.</span>
+            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learning_parameter_list</span><span class="p">:</span>
+                <span class="n">param</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">parameter_id</span><span class="p">]</span>
+
+        <span class="n">bound_parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_learning_template</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="c1"># Input parameters — always recomputed because they depend on x.</span>
         <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_parameter_list</span><span class="p">:</span>
-            <span class="c1"># Input parameter is resolved here (not in update_parameters),</span>
-            <span class="c1"># because its value depends on the input data `x`.</span>
             <span class="n">angle</span> <span class="o">=</span> <span class="mf">0.0</span>
             <span class="c1"># Exactly one branch is taken depending on whether func needs a learning parameter</span>
             <span class="k">if</span> <span class="n">need_learning_parameter_guard</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="n">param</span><span class="o">.</span><span class="n">companion_parameter_id</span><span class="p">):</span>
@@ -865,7 +907,7 @@ document.write(`
 
         <span class="k">return</span> <span class="n">bound_parameters</span></div>
 
-<div class="viewcode-block" id="LearningCircuit.backprop_innner_product"><a class="viewcode-back" href="../../../scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.backprop_innner_product">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">backprop_innner_product</span><span class="p">(</span>
+<div class="viewcode-block" id="LearningCircuit.backprop_inner_product"><a class="viewcode-back" href="../../../scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.backprop_inner_product">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">backprop_inner_product</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">theta</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">state</span><span class="p">:</span> <span class="n">QulacsQuantumState</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute gradients of learnable parameters via qulacs backpropagation using inner product.</span>
@@ -1175,7 +1217,6 @@ document.write(`
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="n">n_learning</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">learning_params_count</span>
-        <span class="n">total</span> <span class="o">=</span> <span class="n">n_samples</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_learning</span>
 
         <span class="c1"># Build base params once via to_batched: (n_samples, parameter_count)</span>
         <span class="n">_</span><span class="p">,</span> <span class="n">base_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_batched</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">parameters</span><span class="p">)</span>
@@ -1184,24 +1225,34 @@ document.write(`
         <span class="c1"># base_params[s] -&gt; shifted_params[s*2*n_learning .. (s+1)*2*n_learning - 1]</span>
         <span class="n">shifted_params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">base_params</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_learning</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-        <span class="c1"># Build shift vectors: for each learning param j, get its circuit positions and coefs</span>
+        <span class="c1"># The shift pattern is identical across samples: for each learning param j, the</span>
+        <span class="c1"># plus row sits at offset 2*j and the minus row at 2*j+1 within each sample&#39;s</span>
+        <span class="c1"># 2*n_learning-row block. Build per-sample row offsets once and broadcast.</span>
         <span class="n">half_delta</span> <span class="o">=</span> <span class="n">delta</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">sample_offsets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n_learning</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">lp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_learning_parameter_list</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">lp</span><span class="o">.</span><span class="n">positions_in_circuit</span><span class="p">:</span>
-                <span class="n">coef</span> <span class="o">=</span> <span class="n">pos</span><span class="o">.</span><span class="n">coef</span> <span class="k">if</span> <span class="n">pos</span><span class="o">.</span><span class="n">coef</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">1.0</span>
-                <span class="n">shift</span> <span class="o">=</span> <span class="n">half_delta</span> <span class="o">*</span> <span class="n">coef</span>
-                <span class="c1"># Apply +shift to plus rows, -shift to minus rows for all samples</span>
-                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_samples</span><span class="p">):</span>
-                    <span class="n">base</span> <span class="o">=</span> <span class="n">s</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_learning</span>
-                    <span class="n">shifted_params</span><span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">j</span><span class="p">,</span> <span class="n">pos</span><span class="o">.</span><span class="n">gate_pos</span><span class="p">]</span> <span class="o">+=</span> <span class="n">shift</span>
-                    <span class="n">shifted_params</span><span class="p">[</span><span class="n">base</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pos</span><span class="o">.</span><span class="n">gate_pos</span><span class="p">]</span> <span class="o">-=</span> <span class="n">shift</span>
+            <span class="n">plus_rows</span> <span class="o">=</span> <span class="n">sample_offsets</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">j</span>
+            <span class="n">minus_rows</span> <span class="o">=</span> <span class="n">plus_rows</span> <span class="o">+</span> <span class="mi">1</span>
+
+            <span class="c1"># Fancy indexing: extract all gate positions and coefficients for this</span>
+            <span class="c1"># learning parameter into arrays, then update all samples and all</span>
+            <span class="c1"># positions simultaneously via np.add.at with broadcasted indices.</span>
+            <span class="n">gate_positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">gate_pos</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">lp</span><span class="o">.</span><span class="n">positions_in_circuit</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+            <span class="n">coefs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">coef</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">coef</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mf">1.0</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">lp</span><span class="o">.</span><span class="n">positions_in_circuit</span><span class="p">],</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">shifts</span> <span class="o">=</span> <span class="n">half_delta</span> <span class="o">*</span> <span class="n">coefs</span>
+            <span class="c1"># Broadcast shapes: (n_samples, 1) @ (1, n_positions) + (1, n_positions)</span>
+            <span class="c1"># -&gt; adds shifts[k] at (plus_rows[i], gate_positions[k]) for all i,k</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="o">.</span><span class="n">at</span><span class="p">(</span>
+                <span class="n">shifted_params</span><span class="p">,</span> <span class="p">(</span><span class="n">plus_rows</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">gate_positions</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]),</span> <span class="n">shifts</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="p">)</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="o">.</span><span class="n">at</span><span class="p">(</span>
+                <span class="n">shifted_params</span><span class="p">,</span> <span class="p">(</span><span class="n">minus_rows</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">gate_positions</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]),</span> <span class="o">-</span><span class="n">shifts</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+            <span class="p">)</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="p">,</span> <span class="n">shifted_params</span></div></div>
-
-
-<div class="viewcode-block" id="preprocess_x"><a class="viewcode-back" href="../../../scikit_quri.circuit.html#scikit_quri.circuit.circuit.preprocess_x">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">preprocess_x</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-    <span class="n">a</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span>
-    <span class="k">return</span> <span class="n">a</span></div>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
