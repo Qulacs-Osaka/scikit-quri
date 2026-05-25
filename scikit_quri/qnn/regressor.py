@@ -1,6 +1,6 @@
 # mypy: ignore-errors
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -87,7 +87,7 @@ class QNNRegressor:
 
     trained_param: Optional[Params] = field(default=None)
 
-    _pred_cache: dict = field(default_factory=dict)
+    _pred_cache: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not issubclass(type(self.estimator), BaseEstimator):
@@ -165,6 +165,9 @@ class QNNRegressor:
         print("")
 
         self.trained_param = optimizer_state.params
+        # Drop cached training-batch prediction so it doesn't pin the y_pred matrix
+        # for the remainder of the instance's lifetime.
+        self._pred_cache.clear()
         print(f"{optimizer_state.cost=}")
 
     def cost_fn(

@@ -7,7 +7,7 @@ from quri_parts.algo.optimizer import Optimizer, Params, OptimizerStatus
 from quri_parts.core.estimator import Estimatable
 from scikit_quri.circuit import LearningCircuit
 from scikit_quri.backend import BaseEstimator
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import log_loss
 from quri_parts.core.operator import Operator, pauli_label
@@ -76,7 +76,7 @@ class QNNClassifier:
     trained_param: Optional[Params] = field(default=None)
 
     n_qubit: int = field(init=False)
-    _pred_cache: dict = field(default_factory=dict)
+    _pred_cache: Dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not issubclass(type(self.estimator), BaseEstimator):
@@ -152,6 +152,9 @@ class QNNClassifier:
             c += 1
         print("")
         self.trained_param = optimizer_state.params
+        # Drop cached training-batch prediction so it doesn't pin the y_pred matrix
+        # for the remainder of the instance's lifetime.
+        self._pred_cache.clear()
 
     def predict(self, x_test: NDArray[np.float64]) -> NDArray[np.float64]:
         """Predict outcome for each input data in ``x_test``. This method returns the predicted outcome as a vector of probabilities for each class.
