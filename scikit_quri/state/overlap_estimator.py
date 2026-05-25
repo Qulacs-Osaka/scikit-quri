@@ -2,16 +2,17 @@ import numpy as np
 from numpy.typing import NDArray
 from quri_parts.circuit import QuantumCircuit
 from quri_parts.circuit.inverse import inverse_circuit
-from quri_parts.core.sampling import ConcurrentSampler
+
+from scikit_quri.backend import BaseSampler
 
 
 class OverlapEstimator:
     """Alternative implementation of quri-parts' overlap estimator."""
 
-    def __init__(self, concurrent_sampler: ConcurrentSampler, n_shots: int = 1000):
+    def __init__(self, concurrent_sampler: BaseSampler, n_shots: int = 1000):
         """
         Args:
-            concurrent_sampler: Concurrent sampler function.
+            concurrent_sampler: Sampling backend (e.g. ``QulacsSampler`` or ``OqtopusSampler``).
             n_shots: Number of shots per circuit execution. Defaults to 1000.
 
         """

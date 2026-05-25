@@ -1,16 +1,19 @@
+import warnings
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Iterable, Optional
 
 from quri_parts.circuit import NonParametricQuantumCircuit
-from typing import Optional, Iterable
 from quri_parts.core.sampling import MeasurementCounts
 from quri_parts_oqtopus.backend import (
     OqtopusConfig,
-    OqtopusSamplingBackend,
     OqtopusDeviceBackend,
+    OqtopusSamplingBackend,
 )
 
+from .base_sampler import BaseSampler
 
-class OqtopusSampler:
+
+class OqtopusSampler(BaseSampler):
     def __init__(self, device_id: str, config: Optional[OqtopusConfig]) -> None:
         self.backend = OqtopusSamplingBackend(config)
         self.device_id = device_id
@@ -29,16 +32,18 @@ class OqtopusSampler:
         device_info = self.device_backend.get_device(self.device_id)
         return device_info.n_qubits
 
-    def sample(self, circuit: NonParametricQuantumCircuit, shots: int) -> MeasurementCounts:
-        """
+    def sample_one(self, circuit: NonParametricQuantumCircuit, n_shots: int) -> MeasurementCounts:
+        """Sample a single circuit ``n_shots`` times.
+
         Raises:
             BackendError: Oqtopusでの実行に失敗した場合
         """
-        result = self.backend.sample(circuit, device_id=self.device_id, shots=shots).result()
+        result = self.backend.sample(circuit, device_id=self.device_id, shots=n_shots).result()
         return result.counts
 
-    def concurrent_sample(
-        self, circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]]
+    def sample(
+        self,
+        circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]],
     ) -> Iterable[MeasurementCounts]:
         """
         concurrentにsampleする関数
@@ -100,6 +105,18 @@ class OqtopusSampler:
             counts.extend(v for _, v in sorted(divided_counts.items()))
         return counts
 
+    def concurrent_sample(
+        self,
+        circuit_shots_tuples: Iterable[tuple[NonParametricQuantumCircuit, int]],
+    ) -> Iterable[MeasurementCounts]:
+        """Deprecated alias of :meth:`sample`. Kept for backward compatibility."""
+        warnings.warn(
+            "OqtopusSampler.concurrent_sample is deprecated; use .sample(...) instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.sample(circuit_shots_tuples)
+
 
 def create_oqtopus_sampler(device_id: str, config: Optional[OqtopusConfig] = None):
     """Oqtopus用のSamplerを生成する関数
@@ -109,7 +126,7 @@ def create_oqtopus_sampler(device_id: str, config: Optional[OqtopusConfig] = Non
         Sampler: Oqtopus用のSampler
     """
     oqtopusSampler = OqtopusSampler(device_id, config)
-    return oqtopusSampler.sample
+    return oqtopusSampler.sample_one
 
 
 def create_oqtopus_concurrent_sampler(device_id: str, config: Optional[OqtopusConfig] = None):
@@ -119,4 +136,4 @@ def create_oqtopus_concurrent_sampler(device_id: str, config: Optional[OqtopusCo
         ConcurrentSampler: Oqtopus用のConcurrentSampler
     """
     oqtopusSampler = OqtopusSampler(device_id, config)
-    return oqtopusSampler.concurrent_sample
+    return oqtopusSampler.sample

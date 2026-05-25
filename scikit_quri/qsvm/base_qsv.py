@@ -5,9 +5,9 @@ from enum import Enum
 import numpy as np
 from numpy.typing import NDArray
 from quri_parts.circuit import QuantumCircuit
-from quri_parts.core.sampling import ConcurrentSampler
 from sklearn import svm
 
+from scikit_quri.backend import BaseSampler
 from scikit_quri.circuit import LearningCircuit
 from scikit_quri.state import OverlapEstimator
 
@@ -31,7 +31,7 @@ class BaseQSV:
         self,
         x: NDArray[np.float64],
         y: NDArray[np.float64],
-        sampler: ConcurrentSampler,
+        sampler: BaseSampler,
         n_shots: int = 1000,
         max_iter: int = int(1e7),
         verbose: bool = False,
@@ -41,7 +41,7 @@ class BaseQSV:
         Args:
             x: Training feature matrix of shape (n_samples, n_features).
             y: Training labels.
-            sampler: Concurrent sampler function.
+            sampler: Sampling backend (e.g. ``QulacsSampler`` or ``OqtopusSampler``).
             n_shots: Number of shots per circuit execution. Defaults to 1000.
             max_iter: Maximum number of iterations for the SVM solver. Defaults to 1e7.
             verbose: Whether to print the SVM training progress. Defaults to False.
