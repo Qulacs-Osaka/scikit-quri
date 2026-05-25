@@ -16,8 +16,7 @@ from quri_parts.core.state import ParametricCircuitQuantumState, quantum_state
 from quri_parts.qulacs import QulacsStateT
 from typing_extensions import TypeAlias
 
-from scikit_quri.backend import BaseEstimator
-from scikit_quri.backend.sim_estimator import SimEstimator
+from scikit_quri.backend import BaseEstimator, BatchedSimEstimator
 from scikit_quri.circuit import LearningCircuit
 
 GradientEstimatorType: TypeAlias = GradientEstimator[_ParametricStateT]
@@ -108,10 +107,11 @@ def predict_inner(
     Returns:
         Prediction matrix. Shape: (n_samples, n_operators).
     """
-    # Use scaluq batched estimation if enabled
-    if isinstance(estimator, SimEstimator) and estimator.use_scaluq:
+    # Capability dispatch: any backend that natively supports batched
+    # parametric evaluation (currently ScaluqEstimator) takes the fast path.
+    if isinstance(estimator, BatchedSimEstimator):
         circuit, batched_params = ansatz.to_batched(x_scaled, params)
-        results = estimator.estimate_scaluq_batched(operators, circuit, batched_params)
+        results = estimator.estimate_batched(operators, circuit, batched_params)
         # results: (n_operators, n_samples) -> transpose to (n_samples, n_operators)
         res = np.array(results, dtype=np.float64).T
         res *= y_exp_ratio
@@ -197,17 +197,18 @@ def estimate_grad(
         operators: List of measurement operators. Length: n_operators.
         x_scaled: Scaled input data. Shape: (n_samples, n_features).
         params: Learning parameters.
-        estimator: Optional estimator. If SimEstimator with use_scaluq=True, uses scaluq batched path.
-        delta: Finite difference step size for scaluq numerical gradient.
+        estimator: Optional estimator. If it implements BatchedSimEstimator,
+            the batched (e.g. scaluq) numerical-gradient path is taken.
+        delta: Finite difference step size for the batched numerical gradient.
 
     Returns:
         Gradient tensor. Shape: (n_samples, n_operators, n_learning_params).
     """
-    # Use scaluq batched gradient if enabled
-    if isinstance(estimator, SimEstimator) and estimator.use_scaluq:
+    # Capability dispatch: batched-simulation backends take the fast path.
+    if isinstance(estimator, BatchedSimEstimator):
         n_learning = ansatz.learning_params_count
         circuit, shifted_params = ansatz.to_batched_for_gradient(x_scaled, params, delta)
-        return estimator.estimate_grad_scaluq_batched(
+        return estimator.estimate_grad_batched(
             operators,
             circuit,
             shifted_params,
