@@ -8,7 +8,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>scikit_quri.backend.base_estimator &#8212; scikit_quri  documentation</title>
+    <title>scikit_quri.backend.qulacs_estimator &#8212; scikit_quri  documentation</title>
   
   
   
@@ -44,7 +44,7 @@
     <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/sphinx_highlight.js"></script>
     <script src="../../../_static/scripts/sphinx-book-theme.js"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/scikit_quri/backend/base_estimator';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/scikit_quri/backend/qulacs_estimator';</script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -237,7 +237,7 @@
       
       
       
-      <li><a href="https://github.com/Qulacs-Osaka/scikit-quri/issues/new?title=Issue%20on%20page%20%2F_modules/scikit_quri/backend/base_estimator.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/Qulacs-Osaka/scikit-quri/issues/new?title=Issue%20on%20page%20%2F_modules/scikit_quri/backend/qulacs_estimator.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -315,105 +315,26 @@ document.write(`
 <div id="searchbox"></div>
                 <article class="bd-article">
                   
-  <h1>Source code for scikit_quri.backend.base_estimator</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Sequence</span>
+  <h1>Source code for scikit_quri.backend.qulacs_estimator</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.qulacs.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_qulacs_vector_concurrent_estimator</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParametricQuantumCircuitProtocol</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Estimatable</span><span class="p">,</span> <span class="n">Estimate</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.qulacs</span><span class="w"> </span><span class="kn">import</span> <span class="n">QulacsStateT</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base_estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEstimator</span>
 
 
-<div class="viewcode-block" id="BaseEstimator"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.base_estimator.BaseEstimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">BaseEstimator</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Estimatorを実行する際の基底クラス</span>
-<span class="sd">    estimateメソッドに対するinterfaceを定義</span>
+<div class="viewcode-block" id="QulacsEstimator"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.QulacsEstimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QulacsEstimator</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Expectation-value estimator backed by quri-parts-qulacs.</span>
+
+<span class="sd">    Evaluates one operator against one quantum state per call (per-sample</span>
+<span class="sd">    semantics, concurrent across the inputs of a single ``estimate`` call).</span>
+<span class="sd">    For workloads that re-bind the same parametric circuit across many samples,</span>
+<span class="sd">    consider ``ScaluqEstimator`` which natively batches that case.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="BaseEstimator.estimate"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.base_estimator.BaseEstimator.estimate">[docs]</a>    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">estimate</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">operators</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Estimatable</span><span class="p">],</span> <span class="n">states</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">QulacsStateT</span><span class="p">]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">Estimate</span><span class="p">[</span><span class="nb">complex</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        operatorsとstatesの組み合わせに対して期待値を計算する</span>
-<span class="sd">        operatorsまたはstatesのどちらかが1つの場合、もう一方の数に合わせて繰り返す</span>
-<span class="sd">        もしくは、両方の数が同じ場合、1対1で対応させる</span>
-<span class="sd">        それ以外の場合、ValueErrorを投げる</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_concurrent_estimator</span> <span class="o">=</span> <span class="n">create_qulacs_vector_concurrent_estimator</span><span class="p">()</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            operators: 期待値を計算する演算子のリスト</span>
-<span class="sd">            states: 期待値を計算する状態のリスト</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            operatorsとstatesの組み合わせに対する期待値のリスト</span>
-<span class="sd">        &quot;&quot;&quot;</span></div></div>
-
-
-<div class="viewcode-block" id="BatchedSimEstimator"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.base_estimator.BatchedSimEstimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">BatchedSimEstimator</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Capability extension for simulation backends that natively batch</span>
-<span class="sd">    expectation-value evaluation over a single parametric circuit with many</span>
-<span class="sd">    parameter vectors.</span>
-
-<span class="sd">    A ``BatchedSimEstimator`` evaluates M operators against one parametric</span>
-<span class="sd">    circuit bound with N parameter vectors (one per input sample) in a single</span>
-<span class="sd">    backend call, producing an (M, N) matrix. This is the natural API for</span>
-<span class="sd">    state-vector simulators (scaluq, future GPU backends) that amortize</span>
-<span class="sd">    circuit setup across the batch.</span>
-
-<span class="sd">    Hardware backends (e.g. OQTOPUS) cannot exploit this shape and should not</span>
-<span class="sd">    inherit from this class; ``_qnn_common`` dispatches via</span>
-<span class="sd">    ``isinstance(estimator, BatchedSimEstimator)``.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-<div class="viewcode-block" id="BatchedSimEstimator.estimate_batched"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.base_estimator.BatchedSimEstimator.estimate_batched">[docs]</a>    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_batched</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">operators</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Estimatable</span><span class="p">],</span>
-        <span class="n">circuit</span><span class="p">:</span> <span class="n">ParametricQuantumCircuitProtocol</span><span class="p">,</span>
-        <span class="n">params</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute batched expectation values for a parametric circuit.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            operators: List of measurement operators. Length: n_operators.</span>
-<span class="sd">            circuit: Parametric quantum circuit (e.g. from</span>
-<span class="sd">                ``LearningCircuit.to_batched``).</span>
-<span class="sd">            params: Per-sample bound parameter matrix.</span>
-<span class="sd">                Shape: ``(n_samples, parameter_count)``.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Nested list of shape ``(n_operators, n_samples)`` containing real</span>
-<span class="sd">            expectation values.</span>
-<span class="sd">        &quot;&quot;&quot;</span></div>
-
-<div class="viewcode-block" id="BatchedSimEstimator.estimate_grad_batched"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.base_estimator.BatchedSimEstimator.estimate_grad_batched">[docs]</a>    <span class="nd">@abstractmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_grad_batched</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">operators</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Estimatable</span><span class="p">],</span>
-        <span class="n">circuit</span><span class="p">:</span> <span class="n">ParametricQuantumCircuitProtocol</span><span class="p">,</span>
-        <span class="n">shifted_params</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
-        <span class="n">n_samples</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">n_learning_params</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-5</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute batched numerical gradients via central differences.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            operators: List of measurement operators. Length: n_operators.</span>
-<span class="sd">            circuit: Parametric quantum circuit (e.g. from</span>
-<span class="sd">                ``LearningCircuit.to_batched_for_gradient``).</span>
-<span class="sd">            shifted_params: Shifted-parameter matrix.</span>
-<span class="sd">                Shape: ``(n_samples * 2 * n_learning_params, parameter_count)``.</span>
-<span class="sd">                Row layout matches ``LearningCircuit.to_batched_for_gradient``.</span>
-<span class="sd">            n_samples: Number of input samples.</span>
-<span class="sd">            n_learning_params: Number of unique learning parameters.</span>
-<span class="sd">            delta: Finite-difference step size.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Gradient tensor. Shape:</span>
-<span class="sd">            ``(n_samples, n_operators, n_learning_params)``.</span>
-<span class="sd">        &quot;&quot;&quot;</span></div></div>
+<div class="viewcode-block" id="QulacsEstimator.estimate"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.QulacsEstimator.estimate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operators</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_concurrent_estimator</span><span class="p">(</span><span class="n">operators</span><span class="p">,</span> <span class="n">states</span><span class="p">)</span></div></div>
 </pre></div>
 
                 </article>

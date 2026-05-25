@@ -316,88 +316,42 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for scikit_quri.backend.sim_estimator</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">.base_estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEstimator</span>
+<span></span><span class="sd">&quot;&quot;&quot;Backward-compatible factory for the old ``SimEstimator(use_scaluq=...)`` API.</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.qulacs.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_qulacs_vector_concurrent_estimator</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParametricQuantumCircuitProtocol</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Estimatable</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span class="sd">Prefer constructing :class:`~scikit_quri.backend.QulacsEstimator` or</span>
+<span class="sd">:class:`~scikit_quri.backend.ScaluqEstimator` directly. ``SimEstimator`` is</span>
+<span class="sd">kept so that existing call sites (tests, samples, downstream code) continue</span>
+<span class="sd">to work without modification.</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts_scaluq.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">estimate</span> <span class="k">as</span> <span class="n">scaluq_estimate</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts_scaluq.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">estimate_numerical_gradient</span> <span class="k">as</span> <span class="n">scaluq_grad</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts_scaluq</span><span class="w"> </span><span class="kn">import</span> <span class="n">_backend</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base_estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEstimator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.qulacs_estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">QulacsEstimator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.scaluq_estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">ScaluqEstimator</span>
 
 
-<div class="viewcode-block" id="SimEstimator"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.sim_estimator.SimEstimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SimEstimator</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Simulation estimator that computes expectation values using quri-parts-qulacs.</span>
+<div class="viewcode-block" id="SimEstimator"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.sim_estimator.SimEstimator">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">SimEstimator</span><span class="p">(</span><span class="n">use_scaluq</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseEstimator</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Construct a simulation estimator.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        use_scaluq: If True, use scaluq batched estimation for predict_inner.</span>
-<span class="sd">            Defaults to False.</span>
+<span class="sd">        use_scaluq: If True, return a :class:`ScaluqEstimator` (batched scaluq</span>
+<span class="sd">            backend). Otherwise return a :class:`QulacsEstimator`</span>
+<span class="sd">            (per-sample qulacs backend).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Either a ``QulacsEstimator`` or a ``ScaluqEstimator`` depending on</span>
+<span class="sd">        ``use_scaluq``.</span>
+
+<span class="sd">    .. deprecated::</span>
+<span class="sd">        Construct ``QulacsEstimator()`` or ``ScaluqEstimator()`` directly.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_scaluq</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">use_scaluq</span> <span class="o">=</span> <span class="n">use_scaluq</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_concurrent_estimator</span> <span class="o">=</span> <span class="n">create_qulacs_vector_concurrent_estimator</span><span class="p">()</span>
-
-<div class="viewcode-block" id="SimEstimator.estimate"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.sim_estimator.SimEstimator.estimate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operators</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_concurrent_estimator</span><span class="p">(</span><span class="n">operators</span><span class="p">,</span> <span class="n">states</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="SimEstimator.estimate_scaluq_batched"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.sim_estimator.SimEstimator.estimate_scaluq_batched">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_scaluq_batched</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">operators</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Estimatable</span><span class="p">],</span>
-        <span class="n">circuit</span><span class="p">:</span> <span class="n">ParametricQuantumCircuitProtocol</span><span class="p">,</span>
-        <span class="n">params</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute batched expectation values using scaluq backend.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            operators: List of measurement operators. Length: n_operators.</span>
-<span class="sd">            circuit: Parametric quantum circuit (from LearningCircuit.to_batched).</span>
-<span class="sd">            params: Batched parameters. Shape: (n_samples, n_params).</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            List of shape (n_operators, n_samples) containing real expectation values.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">n_qubits</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">qubit_count</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="n">_backend</span><span class="o">.</span><span class="n">StateVectorBatched</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">),</span> <span class="n">n_qubits</span><span class="p">)</span>
-        <span class="n">state</span><span class="o">.</span><span class="n">set_zero_state</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">scaluq_estimate</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">operators</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="SimEstimator.estimate_grad_scaluq_batched"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.sim_estimator.SimEstimator.estimate_grad_scaluq_batched">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_grad_scaluq_batched</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">operators</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Estimatable</span><span class="p">],</span>
-        <span class="n">circuit</span><span class="p">:</span> <span class="n">ParametricQuantumCircuitProtocol</span><span class="p">,</span>
-        <span class="n">shifted_params</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
-        <span class="n">n_samples</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">n_learning_params</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-5</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute batched numerical gradient using scaluq backend.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            operators: List of measurement operators. Length: n_operators.</span>
-<span class="sd">            circuit: Parametric quantum circuit (from LearningCircuit.to_batched_for_gradient).</span>
-<span class="sd">            shifted_params: Shifted parameter array.</span>
-<span class="sd">                Shape: (n_samples * 2 * n_learning_params, parameter_count).</span>
-<span class="sd">            n_samples: Number of input samples.</span>
-<span class="sd">            n_learning_params: Number of learning parameters.</span>
-<span class="sd">            delta: Finite difference step size.</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Gradient tensor. Shape: (n_samples, n_operators, n_learning_params).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">scaluq_grad</span><span class="p">(</span>
-            <span class="n">circuit</span><span class="p">,</span>
-            <span class="n">operators</span><span class="p">,</span>
-            <span class="n">shifted_params</span><span class="p">,</span>
-            <span class="n">n_samples</span><span class="p">,</span>
-            <span class="n">n_learning_params</span><span class="p">,</span>
-            <span class="n">delta</span><span class="p">,</span>
-        <span class="p">)</span></div></div>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+        <span class="s2">&quot;SimEstimator is deprecated; use QulacsEstimator() or ScaluqEstimator() directly.&quot;</span><span class="p">,</span>
+        <span class="ne">DeprecationWarning</span><span class="p">,</span>
+        <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">ScaluqEstimator</span><span class="p">()</span> <span class="k">if</span> <span class="n">use_scaluq</span> <span class="k">else</span> <span class="n">QulacsEstimator</span><span class="p">()</span></div>
 </pre></div>
 
                 </article>

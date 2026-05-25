@@ -368,6 +368,11 @@ document.write(`
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.base_estimator.BaseEstimator.estimate"><code class="docutils literal notranslate"><span class="pre">BaseEstimator.estimate()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.base_estimator.BatchedSimEstimator"><code class="docutils literal notranslate"><span class="pre">BatchedSimEstimator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.base_estimator.BatchedSimEstimator.estimate_batched"><code class="docutils literal notranslate"><span class="pre">BatchedSimEstimator.estimate_batched()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.base_estimator.BatchedSimEstimator.estimate_grad_batched"><code class="docutils literal notranslate"><span class="pre">BatchedSimEstimator.estimate_grad_batched()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.backend.base_gradient_estimator">scikit_quri.backend.base_gradient_estimator module</a><ul class="nav section-nav flex-column">
@@ -413,12 +418,7 @@ document.write(`
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.backend.sim_estimator">scikit_quri.backend.sim_estimator module</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.sim_estimator.SimEstimator"><code class="docutils literal notranslate"><span class="pre">SimEstimator</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.sim_estimator.SimEstimator.estimate"><code class="docutils literal notranslate"><span class="pre">SimEstimator.estimate()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.sim_estimator.SimEstimator.estimate_scaluq_batched"><code class="docutils literal notranslate"><span class="pre">SimEstimator.estimate_scaluq_batched()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.sim_estimator.SimEstimator.estimate_grad_scaluq_batched"><code class="docutils literal notranslate"><span class="pre">SimEstimator.estimate_grad_scaluq_batched()</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.sim_estimator.SimEstimator"><code class="docutils literal notranslate"><span class="pre">SimEstimator()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.backend.sim_gradient_estimator">scikit_quri.backend.sim_gradient_estimator module</a><ul class="nav section-nav flex-column">
@@ -473,6 +473,74 @@ operatorsまたはstatesのどちらかが1つの場合、もう一方の数に�
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Iterable" title="(in Python v3.14)"><em>Iterable</em></a>[<a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.estimator.html#quri_parts.core.estimator.Estimate" title="(in QURI Parts)"><em>Estimate</em></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.14)">complex</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="scikit_quri.backend.base_estimator.BatchedSimEstimator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.backend.base_estimator.</span></span><span class="sig-name descname"><span class="pre">BatchedSimEstimator</span></span><a class="reference internal" href="_modules/scikit_quri/backend/base_estimator.html#BatchedSimEstimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.backend.base_estimator.BatchedSimEstimator" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#scikit_quri.backend.base_estimator.BaseEstimator" title="scikit_quri.backend.base_estimator.BaseEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEstimator</span></code></a></p>
+<p>Capability extension for simulation backends that natively batch
+expectation-value evaluation over a single parametric circuit with many
+parameter vectors.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">BatchedSimEstimator</span></code> evaluates M operators against one parametric
+circuit bound with N parameter vectors (one per input sample) in a single
+backend call, producing an (M, N) matrix. This is the natural API for
+state-vector simulators (scaluq, future GPU backends) that amortize
+circuit setup across the batch.</p>
+<p>Hardware backends (e.g. OQTOPUS) cannot exploit this shape and should not
+inherit from this class; <code class="docutils literal notranslate"><span class="pre">_qnn_common</span></code> dispatches via
+<code class="docutils literal notranslate"><span class="pre">isinstance(estimator,</span> <span class="pre">BatchedSimEstimator)</span></code>.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.backend.base_estimator.BatchedSimEstimator.estimate_batched">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">estimate_batched</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/base_estimator.html#BatchedSimEstimator.estimate_batched"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.backend.base_estimator.BatchedSimEstimator.estimate_batched" title="Permalink to this definition">#</a></dt>
+<dd><p>Compute batched expectation values for a parametric circuit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>operators</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.14)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><em>Operator</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><em>PauliLabel</em></a><em>]</em><em>]</em>) – List of measurement operators. Length: n_operators.</p></li>
+<li><p><strong>circuit</strong> (<em>ParametricQuantumCircuitProtocol</em>) – Parametric quantum circuit (e.g. from
+<code class="docutils literal notranslate"><span class="pre">LearningCircuit.to_batched</span></code>).</p></li>
+<li><p><strong>params</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Per-sample bound parameter matrix.
+Shape: <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">parameter_count)</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nested list of shape <code class="docutils literal notranslate"><span class="pre">(n_operators,</span> <span class="pre">n_samples)</span></code> containing real
+expectation values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.backend.base_estimator.BatchedSimEstimator.estimate_grad_batched">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">estimate_grad_batched</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shifted_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_learning_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/base_estimator.html#BatchedSimEstimator.estimate_grad_batched"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.backend.base_estimator.BatchedSimEstimator.estimate_grad_batched" title="Permalink to this definition">#</a></dt>
+<dd><p>Compute batched numerical gradients via central differences.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>operators</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.14)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><em>Operator</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><em>PauliLabel</em></a><em>]</em><em>]</em>) – List of measurement operators. Length: n_operators.</p></li>
+<li><p><strong>circuit</strong> (<em>ParametricQuantumCircuitProtocol</em>) – Parametric quantum circuit (e.g. from
+<code class="docutils literal notranslate"><span class="pre">LearningCircuit.to_batched_for_gradient</span></code>).</p></li>
+<li><p><strong>shifted_params</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Shifted-parameter matrix.
+Shape: <code class="docutils literal notranslate"><span class="pre">(n_samples</span> <span class="pre">*</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">n_learning_params,</span> <span class="pre">parameter_count)</span></code>.
+Row layout matches <code class="docutils literal notranslate"><span class="pre">LearningCircuit.to_batched_for_gradient</span></code>.</p></li>
+<li><p><strong>n_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of input samples.</p></li>
+<li><p><strong>n_learning_params</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of unique learning parameters.</p></li>
+<li><p><strong>delta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Finite-difference step size.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">n_operators,</span> <span class="pre">n_learning_params)</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Gradient tensor. Shape</p>
 </dd>
 </dl>
 </dd></dl>
@@ -821,83 +889,32 @@ quri-partsのConcurrentSamplerとして動作
 </section>
 <section id="module-scikit_quri.backend.sim_estimator">
 <span id="scikit-quri-backend-sim-estimator-module"></span><h2>scikit_quri.backend.sim_estimator module<a class="headerlink" href="#module-scikit_quri.backend.sim_estimator" title="Permalink to this heading">#</a></h2>
-<dl class="py class">
+<p>Backward-compatible factory for the old <code class="docutils literal notranslate"><span class="pre">SimEstimator(use_scaluq=...)</span></code> API.</p>
+<p>Prefer constructing <code class="xref py py-class docutils literal notranslate"><span class="pre">QulacsEstimator</span></code> or
+<code class="xref py py-class docutils literal notranslate"><span class="pre">ScaluqEstimator</span></code> directly. <code class="docutils literal notranslate"><span class="pre">SimEstimator</span></code> is
+kept so that existing call sites (tests, samples, downstream code) continue
+to work without modification.</p>
+<dl class="py function">
 <dt class="sig sig-object py" id="scikit_quri.backend.sim_estimator.SimEstimator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.backend.sim_estimator.</span></span><span class="sig-name descname"><span class="pre">SimEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_scaluq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/sim_estimator.html#SimEstimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.backend.sim_estimator.SimEstimator" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#scikit_quri.backend.base_estimator.BaseEstimator" title="scikit_quri.backend.base_estimator.BaseEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEstimator</span></code></a></p>
-<p>Simulation estimator that computes expectation values using quri-parts-qulacs.</p>
+<span class="sig-prename descclassname"><span class="pre">scikit_quri.backend.sim_estimator.</span></span><span class="sig-name descname"><span class="pre">SimEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_scaluq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/sim_estimator.html#SimEstimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.backend.sim_estimator.SimEstimator" title="Permalink to this definition">#</a></dt>
+<dd><p>Construct a simulation estimator.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>use_scaluq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, use scaluq batched estimation for predict_inner.
-Defaults to False.</p>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="scikit_quri.backend.sim_estimator.SimEstimator.estimate">
-<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/sim_estimator.html#SimEstimator.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.backend.sim_estimator.SimEstimator.estimate" title="Permalink to this definition">#</a></dt>
-<dd><p>operatorsとstatesの組み合わせに対して期待値を計算する
-operatorsまたはstatesのどちらかが1つの場合、もう一方の数に合わせて繰り返す
-もしくは、両方の数が同じ場合、1対1で対応させる
-それ以外の場合、ValueErrorを投げる</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>operators</strong> – 期待値を計算する演算子のリスト</p></li>
-<li><p><strong>states</strong> – 期待値を計算する状態のリスト</p></li>
-</ul>
+<dd class="field-odd"><p><strong>use_scaluq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, return a <code class="xref py py-class docutils literal notranslate"><span class="pre">ScaluqEstimator</span></code> (batched scaluq
+backend). Otherwise return a <code class="xref py py-class docutils literal notranslate"><span class="pre">QulacsEstimator</span></code>
+(per-sample qulacs backend).</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>operatorsとstatesの組み合わせに対する期待値のリスト</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="scikit_quri.backend.sim_estimator.SimEstimator.estimate_scaluq_batched">
-<span class="sig-name descname"><span class="pre">estimate_scaluq_batched</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/sim_estimator.html#SimEstimator.estimate_scaluq_batched"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.backend.sim_estimator.SimEstimator.estimate_scaluq_batched" title="Permalink to this definition">#</a></dt>
-<dd><p>Compute batched expectation values using scaluq backend.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>operators</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.14)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><em>Operator</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><em>PauliLabel</em></a><em>]</em><em>]</em>) – List of measurement operators. Length: n_operators.</p></li>
-<li><p><strong>circuit</strong> (<em>ParametricQuantumCircuitProtocol</em>) – Parametric quantum circuit (from LearningCircuit.to_batched).</p></li>
-<li><p><strong>params</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Batched parameters. Shape: (n_samples, n_params).</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>List of shape (n_operators, n_samples) containing real expectation values.</p>
+<dd class="field-even"><p>Either a <code class="docutils literal notranslate"><span class="pre">QulacsEstimator</span></code> or a <code class="docutils literal notranslate"><span class="pre">ScaluqEstimator</span></code> depending on
+<code class="docutils literal notranslate"><span class="pre">use_scaluq</span></code>.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a>]]</p>
+<dd class="field-odd"><p><a class="reference internal" href="#scikit_quri.backend.base_estimator.BaseEstimator" title="scikit_quri.backend.base_estimator.BaseEstimator"><em>BaseEstimator</em></a></p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="scikit_quri.backend.sim_estimator.SimEstimator.estimate_grad_scaluq_batched">
-<span class="sig-name descname"><span class="pre">estimate_grad_scaluq_batched</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shifted_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_learning_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/sim_estimator.html#SimEstimator.estimate_grad_scaluq_batched"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.backend.sim_estimator.SimEstimator.estimate_grad_scaluq_batched" title="Permalink to this definition">#</a></dt>
-<dd><p>Compute batched numerical gradient using scaluq backend.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>operators</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.14)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><em>Operator</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><em>PauliLabel</em></a><em>]</em><em>]</em>) – List of measurement operators. Length: n_operators.</p></li>
-<li><p><strong>circuit</strong> (<em>ParametricQuantumCircuitProtocol</em>) – Parametric quantum circuit (from LearningCircuit.to_batched_for_gradient).</p></li>
-<li><p><strong>shifted_params</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Shifted parameter array.
-Shape: (n_samples * 2 * n_learning_params, parameter_count).</p></li>
-<li><p><strong>n_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of input samples.</p></li>
-<li><p><strong>n_learning_params</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of learning parameters.</p></li>
-<li><p><strong>delta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Finite difference step size.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>(n_samples, n_operators, n_learning_params).</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Gradient tensor. Shape</p>
-</dd>
-</dl>
-</dd></dl>
-
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version Construct: </span><code class="docutils literal notranslate"><span class="pre">QulacsEstimator()</span></code> or <code class="docutils literal notranslate"><span class="pre">ScaluqEstimator()</span></code> directly.</p>
+</div>
 </dd></dl>
 
 </section>
@@ -1000,6 +1017,74 @@ operatorsまたはstatesのどちらかが1つの場合、もう一方の数に�
 
 <dl class="py class">
 <dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.backend.</span></span><span class="sig-name descname"><span class="pre">BatchedSimEstimator</span></span><a class="reference internal" href="_modules/scikit_quri/backend/base_estimator.html#BatchedSimEstimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#scikit_quri.backend.base_estimator.BaseEstimator" title="scikit_quri.backend.base_estimator.BaseEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEstimator</span></code></a></p>
+<p>Capability extension for simulation backends that natively batch
+expectation-value evaluation over a single parametric circuit with many
+parameter vectors.</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">BatchedSimEstimator</span></code> evaluates M operators against one parametric
+circuit bound with N parameter vectors (one per input sample) in a single
+backend call, producing an (M, N) matrix. This is the natural API for
+state-vector simulators (scaluq, future GPU backends) that amortize
+circuit setup across the batch.</p>
+<p>Hardware backends (e.g. OQTOPUS) cannot exploit this shape and should not
+inherit from this class; <code class="docutils literal notranslate"><span class="pre">_qnn_common</span></code> dispatches via
+<code class="docutils literal notranslate"><span class="pre">isinstance(estimator,</span> <span class="pre">BatchedSimEstimator)</span></code>.</p>
+<dl class="py method">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">estimate_batched</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/base_estimator.html#BatchedSimEstimator.estimate_batched"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Compute batched expectation values for a parametric circuit.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>operators</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.14)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><em>Operator</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><em>PauliLabel</em></a><em>]</em><em>]</em>) – List of measurement operators. Length: n_operators.</p></li>
+<li><p><strong>circuit</strong> (<em>ParametricQuantumCircuitProtocol</em>) – Parametric quantum circuit (e.g. from
+<code class="docutils literal notranslate"><span class="pre">LearningCircuit.to_batched</span></code>).</p></li>
+<li><p><strong>params</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Per-sample bound parameter matrix.
+Shape: <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">parameter_count)</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Nested list of shape <code class="docutils literal notranslate"><span class="pre">(n_operators,</span> <span class="pre">n_samples)</span></code> containing real
+expectation values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">estimate_grad_batched</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shifted_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_learning_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/base_estimator.html#BatchedSimEstimator.estimate_grad_batched"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Compute batched numerical gradients via central differences.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>operators</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.14)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><em>Operator</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><em>PauliLabel</em></a><em>]</em><em>]</em>) – List of measurement operators. Length: n_operators.</p></li>
+<li><p><strong>circuit</strong> (<em>ParametricQuantumCircuitProtocol</em>) – Parametric quantum circuit (e.g. from
+<code class="docutils literal notranslate"><span class="pre">LearningCircuit.to_batched_for_gradient</span></code>).</p></li>
+<li><p><strong>shifted_params</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Shifted-parameter matrix.
+Shape: <code class="docutils literal notranslate"><span class="pre">(n_samples</span> <span class="pre">*</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">n_learning_params,</span> <span class="pre">parameter_count)</span></code>.
+Row layout matches <code class="docutils literal notranslate"><span class="pre">LearningCircuit.to_batched_for_gradient</span></code>.</p></li>
+<li><p><strong>n_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of input samples.</p></li>
+<li><p><strong>n_learning_params</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of unique learning parameters.</p></li>
+<li><p><strong>delta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Finite-difference step size.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">n_operators,</span> <span class="pre">n_learning_params)</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Gradient tensor. Shape</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.backend.</span></span><span class="sig-name descname"><span class="pre">OqtopusEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/oqtopus_estimator.html#OqtopusEstimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#scikit_quri.backend.base_estimator.BaseEstimator" title="scikit_quri.backend.base_estimator.BaseEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEstimator</span></code></a></p>
 <p>Estimator class that computes expectation values on real quantum hardware via quri-parts-oqtopus.
@@ -1045,18 +1130,100 @@ must have the same length and are paired one-to-one.</p>
 
 <dl class="py class">
 <dt class="sig sig-object py">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.backend.</span></span><span class="sig-name descname"><span class="pre">SimEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_scaluq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/sim_estimator.html#SimEstimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#scikit_quri.backend.base_estimator.BaseEstimator" title="scikit_quri.backend.base_estimator.BaseEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEstimator</span></code></a></p>
-<p>Simulation estimator that computes expectation values using quri-parts-qulacs.</p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.backend.</span></span><span class="sig-name descname"><span class="pre">OqtopusGradientEstimator</span></span><a class="reference internal" href="_modules/scikit_quri/backend/oqtopus_gradient_estimator.html#OqtopusGradientEstimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#scikit_quri.backend.base_gradient_estimator.BaseGradientEstimator" title="scikit_quri.backend.base_gradient_estimator.BaseGradientEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseGradientEstimator</span></code></a></p>
+<p>Oqtopusを用いて勾配を計算するGradient Estimator Class。</p>
+<p>OqtopusEstimatorを内部で使用し、数値微分により勾配を計算する。</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>use_scaluq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, use scaluq batched estimation for predict_inner.
-Defaults to False.</p>
-</dd>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/sim_estimator.html#SimEstimator.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<span class="sig-name descname"><span class="pre">estimate_gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/oqtopus_gradient_estimator.html#OqtopusGradientEstimator.estimate_gradient"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>全パラメータに対する勾配を計算する。</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>現在未実装。</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.14)"><strong>NotImplementedError</strong></a> – このメソッドは未実装。</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">estimate_learning_param_gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/oqtopus_gradient_estimator.html#OqtopusGradientEstimator.estimate_learning_param_gradient"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>学習パラメータに対する勾配を計算する。</p>
+<p>入力パラメータは固定し、学習パラメータのみに対する勾配を計算する。</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>operators</strong> – 期待値を計算する演算子。</p></li>
+<li><p><strong>circuit</strong> – 学習回路。</p></li>
+<li><p><strong>params</strong> – 全パラメータ（入力+学習）の値。</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>各学習パラメータに対する勾配のシーケンス。</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.14)">complex</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.backend.</span></span><span class="sig-name descname"><span class="pre">QulacsEstimator</span></span><a class="reference internal" href="_modules/scikit_quri/backend/qulacs_estimator.html#QulacsEstimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#scikit_quri.backend.base_estimator.BaseEstimator" title="scikit_quri.backend.base_estimator.BaseEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseEstimator</span></code></a></p>
+<p>Expectation-value estimator backed by quri-parts-qulacs.</p>
+<p>Evaluates one operator against one quantum state per call (per-sample
+semantics, concurrent across the inputs of a single <code class="docutils literal notranslate"><span class="pre">estimate</span></code> call).
+For workloads that re-bind the same parametric circuit across many samples,
+consider <code class="docutils literal notranslate"><span class="pre">ScaluqEstimator</span></code> which natively batches that case.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/qulacs_estimator.html#QulacsEstimator.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>operatorsとstatesの組み合わせに対して期待値を計算する
+operatorsまたはstatesのどちらかが1つの場合、もう一方の数に合わせて繰り返す
+もしくは、両方の数が同じ場合、1対1で対応させる
+それ以外の場合、ValueErrorを投げる</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>operators</strong> – 期待値を計算する演算子のリスト</p></li>
+<li><p><strong>states</strong> – 期待値を計算する状態のリスト</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>operatorsとstatesの組み合わせに対する期待値のリスト</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.backend.</span></span><span class="sig-name descname"><span class="pre">ScaluqEstimator</span></span><a class="reference internal" href="_modules/scikit_quri/backend/scaluq_estimator.html#ScaluqEstimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#scikit_quri.backend.base_estimator.BatchedSimEstimator" title="scikit_quri.backend.base_estimator.BatchedSimEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BatchedSimEstimator</span></code></a></p>
+<p>Batched expectation-value estimator backed by scaluq.</p>
+<p>The primary API is <code class="docutils literal notranslate"><span class="pre">estimate_batched</span></code> / <code class="docutils literal notranslate"><span class="pre">estimate_grad_batched</span></code>, which
+evaluate a single parametric circuit topology over many parameter vectors
+in one backend call. The non-batched <code class="docutils literal notranslate"><span class="pre">estimate(operators,</span> <span class="pre">states)</span></code> is
+implemented as a fallback that defers to qulacs; it is provided so that
+consumers expecting the <code class="docutils literal notranslate"><span class="pre">BaseEstimator</span></code> contract still work, but the
+batched methods are what give scaluq its speedup.</p>
+<dl class="field-list simple">
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/scaluq_estimator.html#ScaluqEstimator.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>operatorsとstatesの組み合わせに対して期待値を計算する
 operatorsまたはstatesのどちらかが1つの場合、もう一方の数に合わせて繰り返す
 もしくは、両方の数が同じ場合、1対1で対応させる
@@ -1076,18 +1243,21 @@ operatorsまたはstatesのどちらかが1つの場合、もう一方の数に�
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">estimate_scaluq_batched</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/sim_estimator.html#SimEstimator.estimate_scaluq_batched"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><p>Compute batched expectation values using scaluq backend.</p>
+<span class="sig-name descname"><span class="pre">estimate_batched</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/scaluq_estimator.html#ScaluqEstimator.estimate_batched"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Compute batched expectation values for a parametric circuit.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>operators</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.14)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><em>Operator</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><em>PauliLabel</em></a><em>]</em><em>]</em>) – List of measurement operators. Length: n_operators.</p></li>
-<li><p><strong>circuit</strong> (<em>ParametricQuantumCircuitProtocol</em>) – Parametric quantum circuit (from LearningCircuit.to_batched).</p></li>
-<li><p><strong>params</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Batched parameters. Shape: (n_samples, n_params).</p></li>
+<li><p><strong>circuit</strong> (<em>ParametricQuantumCircuitProtocol</em>) – Parametric quantum circuit (e.g. from
+<code class="docutils literal notranslate"><span class="pre">LearningCircuit.to_batched</span></code>).</p></li>
+<li><p><strong>params</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Per-sample bound parameter matrix.
+Shape: <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">parameter_count)</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>List of shape (n_operators, n_samples) containing real expectation values.</p>
+<dd class="field-even"><p>Nested list of shape <code class="docutils literal notranslate"><span class="pre">(n_operators,</span> <span class="pre">n_samples)</span></code> containing real
+expectation values.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)">list</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a>]]</p>
@@ -1097,22 +1267,24 @@ operatorsまたはstatesのどちらかが1つの場合、もう一方の数に�
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">estimate_grad_scaluq_batched</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shifted_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_learning_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/sim_estimator.html#SimEstimator.estimate_grad_scaluq_batched"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><p>Compute batched numerical gradient using scaluq backend.</p>
+<span class="sig-name descname"><span class="pre">estimate_grad_batched</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shifted_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_learning_params</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/scaluq_estimator.html#ScaluqEstimator.estimate_grad_batched"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Compute batched numerical gradients via central differences.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>operators</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Union" title="(in Python v3.14)"><em>Union</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.operator.html#quri_parts.core.operator.operator.Operator" title="(in QURI Parts)"><em>Operator</em></a><em>, </em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.operator.pauli.html#quri_parts.core.operator.pauli.PauliLabel" title="(in QURI Parts)"><em>PauliLabel</em></a><em>]</em><em>]</em>) – List of measurement operators. Length: n_operators.</p></li>
-<li><p><strong>circuit</strong> (<em>ParametricQuantumCircuitProtocol</em>) – Parametric quantum circuit (from LearningCircuit.to_batched_for_gradient).</p></li>
-<li><p><strong>shifted_params</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Shifted parameter array.
-Shape: (n_samples * 2 * n_learning_params, parameter_count).</p></li>
+<li><p><strong>circuit</strong> (<em>ParametricQuantumCircuitProtocol</em>) – Parametric quantum circuit (e.g. from
+<code class="docutils literal notranslate"><span class="pre">LearningCircuit.to_batched_for_gradient</span></code>).</p></li>
+<li><p><strong>shifted_params</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Shifted-parameter matrix.
+Shape: <code class="docutils literal notranslate"><span class="pre">(n_samples</span> <span class="pre">*</span> <span class="pre">2</span> <span class="pre">*</span> <span class="pre">n_learning_params,</span> <span class="pre">parameter_count)</span></code>.
+Row layout matches <code class="docutils literal notranslate"><span class="pre">LearningCircuit.to_batched_for_gradient</span></code>.</p></li>
 <li><p><strong>n_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of input samples.</p></li>
-<li><p><strong>n_learning_params</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of learning parameters.</p></li>
-<li><p><strong>delta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Finite difference step size.</p></li>
+<li><p><strong>n_learning_params</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of unique learning parameters.</p></li>
+<li><p><strong>delta</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Finite-difference step size.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>(n_samples, n_operators, n_learning_params).</p>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">n_operators,</span> <span class="pre">n_learning_params)</span></code>.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Gradient tensor. Shape</p>
@@ -1124,23 +1296,25 @@ Shape: (n_samples * 2 * n_learning_params, parameter_count).</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py">
-<span class="sig-prename descclassname"><span class="pre">scikit_quri.backend.</span></span><span class="sig-name descname"><span class="pre">create_oqtopus_sampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/oqtopus_sampler.html#create_oqtopus_sampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><p>Oqtopus用のSamplerを生成する関数
-quri-partsのSamplerとして動作</p>
+<span class="sig-prename descclassname"><span class="pre">scikit_quri.backend.</span></span><span class="sig-name descname"><span class="pre">SimEstimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">use_scaluq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/sim_estimator.html#SimEstimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Construct a simulation estimator.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Oqtopus用のSampler</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Sampler</p>
-</dd>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>device_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – </p></li>
-<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><em>Optional</em></a><em>[</em><a class="reference external" href="https://quri-parts-oqtopus.readthedocs.io/en/stable/reference/quri_parts_oqtopus/backend/config/#quri_parts_oqtopus.backend.config.OqtopusConfig" title="(in QURI Parts OQTOPUS v0.0.0)"><em>OqtopusConfig</em></a><em>]</em>) – </p></li>
-</ul>
+<dd class="field-odd"><p><strong>use_scaluq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, return a <code class="xref py py-class docutils literal notranslate"><span class="pre">ScaluqEstimator</span></code> (batched scaluq
+backend). Otherwise return a <code class="xref py py-class docutils literal notranslate"><span class="pre">QulacsEstimator</span></code>
+(per-sample qulacs backend).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Either a <code class="docutils literal notranslate"><span class="pre">QulacsEstimator</span></code> or a <code class="docutils literal notranslate"><span class="pre">ScaluqEstimator</span></code> depending on
+<code class="docutils literal notranslate"><span class="pre">use_scaluq</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#scikit_quri.backend.base_estimator.BaseEstimator" title="scikit_quri.backend.base_estimator.BaseEstimator"><em>BaseEstimator</em></a></p>
 </dd>
 </dl>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version Construct: </span><code class="docutils literal notranslate"><span class="pre">QulacsEstimator()</span></code> or <code class="docutils literal notranslate"><span class="pre">ScaluqEstimator()</span></code> directly.</p>
+</div>
 </dd></dl>
 
 <dl class="py class">
@@ -1204,51 +1378,25 @@ operatorsまたはstatesのどちらかが1つの場合、もう一方の数に�
 
 </dd></dl>
 
-<dl class="py class">
+<dl class="py function">
 <dt class="sig sig-object py">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.backend.</span></span><span class="sig-name descname"><span class="pre">OqtopusGradientEstimator</span></span><a class="reference internal" href="_modules/scikit_quri/backend/oqtopus_gradient_estimator.html#OqtopusGradientEstimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#scikit_quri.backend.base_gradient_estimator.BaseGradientEstimator" title="scikit_quri.backend.base_gradient_estimator.BaseGradientEstimator"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseGradientEstimator</span></code></a></p>
-<p>Oqtopusを用いて勾配を計算するGradient Estimator Class。</p>
-<p>OqtopusEstimatorを内部で使用し、数値微分により勾配を計算する。</p>
+<span class="sig-prename descclassname"><span class="pre">scikit_quri.backend.</span></span><span class="sig-name descname"><span class="pre">create_oqtopus_sampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">device_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/oqtopus_sampler.html#create_oqtopus_sampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Oqtopus用のSamplerを生成する関数
+quri-partsのSamplerとして動作</p>
 <dl class="field-list simple">
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">estimate_gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/oqtopus_gradient_estimator.html#OqtopusGradientEstimator.estimate_gradient"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><p>全パラメータに対する勾配を計算する。</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>現在未実装。</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Raises<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.14)"><strong>NotImplementedError</strong></a> – このメソッドは未実装。</p>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Oqtopus用のSampler</p>
 </dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">estimate_learning_param_gradient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">operators</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">params</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/backend/oqtopus_gradient_estimator.html#OqtopusGradientEstimator.estimate_learning_param_gradient"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><p>学習パラメータに対する勾配を計算する。</p>
-<p>入力パラメータは固定し、学習パラメータのみに対する勾配を計算する。</p>
-<dl class="field-list simple">
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Sampler</p>
+</dd>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>operators</strong> – 期待値を計算する演算子。</p></li>
-<li><p><strong>circuit</strong> – 学習回路。</p></li>
-<li><p><strong>params</strong> – 全パラメータ（入力+学習）の値。</p></li>
+<li><p><strong>device_id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – </p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><em>Optional</em></a><em>[</em><a class="reference external" href="https://quri-parts-oqtopus.readthedocs.io/en/stable/reference/quri_parts_oqtopus/backend/config/#quri_parts_oqtopus.backend.config.OqtopusConfig" title="(in QURI Parts OQTOPUS v0.0.0)"><em>OqtopusConfig</em></a><em>]</em>) – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>各学習パラメータに対する勾配のシーケンス。</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#complex" title="(in Python v3.14)">complex</a>]</p>
-</dd>
 </dl>
-</dd></dl>
-
 </dd></dl>
 
 </section>
@@ -1305,6 +1453,11 @@ operatorsまたはstatesのどちらかが1つの場合、もう一方の数に�
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.base_estimator.BaseEstimator.estimate"><code class="docutils literal notranslate"><span class="pre">BaseEstimator.estimate()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.base_estimator.BatchedSimEstimator"><code class="docutils literal notranslate"><span class="pre">BatchedSimEstimator</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.base_estimator.BatchedSimEstimator.estimate_batched"><code class="docutils literal notranslate"><span class="pre">BatchedSimEstimator.estimate_batched()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.base_estimator.BatchedSimEstimator.estimate_grad_batched"><code class="docutils literal notranslate"><span class="pre">BatchedSimEstimator.estimate_grad_batched()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.backend.base_gradient_estimator">scikit_quri.backend.base_gradient_estimator module</a><ul class="nav section-nav flex-column">
@@ -1350,12 +1503,7 @@ operatorsまたはstatesのどちらかが1つの場合、もう一方の数に�
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.backend.sim_estimator">scikit_quri.backend.sim_estimator module</a><ul class="nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.sim_estimator.SimEstimator"><code class="docutils literal notranslate"><span class="pre">SimEstimator</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.sim_estimator.SimEstimator.estimate"><code class="docutils literal notranslate"><span class="pre">SimEstimator.estimate()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.sim_estimator.SimEstimator.estimate_scaluq_batched"><code class="docutils literal notranslate"><span class="pre">SimEstimator.estimate_scaluq_batched()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.sim_estimator.SimEstimator.estimate_grad_scaluq_batched"><code class="docutils literal notranslate"><span class="pre">SimEstimator.estimate_grad_scaluq_batched()</span></code></a></li>
-</ul>
-</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.backend.sim_estimator.SimEstimator"><code class="docutils literal notranslate"><span class="pre">SimEstimator()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.backend.sim_gradient_estimator">scikit_quri.backend.sim_gradient_estimator module</a><ul class="nav section-nav flex-column">
