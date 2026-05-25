@@ -2,6 +2,20 @@
 
 > Scaluq batched backend の高速化要因と最適バッチサイズの分析結果
 
+## サマリ (TL;DR)
+
+| 観点 | 結論 |
+|---|---|
+| **どれだけ速い** | `predict_inner` 単体で **17〜24x**、`estimate_grad` は ~2x、`QNNClassifier` 全学習で ~2.4x |
+| **何が原因 (主)** | (1) Python ↔ C++ ブリッジ呼び出しを batch 全体で 1 回に集約、(2) `StateVectorBatched` の連続メモリ配置による SIMD ベクトル化 |
+| **何が原因 (副次)** | キャッシュ局所性 (state vector が L2 に収まる範囲で線形 scaling) |
+| **何が原因では*ない*** | Kokkos の OMP スレッド並列化 (OMP_NUM_THREADS=1〜8 で speedup 一定 ~22x)、warmup によるキャッシュ効果 (cold/warm/subprocess 差は ±10% 内)、`StateVectorBatched` 再利用 vs fresh 確保 (noise 範囲内) |
+| **推奨 batch_size** | **256〜512** が sweet spot (15〜22x、メモリ ≤ 数 MB)。**>1024** で L2 cache 越えるとメモリ帯域律速に遷移。**<128** だと Python overhead が残って 2〜8x 止まり |
+| **数値正確性** | qulacs vs scaluq の差は `max_diff ≈ 1.28e-15` (浮動小数点誤差レベル) — 完全一致 |
+| **state vector メモリ** | `batch × 2^n_qubits × 16 bytes`。Apple Silicon の P-core L2 (16MB) 内で peak、超えると 17% slowdown (batch=4096, n_qubits=8) |
+
+詳細は各セクション参照。Section 7 は 2026-05-25 の再検証で上記結論を裏付け。
+
 ## 検証日
 
 - 初回: 2026-04-27
