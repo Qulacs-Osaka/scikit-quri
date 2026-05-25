@@ -4,12 +4,12 @@ from typing import List
 import numpy as np
 from numpy.typing import NDArray
 from quri_parts.circuit import QuantumCircuit
-from quri_parts.core.sampling import ConcurrentSampler
 from scipy.stats import loguniform
 from sklearn.kernel_ridge import KernelRidge
 from sklearn.model_selection import RandomizedSearchCV
 
 
+from scikit_quri.backend import BaseSampler
 from scikit_quri.circuit import LearningCircuit
 from scikit_quri.state.overlap_estimator import OverlapEstimator
 
@@ -29,7 +29,7 @@ class QKRR:
         self.n_iteration = n_iteration
         self.estimator = None
 
-    def fit(self, x: NDArray[np.float64], y: NDArray[np.int_], sampler: ConcurrentSampler) -> None:
+    def fit(self, x: NDArray[np.float64], y: NDArray[np.int_], sampler: BaseSampler) -> None:
         """
         train the machine.
         :param x: training inputs

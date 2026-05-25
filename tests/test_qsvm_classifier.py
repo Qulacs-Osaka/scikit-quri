@@ -1,9 +1,9 @@
 import pandas as pd
-from quri_parts.qulacs.sampler import create_qulacs_vector_concurrent_sampler
 from sklearn import datasets
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
 
+from scikit_quri.backend import QulacsSampler
 from scikit_quri.circuit import create_ibm_embedding_circuit
 from scikit_quri.qsvm import QSVC
 
@@ -23,7 +23,7 @@ def test_classify_iris():
     x_test = x_test.to_numpy()
     n_qubit = 4  # qubitの数 2だと少なすぎて複雑さがでない
     circuit = create_ibm_embedding_circuit(n_qubit)
-    sampler = create_qulacs_vector_concurrent_sampler()
+    sampler = QulacsSampler()
     qsvm = QSVC(circuit)
     qsvm.fit(x_train, y_train, sampler)
     y_pred = qsvm.predict(x_test)
