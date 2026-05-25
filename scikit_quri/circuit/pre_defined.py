@@ -4,10 +4,10 @@ from typing import List, Optional
 
 import numpy as np
 from numpy.random import Generator, default_rng
-from numpy.typing import NDArray
 from quri_parts.circuit import CNOT, CZ, QuantumCircuit
 
 from .circuit import LearningCircuit
+from .encoding import clamped_cyclic_index, cyclic_index
 
 
 def create_qcl_ansatz(
@@ -30,20 +30,15 @@ def create_qcl_ansatz(
         >>> qnn.fit(x_train, y_train)
 
     """
-
-    def preprocess_x(x: NDArray[np.float64], index: int) -> float:
-        xa = x[index % len(x)]
-        return min(1, max(-1, xa))
-
     circuit = LearningCircuit(n_qubit)
     for i in range(n_qubit):
         # Capture copy of i by `i=i`.
         # Without this, i in lambda is a reference to the i, so the lambda always
         # recognize i as n_qubit - 1.
-        circuit.add_input_RY_gate(i, lambda x, i=i: np.arcsin(preprocess_x(x, i)))
+        circuit.add_input_RY_gate(i, lambda x, i=i: np.arcsin(clamped_cyclic_index(x, i)))
         circuit.add_input_RZ_gate(
             i,
-            lambda x, i=i: np.arccos(preprocess_x(x, i) * preprocess_x(x, i)),
+            lambda x, i=i: np.arccos(clamped_cyclic_index(x, i) * clamped_cyclic_index(x, i)),
         )
 
     time_evol_circuit = _create_time_evol_circuit(n_qubit, time_step, seed=seed)
@@ -109,12 +104,6 @@ def _make_fullgate(list_SiteAndOperator, n_qubit):
     return reduce(np.kron, list_SingleGates)
 
 
-def preprocess_x(x: np.ndarray, i: int) -> float:
-    xa = x[i % len(x)]
-    clamped = min(1, max(-1, xa))
-    return clamped
-
-
 def create_farhi_neven_ansatz(
     n_qubit: int,
     c_depth: int,
@@ -123,10 +112,10 @@ def create_farhi_neven_ansatz(
     circuit = LearningCircuit(n_qubit)
     rng = default_rng(seed)
     for i in range(n_qubit):
-        circuit.add_input_RY_gate(i, lambda x, i=i: np.arcsin(preprocess_x(x, i)))
+        circuit.add_input_RY_gate(i, lambda x, i=i: np.arcsin(clamped_cyclic_index(x, i)))
         circuit.add_input_RZ_gate(
             i,
-            lambda x, i=i: np.arccos(preprocess_x(x, i) * preprocess_x(x, i)),
+            lambda x, i=i: np.arccos(clamped_cyclic_index(x, i) * clamped_cyclic_index(x, i)),
         )
 
     zyu = list(range(n_qubit))
@@ -150,32 +139,27 @@ def create_ibm_embedding_circuit(n_qubit: int) -> LearningCircuit:
         n_qubits: number of qubits
 
     """
-
-    def preprocess_x(x: NDArray[np.float64], index: int) -> float:
-        xa: float = x[index % len(x)]
-        return xa
-
     circuit = LearningCircuit(n_qubit)
     for i in range(n_qubit):
         circuit.add_H_gate(i)
     for i in range(n_qubit):
         j = (i + 1) % n_qubit
-        circuit.add_input_RZ_gate(i, lambda x, i=i: preprocess_x(x, i))
+        circuit.add_input_RZ_gate(i, lambda x, i=i: cyclic_index(x, i))
         circuit.add_CNOT_gate(i, j)
         circuit.add_input_RZ_gate(
             j,
-            lambda x, i=i, j=j: (np.pi - preprocess_x(x, i) * (np.pi - preprocess_x(x, j))),
+            lambda x, i=i, j=j: (np.pi - cyclic_index(x, i) * (np.pi - cyclic_index(x, j))),
         )
         circuit.add_CNOT_gate(i, j)
     for i in range(n_qubit):
         circuit.add_H_gate(i)
     for i in range(n_qubit):
         j = (i + 1) % n_qubit
-        circuit.add_input_RZ_gate(i, lambda x, i=i: preprocess_x(x, i))
+        circuit.add_input_RZ_gate(i, lambda x, i=i: cyclic_index(x, i))
         circuit.add_CNOT_gate(i, j)
         circuit.add_input_RZ_gate(
             j,
-            lambda x, i=i, j=j: (np.pi - preprocess_x(x, i) * (np.pi - preprocess_x(x, j))),
+            lambda x, i=i, j=j: (np.pi - cyclic_index(x, i) * (np.pi - cyclic_index(x, j))),
         )
         circuit.add_CNOT_gate(i, j)
     return circuit
@@ -183,14 +167,9 @@ def create_ibm_embedding_circuit(n_qubit: int) -> LearningCircuit:
 
 def create_dqn_cl(n_qubit: int, c_depth: int, s_qubit: int) -> LearningCircuit:
     # from https://arxiv.org/abs/2112.15002
-    def preprocess_x(x: np.ndarray, i: int) -> float:
-        xa = x[i % len(x)]
-        clamped = min(1, max(-1, xa))
-        return clamped
-
     circuit = LearningCircuit(n_qubit)
     for i in range(n_qubit):
-        circuit.add_input_RY_gate(i, lambda x, i=i: preprocess_x(x, i))
+        circuit.add_input_RY_gate(i, lambda x, i=i: clamped_cyclic_index(x, i))
         circuit.add_parametric_RY_gate(i)
 
     for _ in range(c_depth):
@@ -210,15 +189,10 @@ def create_dqn_cl(n_qubit: int, c_depth: int, s_qubit: int) -> LearningCircuit:
 
 def create_dqn_cl_no_cz(n_qubit: int, c_depth: int) -> LearningCircuit:
     # from https://arxiv.org/abs/2112.15002
-    def preprocess_x(x: np.ndarray, i: int) -> float:
-        xa = x[i % len(x)]
-        clamped = min(1, max(-1, xa))
-        return clamped
-
     circuit = LearningCircuit(n_qubit)
 
     for i in range(n_qubit):
-        circuit.add_input_RY_gate(i, lambda x, i=i: preprocess_x(x, i))
+        circuit.add_input_RY_gate(i, lambda x, i=i: clamped_cyclic_index(x, i))
         circuit.add_parametric_RY_gate(i)
 
     for _ in range(c_depth):
