@@ -317,181 +317,278 @@ document.write(`
                   
   <h1>Source code for scikit_quri.qnn.generation</h1><div class="highlight"><pre>
 <span></span><span class="c1"># mypy: ignore-errors</span>
+<span class="sd">&quot;&quot;&quot;Quantum Circuit Born Machine (QCBM) generative model.</span>
+
+<span class="sd">Implements the MMD-based training algorithm from</span>
+<span class="sd">Liu &amp; Wang, &quot;Differentiable Learning of Quantum Circuit Born Machines&quot;,</span>
+<span class="sd">Phys. Rev. A 98, 062324 (2018), arXiv:1804.04168.</span>
+
+<span class="sd">The model samples bit strings z from ``p_theta(z) = |⟨z|psi(theta)⟩|^2``</span>
+<span class="sd">(Born rule); training minimizes the squared maximum mean discrepancy MMD^2</span>
+<span class="sd">between model samples and target samples in a reproducing kernel Hilbert</span>
+<span class="sd">space. Both cost and gradient estimators are sample-based, so the same code</span>
+<span class="sd">runs on a state-vector simulator (``QulacsSampler``), a noisy simulator, or</span>
+<span class="sd">real hardware (``OqtopusSampler``).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qulacs</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumState</span> <span class="k">as</span> <span class="n">QulacsQuantumState</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.algo.optimizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optimizer</span><span class="p">,</span> <span class="n">OptimizerStatus</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">pauli_label</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.state</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumState</span><span class="p">,</span> <span class="n">quantum_state</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.qulacs.simulator</span><span class="w"> </span><span class="kn">import</span> <span class="n">evaluate_state_to_vector</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSampler</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">LearningCircuit</span>
 
 
+<div class="viewcode-block" id="default_gaussian_mixture_kernel"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.generation.default_gaussian_mixture_kernel">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">default_gaussian_mixture_kernel</span><span class="p">(</span>
+    <span class="n">sigmas</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">),</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">NDArray</span><span class="p">],</span> <span class="n">NDArray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gaussian-mixture kernel on integer bit-string distances.</span>
+
+<span class="sd">    ``K(x_i, y_j) = (1/|sigmas|) * sum_sigma exp(-(x_i - y_j)^2 / (2 sigma^2))``.</span>
+
+<span class="sd">    Liu &amp; Wang recommend mixtures of bandwidths so the kernel captures both</span>
+<span class="sd">    local and global differences between distributions. The default values</span>
+<span class="sd">    are reasonable for low-qubit problems; for larger bit-string ranges</span>
+<span class="sd">    consider scaling sigmas with the support size.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">inv_2sigma2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">s</span> <span class="o">*</span> <span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sigmas</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">kernel</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">:</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">-</span> <span class="n">y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">diff_sq</span> <span class="o">=</span> <span class="n">diff</span> <span class="o">*</span> <span class="n">diff</span>
+        <span class="c1"># (n_x, n_y, |sigmas|) -&gt; mean over sigma dim -&gt; (n_x, n_y)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">diff_sq</span><span class="p">[:,</span> <span class="p">:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">inv_2sigma2</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:])</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">kernel</span></div>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_mmd_squared</span><span class="p">(</span>
+    <span class="n">model_samples</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">],</span>
+    <span class="n">target_samples</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">],</span>
+    <span class="n">kernel</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">NDArray</span><span class="p">],</span> <span class="n">NDArray</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sample-based estimator of MMD^2(p_model, p_target).</span>
+
+<span class="sd">    ``MMD^2 = E_{x,x&#39;~p}[K(x,x&#39;)] - 2 E_{x~p, y~q}[K(x,y)] + E_{y,y&#39;~q}[K(y,y&#39;)]``.</span>
+
+<span class="sd">    Uses the biased estimator (allowing i == j) for simplicity; the bias</span>
+<span class="sd">    vanishes as n_shots grows and does not affect the gradient (the third</span>
+<span class="sd">    term is independent of theta).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span>
+        <span class="n">kernel</span><span class="p">(</span><span class="n">model_samples</span><span class="p">,</span> <span class="n">model_samples</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">kernel</span><span class="p">(</span><span class="n">model_samples</span><span class="p">,</span> <span class="n">target_samples</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="o">+</span> <span class="n">kernel</span><span class="p">(</span><span class="n">target_samples</span><span class="p">,</span> <span class="n">target_samples</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="p">)</span>
+
+
 <div class="viewcode-block" id="QNNGenerator"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.generation.QNNGenerator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QNNGenerator</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Class to generation problems by quantum neural networks.</span>
-<span class="sd">    This class is only working with a simulator. depending on qulacs.</span>
-<span class="sd">    It is not working with real quantum computers.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Quantum Circuit Born Machine trained with MMD loss.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        circuit: The learning circuit to be used.</span>
-<span class="sd">        solver: The optimizer to be used for training.</span>
-<span class="sd">        kernel_type: The type of kernel to be used. exp_hamming is not implemented yet.</span>
-<span class="sd">        gauss_sigma: The sigma value for Gaussian kernel.</span>
-<span class="sd">        fitting_qubit: The number of qubits to be used for fitting.</span>
+<span class="sd">        circuit: Parametric circuit (ansatz). The input portion of the</span>
+<span class="sd">            circuit is bound to a constant ``np.array([0])`` placeholder —</span>
+<span class="sd">            this class learns an unconditional distribution, so any</span>
+<span class="sd">            ``add_input_*`` gates should be avoided.</span>
+<span class="sd">        solver: Optimizer driving theta updates.</span>
+<span class="sd">        sampler: Sampling backend implementing :class:`BaseSampler`.</span>
+<span class="sd">        n_shots: Number of measurement shots per circuit evaluation.</span>
+<span class="sd">            Used for cost, gradient (per shift), and predict.</span>
+<span class="sd">        kernel: Kernel ``K(x, y) -&gt; (n_x, n_y)`` for the MMD loss. ``x`` and</span>
+<span class="sd">            ``y`` are arrays of bit-string integers. Defaults to a Gaussian</span>
+<span class="sd">            mixture from :func:`default_gaussian_mixture_kernel`.</span>
+<span class="sd">        fitting_qubit: Number of qubits used to represent the output</span>
+<span class="sd">            distribution. When less than ``circuit.n_qubits`` the higher</span>
+<span class="sd">            qubits are marginalized out (``z mod 2^fitting_qubit``).</span>
+<span class="sd">            Defaults to ``circuit.n_qubits``.</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        Parameter-shift gradients are computed at the learning-parameter</span>
+<span class="sd">        level (length = ``circuit.learning_params_count``). This is exact</span>
+<span class="sd">        when each learning parameter controls a single Pauli rotation gate;</span>
+<span class="sd">        circuits using ``share_with`` to share one learning parameter</span>
+<span class="sd">        across multiple gates will receive an approximate gradient — the</span>
+<span class="sd">        cost function itself is unaffected.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">circuit</span><span class="p">:</span> <span class="n">LearningCircuit</span><span class="p">,</span>
         <span class="n">solver</span><span class="p">:</span> <span class="n">Optimizer</span><span class="p">,</span>
-        <span class="n">kernel_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;gauss&quot;</span><span class="p">,</span> <span class="s2">&quot;exp_hamming&quot;</span><span class="p">,</span> <span class="s2">&quot;same&quot;</span><span class="p">],</span>
-        <span class="n">gauss_sigma</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-        <span class="n">fitting_qubit</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-    <span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">n_qubits</span>
+        <span class="n">sampler</span><span class="p">:</span> <span class="n">BaseSampler</span><span class="p">,</span>
+        <span class="n">n_shots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1024</span><span class="p">,</span>
+        <span class="n">kernel</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">NDArray</span><span class="p">],</span> <span class="n">NDArray</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">fitting_qubit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">n_qubits</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="o">=</span> <span class="n">circuit</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">solver</span> <span class="o">=</span> <span class="n">solver</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">kernel_type</span> <span class="o">=</span> <span class="n">kernel_type</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">gauss_sigma</span> <span class="o">=</span> <span class="n">gauss_sigma</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span> <span class="o">=</span> <span class="n">fitting_qubit</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">trained_param</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">sampler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_shots</span> <span class="o">=</span> <span class="n">n_shots</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">NDArray</span><span class="p">,</span> <span class="n">NDArray</span><span class="p">],</span> <span class="n">NDArray</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">kernel</span> <span class="k">if</span> <span class="n">kernel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">default_gaussian_mixture_kernel</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">fitting_qubit</span> <span class="k">if</span> <span class="n">fitting_qubit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;fitting_qubit must be in (0, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span><span class="si">}</span><span class="s2">], got </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trained_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">observables</span> <span class="o">=</span> <span class="p">[</span><span class="n">pauli_label</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Z</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span><span class="p">)]</span>
+    <span class="c1"># --- Training ---------------------------------------------------------</span>
 
-<div class="viewcode-block" id="QNNGenerator.fit"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.generation.QNNGenerator.fit">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_data</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">maxiter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Params:</span>
-<span class="sd">            train_data: The training data to be used for fitting.</span>
-<span class="sd">            maxiter: The maximum number of iterations for the optimizer. Default is 100.</span>
+<div class="viewcode-block" id="QNNGenerator.fit"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.generation.QNNGenerator.fit">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_data</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">],</span> <span class="n">maxiter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Train against a sample-list target distribution.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            train_data: Array of bit-string integers; the empirical</span>
+<span class="sd">                distribution of these is the target.</span>
+<span class="sd">            maxiter: Maximum optimizer iterations.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">train_scaled</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">train_data</span><span class="p">:</span>
-            <span class="n">train_scaled</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">train_data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit_direct_distribution</span><span class="p">(</span><span class="n">train_scaled</span><span class="p">,</span> <span class="n">maxiter</span><span class="p">)</span></div>
+        <span class="n">train_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span><span class="p">:</span>
+            <span class="n">train_samples</span> <span class="o">=</span> <span class="n">train_samples</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fit_inner</span><span class="p">(</span><span class="n">train_samples</span><span class="p">,</span> <span class="n">maxiter</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="QNNGenerator.fit_direct_distribution"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.generation.QNNGenerator.fit_direct_distribution">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fit_direct_distribution</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">train_scaled</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">maxiter</span><span class="p">:</span> <span class="nb">int</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
-        <span class="n">theta_init</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">learning_params_count</span><span class="p">)</span>
-        <span class="n">optimizer_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">get_init_state</span><span class="p">(</span><span class="n">theta_init</span><span class="p">)</span>
-        <span class="n">cost_func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost_func</span><span class="p">,</span> <span class="n">train_scaled</span><span class="o">=</span><span class="n">train_scaled</span><span class="p">)</span>
-        <span class="n">grad_func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cost_func_grad</span><span class="p">,</span> <span class="n">train_scaled</span><span class="o">=</span><span class="n">train_scaled</span><span class="p">)</span>
-        <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">while</span> <span class="n">maxiter</span> <span class="o">&gt;</span> <span class="n">c</span><span class="p">:</span>
-            <span class="n">optimizer_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">optimizer_state</span><span class="p">,</span> <span class="n">cost_func</span><span class="p">,</span> <span class="n">grad_func</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;iter:</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">maxiter</span><span class="si">}</span><span class="s2"> cost:</span><span class="si">{</span><span class="n">optimizer_state</span><span class="o">.</span><span class="n">cost</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">optimizer_state</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">OptimizerStatus</span><span class="o">.</span><span class="n">CONVERGED</span><span class="p">:</span>
-                <span class="k">break</span>
-            <span class="k">if</span> <span class="n">optimizer_state</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">OptimizerStatus</span><span class="o">.</span><span class="n">FAILED</span><span class="p">:</span>
-                <span class="k">break</span>
-
-            <span class="n">c</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">trained_param</span> <span class="o">=</span> <span class="n">optimizer_state</span><span class="o">.</span><span class="n">params</span></div>
-
-<div class="viewcode-block" id="QNNGenerator.predict"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.generation.QNNGenerator.predict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">trained_param</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;run fit() before predict&quot;</span><span class="p">)</span>
-
-        <span class="n">y_pred_in</span> <span class="o">=</span> <span class="n">evaluate_state_to_vector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_predict_inner</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trained_param</span><span class="p">))</span><span class="o">.</span><span class="n">vector</span>
-        <span class="n">y_pred_conj</span> <span class="o">=</span> <span class="n">y_pred_in</span><span class="o">.</span><span class="n">conjugate</span><span class="p">()</span>
-        <span class="n">data_per</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">y_pred_in</span> <span class="o">*</span> <span class="n">y_pred_conj</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="p">:</span>
-            <span class="n">data_per</span> <span class="o">=</span> <span class="n">data_per</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
-                <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="p">),</span> <span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="p">)</span>
-            <span class="p">)</span>
-            <span class="n">data_per</span> <span class="o">=</span> <span class="n">data_per</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">data_per</span></div>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_predict_and_inner</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">QuantumState</span><span class="p">]:</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_predict_inner</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">)</span>
-        <span class="n">y_pred_in</span> <span class="o">=</span> <span class="n">evaluate_state_to_vector</span><span class="p">(</span><span class="n">state</span><span class="p">)</span><span class="o">.</span><span class="n">vector</span>
-        <span class="n">y_pred_conj</span> <span class="o">=</span> <span class="n">y_pred_in</span><span class="o">.</span><span class="n">conjugate</span><span class="p">()</span>
-
-        <span class="n">data_per</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_pred_in</span> <span class="o">*</span> <span class="n">y_pred_conj</span><span class="p">)</span><span class="o">.</span><span class="n">real</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="p">:</span>
-            <span class="n">data_per</span> <span class="o">=</span> <span class="n">data_per</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
-                <span class="p">(</span><span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="p">),</span> <span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="p">)</span>
-            <span class="p">)</span>
-            <span class="n">data_per</span> <span class="o">=</span> <span class="n">data_per</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">data_per</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_predict_inner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">QuantumState</span><span class="p">:</span>
-        <span class="n">circuit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">bind_input_and_parameters</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="n">quantum_state</span><span class="p">(</span><span class="n">n_qubits</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span><span class="p">,</span> <span class="n">circuit</span><span class="o">=</span><span class="n">circuit</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">state</span>
-
-<div class="viewcode-block" id="QNNGenerator.conving"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.generation.QNNGenerator.conving">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">conving</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_diff</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
-        <span class="c1"># data_diffは、現在の分布ー正しい分布</span>
-        <span class="c1"># (data_diff) (カーネル行列) (data_diffの行ベクトル)を計算すると、cost_funcになる。</span>
-        <span class="c1"># ここでは、(data_diff) (カーネル行列)  のベクトルを求める。</span>
-        <span class="c1"># つまり、確率差ベクトルにカーネル行列を掛ける。</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_type</span> <span class="o">==</span> <span class="s2">&quot;gauss&quot;</span><span class="p">:</span>
-            <span class="n">beta</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">gauss_sigma</span>
-            <span class="n">width</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gauss_sigma</span><span class="p">))</span>
-            <span class="n">conv_len</span> <span class="o">=</span> <span class="n">width</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span>
-            <span class="n">conv_target</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">conv_len</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">conv_len</span><span class="p">):</span>
-                <span class="n">conv_target</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">i</span> <span class="o">-</span> <span class="n">width</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">beta</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">conv_len</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="p">:</span>
-                <span class="n">conv_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">data_diff</span><span class="p">,</span> <span class="n">conv_target</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">conv_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">data_diff</span><span class="p">,</span> <span class="n">conv_target</span><span class="p">)[</span><span class="n">width</span><span class="p">:</span><span class="o">-</span><span class="n">width</span><span class="p">]</span>
-            <span class="k">return</span> <span class="n">conv_diff</span>
-        <span class="c1"># elif self.kernel_type == &quot;exp_hamming&quot;:</span>
-        <span class="c1">#     beta = -0.5 / self.gauss_sigma</span>
-        <span class="c1">#     swap_pena = np.exp(beta)</span>
-        <span class="c1">#     # ハミング距離の畳み込み演算をします。</span>
-        <span class="c1">#     # これはバタフライ演算でできます。</span>
-        <span class="c1">#     # バタフライ演算を行うのにqulacsを使います。</span>
-        <span class="c1">#     # 注意！ユニタリ的な量子演算ではありません！</span>
-        <span class="c1">#     # この演算をすることで高速にできる。</span>
-        <span class="c1">#     # TODO 実機運用</span>
-        <span class="c1">#     diff_state = QuantumState(self.fitting_qubit)</span>
-        <span class="c1">#     diff_state</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_type</span> <span class="o">==</span> <span class="s2">&quot;same&quot;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">data_diff</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Kernel type </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_type</span><span class="si">}</span><span class="s2"> is not implemented yet.&quot;</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="QNNGenerator.cost_func"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.generation.QNNGenerator.cost_func">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">cost_func</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">theta</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
-        <span class="n">train_scaled</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">theta</span>
-        <span class="p">(</span><span class="n">pre</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_predict_and_inner</span><span class="p">()</span>
-        <span class="n">data_diff</span> <span class="o">=</span> <span class="n">pre</span> <span class="o">-</span> <span class="n">train_scaled</span>
-        <span class="n">conv_diff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conving</span><span class="p">(</span><span class="n">data_diff</span><span class="p">)</span>
-        <span class="n">cost</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">data_diff</span><span class="p">,</span> <span class="n">conv_diff</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">cost</span></div>
+        <span class="n">p</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
+        <span class="n">maxiter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="n">n_target_samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
+        <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Train against a target probability vector.</span>
+
+<span class="sd">        Internally samples ``n_target_samples`` bit strings from ``p`` and</span>
+<span class="sd">        delegates to :meth:`fit`. The MMD estimator is sample-based.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            p: Target probability vector of length ``2^fitting_qubit``.</span>
+<span class="sd">            maxiter: Maximum optimizer iterations.</span>
+<span class="sd">            n_target_samples: Number of target-distribution samples.</span>
+<span class="sd">            seed: Seed for the target sampler.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Probability vector length </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="si">}</span><span class="s2"> != 2^fitting_qubit (</span><span class="si">{</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="p">)</span>
+        <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+        <span class="n">train_samples</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">n_target_samples</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fit_inner</span><span class="p">(</span><span class="n">train_samples</span><span class="p">,</span> <span class="n">maxiter</span><span class="p">)</span></div>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fit_inner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_samples</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">],</span> <span class="n">maxiter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">n_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">learning_params_count</span>
+        <span class="n">theta_init</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">n_params</span><span class="p">)</span>
+        <span class="n">opt_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">get_init_state</span><span class="p">(</span><span class="n">theta_init</span><span class="p">)</span>
+
+        <span class="n">cost_fn</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost_func</span><span class="p">,</span> <span class="n">train_samples</span><span class="o">=</span><span class="n">train_samples</span><span class="p">)</span>
+        <span class="n">grad_fn</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cost_func_grad</span><span class="p">,</span> <span class="n">train_samples</span><span class="o">=</span><span class="n">train_samples</span><span class="p">)</span>
+
+        <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">c</span> <span class="o">&lt;</span> <span class="n">maxiter</span><span class="p">:</span>
+            <span class="n">opt_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">opt_state</span><span class="p">,</span> <span class="n">cost_fn</span><span class="p">,</span> <span class="n">grad_fn</span><span class="p">)</span>
+            <span class="c1"># opt_state.cost can be None when the optimizer reports CONVERGED/FAILED</span>
+            <span class="n">cost_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">opt_state</span><span class="o">.</span><span class="n">cost</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">opt_state</span><span class="o">.</span><span class="n">cost</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;n/a&quot;</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">iter:</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">maxiter</span><span class="si">}</span><span class="s2"> cost:</span><span class="si">{</span><span class="n">cost_str</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">opt_state</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">OptimizerStatus</span><span class="o">.</span><span class="n">CONVERGED</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="k">if</span> <span class="n">opt_state</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">OptimizerStatus</span><span class="o">.</span><span class="n">FAILED</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">c</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="nb">print</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trained_param</span> <span class="o">=</span> <span class="n">opt_state</span><span class="o">.</span><span class="n">params</span>
+
+    <span class="c1"># --- Prediction -------------------------------------------------------</span>
+
+<div class="viewcode-block" id="QNNGenerator.predict"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.generation.QNNGenerator.predict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_shots</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Estimate the model&#39;s output probability vector via sampling.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            n_shots: Override sampling shots. Defaults to ``self.n_shots``.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Empirical probability vector of length ``2^fitting_qubit``.</span>
+<span class="sd">            Has shot noise of order ``1/sqrt(n_shots)``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">trained_param</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Call fit() before predict()&quot;</span><span class="p">)</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">n_shots</span> <span class="k">if</span> <span class="n">n_shots</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_shots</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trained_param</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span><span class="p">:</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="n">samples</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="p">)</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">bincount</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="n">minlength</span><span class="o">=</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">counts</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span></div>
+
+    <span class="c1"># --- Cost &amp; gradient --------------------------------------------------</span>
+
+<div class="viewcode-block" id="QNNGenerator.cost_func"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.generation.QNNGenerator.cost_func">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">cost_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">train_samples</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Estimate MMD^2(model, target) with ``self.n_shots`` model samples.&quot;&quot;&quot;</span>
+        <span class="n">model_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_shots</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span><span class="p">:</span>
+            <span class="n">model_samples</span> <span class="o">=</span> <span class="n">model_samples</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_mmd_squared</span><span class="p">(</span><span class="n">model_samples</span><span class="p">,</span> <span class="n">train_samples</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">)</span></div>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_cost_func_grad</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">theta</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
-        <span class="n">train_scaled</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">train_samples</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">theta</span> <span class="o">=</span> <span class="n">theta</span>
-        <span class="p">(</span><span class="n">pre</span><span class="p">,</span> <span class="n">prein</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_predict_and_inner</span><span class="p">()</span>
-        <span class="n">data_diff</span> <span class="o">=</span> <span class="n">pre</span> <span class="o">-</span> <span class="n">train_scaled</span>
-        <span class="n">conv_diff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conving</span><span class="p">(</span><span class="n">data_diff</span><span class="p">)</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parameter-shift gradient of MMD^2 w.r.t. theta.</span>
 
-        <span class="n">convconv_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">conv_diff</span><span class="p">,</span> <span class="mi">2</span> <span class="o">**</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="p">))</span>
-        <span class="n">state_vec</span> <span class="o">=</span> <span class="n">evaluate_state_to_vector</span><span class="p">(</span><span class="n">prein</span><span class="p">)</span><span class="o">.</span><span class="n">vector</span>
-        <span class="n">ret</span> <span class="o">=</span> <span class="n">QulacsQuantumState</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span><span class="p">)</span>
-        <span class="n">ret</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">convconv_diff</span> <span class="o">*</span> <span class="n">state_vec</span> <span class="o">*</span> <span class="mi">4</span><span class="p">)</span>
-        <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">backprop_inner_product</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">theta</span><span class="p">,</span> <span class="n">ret</span><span class="p">))</span>
-        <span class="k">return</span> <span class="o">-</span><span class="n">grad</span></div>
+<span class="sd">        Liu &amp; Wang eq. (12): for each learning parameter theta_l,</span>
+<span class="sd">        d MMD^2 / d theta_l =</span>
+<span class="sd">              E_{p_+, p}[K] - E_{p_-, p}[K]</span>
+<span class="sd">            - E_{p_+, q}[K] + E_{p_-, q}[K]</span>
+<span class="sd">        where p_+ / p_- are the distributions at theta +/- (pi/2) e_l, p is</span>
+<span class="sd">        p_theta, q is the target.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">n_params</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span>
+        <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_params</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">shift</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span>
+
+        <span class="n">model_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_shots</span><span class="p">)</span>
+        <span class="n">marginalize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span>
+        <span class="n">mod</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span> <span class="k">if</span> <span class="n">marginalize</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">marginalize</span><span class="p">:</span>
+            <span class="n">model_samples</span> <span class="o">=</span> <span class="n">model_samples</span> <span class="o">%</span> <span class="n">mod</span>
+
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_params</span><span class="p">):</span>
+            <span class="n">theta_plus</span> <span class="o">=</span> <span class="n">theta</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">theta_plus</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">+=</span> <span class="n">shift</span>
+            <span class="n">theta_minus</span> <span class="o">=</span> <span class="n">theta</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">theta_minus</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">-=</span> <span class="n">shift</span>
+
+            <span class="n">plus_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample</span><span class="p">(</span><span class="n">theta_plus</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_shots</span><span class="p">)</span>
+            <span class="n">minus_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample</span><span class="p">(</span><span class="n">theta_minus</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_shots</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">marginalize</span><span class="p">:</span>
+                <span class="n">plus_samples</span> <span class="o">=</span> <span class="n">plus_samples</span> <span class="o">%</span> <span class="n">mod</span>
+                <span class="n">minus_samples</span> <span class="o">=</span> <span class="n">minus_samples</span> <span class="o">%</span> <span class="n">mod</span>
+
+            <span class="n">k_pm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">(</span><span class="n">plus_samples</span><span class="p">,</span> <span class="n">model_samples</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="n">k_mm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">(</span><span class="n">minus_samples</span><span class="p">,</span> <span class="n">model_samples</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="n">k_pt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">(</span><span class="n">plus_samples</span><span class="p">,</span> <span class="n">train_samples</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+            <span class="n">k_mt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">(</span><span class="n">minus_samples</span><span class="p">,</span> <span class="n">train_samples</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+            <span class="n">grad</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">k_pm</span> <span class="o">-</span> <span class="n">k_mm</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">k_pt</span> <span class="o">-</span> <span class="n">k_mt</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">grad</span>
+
+    <span class="c1"># --- Sampling ---------------------------------------------------------</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">n_shots</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sample ``n_shots`` bit strings from the model at parameter theta.</span>
+
+<span class="sd">        Returns an array of integers (each representing a bit string).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bound</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">bind_input_and_parameters</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">theta</span><span class="p">))</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="o">.</span><span class="n">sample</span><span class="p">([(</span><span class="n">bound</span><span class="p">,</span> <span class="n">n_shots</span><span class="p">)])))</span>
+        <span class="c1"># MeasurementCounts is dict[int, int]; expand to a flat int array</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">values</span><span class="p">())),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">bitstr</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">idx</span> <span class="p">:</span> <span class="n">idx</span> <span class="o">+</span> <span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">bitstr</span>
+            <span class="n">idx</span> <span class="o">+=</span> <span class="n">c</span>
+        <span class="k">return</span> <span class="n">out</span><span class="p">[:</span><span class="n">idx</span><span class="p">]</span></div>
 </pre></div>
 
                 </article>

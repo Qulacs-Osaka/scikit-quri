@@ -323,9 +323,9 @@ document.write(`
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConcurrentSampler</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn</span><span class="w"> </span><span class="kn">import</span> <span class="n">svm</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSampler</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">LearningCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.state</span><span class="w"> </span><span class="kn">import</span> <span class="n">OverlapEstimator</span>
 
@@ -349,7 +349,7 @@ document.write(`
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
         <span class="n">y</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
-        <span class="n">sampler</span><span class="p">:</span> <span class="n">ConcurrentSampler</span><span class="p">,</span>
+        <span class="n">sampler</span><span class="p">:</span> <span class="n">BaseSampler</span><span class="p">,</span>
         <span class="n">n_shots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e7</span><span class="p">),</span>
         <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -359,7 +359,7 @@ document.write(`
 <span class="sd">        Args:</span>
 <span class="sd">            x: Training feature matrix of shape (n_samples, n_features).</span>
 <span class="sd">            y: Training labels.</span>
-<span class="sd">            sampler: Concurrent sampler function.</span>
+<span class="sd">            sampler: Sampling backend (e.g. ``QulacsSampler`` or ``OqtopusSampler``).</span>
 <span class="sd">            n_shots: Number of shots per circuit execution. Defaults to 1000.</span>
 <span class="sd">            max_iter: Maximum number of iterations for the SVM solver. Defaults to 1e7.</span>
 <span class="sd">            verbose: Whether to print the SVM training progress. Defaults to False.</span>

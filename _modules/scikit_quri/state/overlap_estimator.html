@@ -320,16 +320,17 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.circuit.inverse</span><span class="w"> </span><span class="kn">import</span> <span class="n">inverse_circuit</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConcurrentSampler</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSampler</span>
 
 
 <div class="viewcode-block" id="OverlapEstimator"><a class="viewcode-back" href="../../../scikit_quri.state.html#scikit_quri.state.overlap_estimator.OverlapEstimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">OverlapEstimator</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Alternative implementation of quri-parts&#39; overlap estimator.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">concurrent_sampler</span><span class="p">:</span> <span class="n">ConcurrentSampler</span><span class="p">,</span> <span class="n">n_shots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">concurrent_sampler</span><span class="p">:</span> <span class="n">BaseSampler</span><span class="p">,</span> <span class="n">n_shots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
-<span class="sd">            concurrent_sampler: Concurrent sampler function.</span>
+<span class="sd">            concurrent_sampler: Sampling backend (e.g. ``QulacsSampler`` or ``OqtopusSampler``).</span>
 <span class="sd">            n_shots: Number of shots per circuit execution. Defaults to 1000.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>

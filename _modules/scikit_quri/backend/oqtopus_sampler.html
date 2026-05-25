@@ -316,19 +316,22 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for scikit_quri.backend.oqtopus_sampler</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span><span class="p">,</span> <span class="n">as_completed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">NonParametricQuantumCircuit</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Iterable</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.sampling</span><span class="w"> </span><span class="kn">import</span> <span class="n">MeasurementCounts</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts_oqtopus.backend</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">OqtopusConfig</span><span class="p">,</span>
-    <span class="n">OqtopusSamplingBackend</span><span class="p">,</span>
     <span class="n">OqtopusDeviceBackend</span><span class="p">,</span>
+    <span class="n">OqtopusSamplingBackend</span><span class="p">,</span>
 <span class="p">)</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base_sampler</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSampler</span>
 
-<div class="viewcode-block" id="OqtopusSampler"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">OqtopusSampler</span><span class="p">:</span>
+
+<div class="viewcode-block" id="OqtopusSampler"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">OqtopusSampler</span><span class="p">(</span><span class="n">BaseSampler</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">OqtopusConfig</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="n">OqtopusSamplingBackend</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">device_id</span> <span class="o">=</span> <span class="n">device_id</span>
@@ -347,16 +350,18 @@ document.write(`
         <span class="n">device_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">device_backend</span><span class="o">.</span><span class="n">get_device</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">device_info</span><span class="o">.</span><span class="n">n_qubits</span></div>
 
-<div class="viewcode-block" id="OqtopusSampler.sample"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler.sample">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">NonParametricQuantumCircuit</span><span class="p">,</span> <span class="n">shots</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeasurementCounts</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="OqtopusSampler.sample_one"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler.sample_one">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">sample_one</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">NonParametricQuantumCircuit</span><span class="p">,</span> <span class="n">n_shots</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MeasurementCounts</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sample a single circuit ``n_shots`` times.</span>
+
 <span class="sd">        Raises:</span>
 <span class="sd">            BackendError: Oqtopusでの実行に失敗した場合</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">device_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="n">shots</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">device_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="n">n_shots</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">counts</span></div>
 
-<div class="viewcode-block" id="OqtopusSampler.concurrent_sample"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler.concurrent_sample">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">concurrent_sample</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">circuit_shots_tuples</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">NonParametricQuantumCircuit</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span>
+<div class="viewcode-block" id="OqtopusSampler.sample"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler.sample">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">circuit_shots_tuples</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">NonParametricQuantumCircuit</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">MeasurementCounts</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        concurrentにsampleする関数</span>
@@ -416,7 +421,19 @@ document.write(`
         <span class="k">for</span> <span class="n">divided_counts</span> <span class="ow">in</span> <span class="n">batched_result</span><span class="p">:</span>
             <span class="c1"># dictのkey(int)でsortしてから格納</span>
             <span class="n">counts</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">v</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">divided_counts</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
-        <span class="k">return</span> <span class="n">counts</span></div></div>
+        <span class="k">return</span> <span class="n">counts</span></div>
+
+<div class="viewcode-block" id="OqtopusSampler.concurrent_sample"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler.concurrent_sample">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">concurrent_sample</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">circuit_shots_tuples</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">NonParametricQuantumCircuit</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterable</span><span class="p">[</span><span class="n">MeasurementCounts</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated alias of :meth:`sample`. Kept for backward compatibility.&quot;&quot;&quot;</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;OqtopusSampler.concurrent_sample is deprecated; use .sample(...) instead.&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">circuit_shots_tuples</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="create_oqtopus_sampler"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.create_oqtopus_sampler">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">create_oqtopus_sampler</span><span class="p">(</span><span class="n">device_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">OqtopusConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
@@ -427,7 +444,7 @@ document.write(`
 <span class="sd">        Sampler: Oqtopus用のSampler</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">oqtopusSampler</span> <span class="o">=</span> <span class="n">OqtopusSampler</span><span class="p">(</span><span class="n">device_id</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">oqtopusSampler</span><span class="o">.</span><span class="n">sample</span></div>
+    <span class="k">return</span> <span class="n">oqtopusSampler</span><span class="o">.</span><span class="n">sample_one</span></div>
 
 
 <div class="viewcode-block" id="create_oqtopus_concurrent_sampler"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.create_oqtopus_concurrent_sampler">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">create_oqtopus_concurrent_sampler</span><span class="p">(</span><span class="n">device_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">OqtopusConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
@@ -437,7 +454,7 @@ document.write(`
 <span class="sd">        ConcurrentSampler: Oqtopus用のConcurrentSampler</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">oqtopusSampler</span> <span class="o">=</span> <span class="n">OqtopusSampler</span><span class="p">(</span><span class="n">device_id</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">oqtopusSampler</span><span class="o">.</span><span class="n">concurrent_sample</span></div>
+    <span class="k">return</span> <span class="n">oqtopusSampler</span><span class="o">.</span><span class="n">sample</span></div>
 </pre></div>
 
                 </article>

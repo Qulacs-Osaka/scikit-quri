@@ -385,11 +385,11 @@ document.write(`
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.qnn.generation">scikit_quri.qnn.generation module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.default_gaussian_mixture_kernel"><code class="docutils literal notranslate"><span class="pre">default_gaussian_mixture_kernel()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator"><code class="docutils literal notranslate"><span class="pre">QNNGenerator</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.fit"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.fit()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.fit_direct_distribution"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.fit_direct_distribution()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.predict"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.predict()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.conving"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.conving()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.cost_func"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.cost_func()</span></code></a></li>
 </ul>
 </li>
@@ -656,62 +656,119 @@ The prediction is made by
 </section>
 <section id="module-scikit_quri.qnn.generation">
 <span id="scikit-quri-qnn-generation-module"></span><h2>scikit_quri.qnn.generation module<a class="headerlink" href="#module-scikit_quri.qnn.generation" title="Permalink to this heading">#</a></h2>
+<p>Quantum Circuit Born Machine (QCBM) generative model.</p>
+<p>Implements the MMD-based training algorithm from
+Liu &amp; Wang, “Differentiable Learning of Quantum Circuit Born Machines”,
+Phys. Rev. A 98, 062324 (2018), arXiv:1804.04168.</p>
+<p>The model samples bit strings z from <code class="docutils literal notranslate"><span class="pre">p_theta(z)</span> <span class="pre">=</span> <span class="pre">|⟨z|psi(theta)⟩|^2</span></code>
+(Born rule); training minimizes the squared maximum mean discrepancy MMD^2
+between model samples and target samples in a reproducing kernel Hilbert
+space. Both cost and gradient estimators are sample-based, so the same code
+runs on a state-vector simulator (<code class="docutils literal notranslate"><span class="pre">QulacsSampler</span></code>), a noisy simulator, or
+real hardware (<code class="docutils literal notranslate"><span class="pre">OqtopusSampler</span></code>).</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="scikit_quri.qnn.generation.default_gaussian_mixture_kernel">
+<span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.generation.</span></span><span class="sig-name descname"><span class="pre">default_gaussian_mixture_kernel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sigmas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0.25,</span> <span class="pre">1.0,</span> <span class="pre">4.0)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#default_gaussian_mixture_kernel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.generation.default_gaussian_mixture_kernel" title="Permalink to this definition">#</a></dt>
+<dd><p>Gaussian-mixture kernel on integer bit-string distances.</p>
+<p><code class="docutils literal notranslate"><span class="pre">K(x_i,</span> <span class="pre">y_j)</span> <span class="pre">=</span> <span class="pre">(1/|sigmas|)</span> <span class="pre">*</span> <span class="pre">sum_sigma</span> <span class="pre">exp(-(x_i</span> <span class="pre">-</span> <span class="pre">y_j)^2</span> <span class="pre">/</span> <span class="pre">(2</span> <span class="pre">sigma^2))</span></code>.</p>
+<p>Liu &amp; Wang recommend mixtures of bandwidths so the kernel captures both
+local and global differences between distributions. The default values
+are reasonable for low-qubit problems; for larger bit-string ranges
+consider scaling sigmas with the support size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sigmas</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><em>Sequence</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em>) – </p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><em>Callable</em></a>[[<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>_ScalarType_co</em>]], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>_ScalarType_co</em>]]], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>_ScalarType_co</em>]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py class">
 <dt class="sig sig-object py" id="scikit_quri.qnn.generation.QNNGenerator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.generation.</span></span><span class="sig-name descname"><span class="pre">QNNGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gauss_sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitting_qubit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.generation.QNNGenerator" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.generation.</span></span><span class="sig-name descname"><span class="pre">QNNGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_shots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitting_qubit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.generation.QNNGenerator" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Class to generation problems by quantum neural networks.
-This class is only working with a simulator. depending on qulacs.
-It is not working with real quantum computers.</p>
+<p>Quantum Circuit Born Machine trained with MMD loss.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>circuit</strong> (<a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit" title="scikit_quri.circuit.circuit.LearningCircuit"><em>LearningCircuit</em></a>) – The learning circuit to be used.</p></li>
-<li><p><strong>solver</strong> (<a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/algo/quri_parts.algo.optimizer.interface.html#quri_parts.algo.optimizer.interface.Optimizer" title="(in QURI Parts)"><em>Optimizer</em></a>) – The optimizer to be used for training.</p></li>
-<li><p><strong>kernel_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><em>Literal</em></a><em>[</em><em>'gauss'</em><em>, </em><em>'exp_hamming'</em><em>, </em><em>'same'</em><em>]</em>) – The type of kernel to be used. exp_hamming is not implemented yet.</p></li>
-<li><p><strong>gauss_sigma</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The sigma value for Gaussian kernel.</p></li>
-<li><p><strong>fitting_qubit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The number of qubits to be used for fitting.</p></li>
+<li><p><strong>circuit</strong> (<a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit" title="scikit_quri.circuit.circuit.LearningCircuit"><em>LearningCircuit</em></a>) – Parametric circuit (ansatz). The input portion of the
+circuit is bound to a constant <code class="docutils literal notranslate"><span class="pre">np.array([0])</span></code> placeholder —
+this class learns an unconditional distribution, so any
+<code class="docutils literal notranslate"><span class="pre">add_input_*</span></code> gates should be avoided.</p></li>
+<li><p><strong>solver</strong> (<a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/algo/quri_parts.algo.optimizer.interface.html#quri_parts.algo.optimizer.interface.Optimizer" title="(in QURI Parts)"><em>Optimizer</em></a>) – Optimizer driving theta updates.</p></li>
+<li><p><strong>sampler</strong> (<em>BaseSampler</em>) – Sampling backend implementing <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseSampler</span></code>.</p></li>
+<li><p><strong>n_shots</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of measurement shots per circuit evaluation.
+Used for cost, gradient (per shift), and predict.</p></li>
+<li><p><strong>kernel</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><em>Optional</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em><em>]</em><em>]</em>) – Kernel <code class="docutils literal notranslate"><span class="pre">K(x,</span> <span class="pre">y)</span> <span class="pre">-&gt;</span> <span class="pre">(n_x,</span> <span class="pre">n_y)</span></code> for the MMD loss. <code class="docutils literal notranslate"><span class="pre">x</span></code> and
+<code class="docutils literal notranslate"><span class="pre">y</span></code> are arrays of bit-string integers. Defaults to a Gaussian
+mixture from <a class="reference internal" href="#scikit_quri.qnn.generation.default_gaussian_mixture_kernel" title="scikit_quri.qnn.generation.default_gaussian_mixture_kernel"><code class="xref py py-func docutils literal notranslate"><span class="pre">default_gaussian_mixture_kernel()</span></code></a>.</p></li>
+<li><p><strong>fitting_qubit</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><em>Optional</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em>) – Number of qubits used to represent the output
+distribution. When less than <code class="docutils literal notranslate"><span class="pre">circuit.n_qubits</span></code> the higher
+qubits are marginalized out (<code class="docutils literal notranslate"><span class="pre">z</span> <span class="pre">mod</span> <span class="pre">2^fitting_qubit</span></code>).
+Defaults to <code class="docutils literal notranslate"><span class="pre">circuit.n_qubits</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>Parameter-shift gradients are computed at the learning-parameter
+level (length = <code class="docutils literal notranslate"><span class="pre">circuit.learning_params_count</span></code>). This is exact
+when each learning parameter controls a single Pauli rotation gate;
+circuits using <code class="docutils literal notranslate"><span class="pre">share_with</span></code> to share one learning parameter
+across multiple gates will receive an approximate gradient — the
+cost function itself is unaffected.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.generation.QNNGenerator.fit">
 <span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.generation.QNNGenerator.fit" title="Permalink to this definition">#</a></dt>
-<dd><dl class="simple">
-<dt>Params:</dt><dd><p>train_data: The training data to be used for fitting.
-maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
-</dd>
-</dl>
+<dd><p>Train against a sample-list target distribution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>train_data</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
-<li><p><strong>maxiter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – </p></li>
+<li><p><strong>train_data</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>int64</em><em>]</em><em>]</em>) – Array of bit-string integers; the empirical
+distribution of these is the target.</p></li>
+<li><p><strong>maxiter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Maximum optimizer iterations.</p></li>
 </ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.generation.QNNGenerator.fit_direct_distribution">
-<span class="sig-name descname"><span class="pre">fit_direct_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_scaled</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.fit_direct_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.generation.QNNGenerator.fit_direct_distribution" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
+<span class="sig-name descname"><span class="pre">fit_direct_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_target_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.fit_direct_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.generation.QNNGenerator.fit_direct_distribution" title="Permalink to this definition">#</a></dt>
+<dd><p>Train against a target probability vector.</p>
+<p>Internally samples <code class="docutils literal notranslate"><span class="pre">n_target_samples</span></code> bit strings from <code class="docutils literal notranslate"><span class="pre">p</span></code> and
+delegates to <a class="reference internal" href="#scikit_quri.qnn.generation.QNNGenerator.fit" title="scikit_quri.qnn.generation.QNNGenerator.fit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code></a>. The MMD estimator is sample-based.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>train_scaled</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
-<li><p><strong>maxiter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – </p></li>
+<li><p><strong>p</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Target probability vector of length <code class="docutils literal notranslate"><span class="pre">2^fitting_qubit</span></code>.</p></li>
+<li><p><strong>maxiter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Maximum optimizer iterations.</p></li>
+<li><p><strong>n_target_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of target-distribution samples.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Seed for the target sampler.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a>]]</p>
+<dd class="field-even"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.generation.QNNGenerator.predict">
-<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.generation.QNNGenerator.predict" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_shots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.generation.QNNGenerator.predict" title="Permalink to this definition">#</a></dt>
+<dd><p>Estimate the model’s output probability vector via sampling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>n_shots</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><em>Optional</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em>) – Override sampling shots. Defaults to <code class="docutils literal notranslate"><span class="pre">self.n_shots</span></code>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Empirical probability vector of length <code class="docutils literal notranslate"><span class="pre">2^fitting_qubit</span></code>.
+Has shot noise of order <code class="docutils literal notranslate"><span class="pre">1/sqrt(n_shots)</span></code>.</p>
+</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>float64</em>]]</p>
 </dd>
@@ -719,30 +776,18 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="scikit_quri.qnn.generation.QNNGenerator.conving">
-<span class="sig-name descname"><span class="pre">conving</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_diff</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.conving"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.generation.QNNGenerator.conving" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>data_diff</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>float64</em>]]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.generation.QNNGenerator.cost_func">
-<span class="sig-name descname"><span class="pre">cost_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_scaled</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.cost_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.generation.QNNGenerator.cost_func" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
+<span class="sig-name descname"><span class="pre">cost_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_samples</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.cost_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.generation.QNNGenerator.cost_func" title="Permalink to this definition">#</a></dt>
+<dd><p>Estimate MMD^2(model, target) with <code class="docutils literal notranslate"><span class="pre">self.n_shots</span></code> model samples.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>theta</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em>) – </p></li>
-<li><p><strong>train_scaled</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>theta</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>train_samples</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>int64</em><em>]</em><em>]</em>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>float64</em>]]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1760,60 +1805,88 @@ The out is taken as expectation values of <code class="docutils literal notransl
 
 <dl class="py class">
 <dt class="sig sig-object py">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.</span></span><span class="sig-name descname"><span class="pre">QNNGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gauss_sigma</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitting_qubit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.</span></span><span class="sig-name descname"><span class="pre">QNNGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">circuit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sampler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_shots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitting_qubit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Class to generation problems by quantum neural networks.
-This class is only working with a simulator. depending on qulacs.
-It is not working with real quantum computers.</p>
+<p>Quantum Circuit Born Machine trained with MMD loss.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>circuit</strong> (<a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit" title="scikit_quri.circuit.circuit.LearningCircuit"><em>LearningCircuit</em></a>) – The learning circuit to be used.</p></li>
-<li><p><strong>solver</strong> (<a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/algo/quri_parts.algo.optimizer.interface.html#quri_parts.algo.optimizer.interface.Optimizer" title="(in QURI Parts)"><em>Optimizer</em></a>) – The optimizer to be used for training.</p></li>
-<li><p><strong>kernel_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Literal" title="(in Python v3.14)"><em>Literal</em></a><em>[</em><em>'gauss'</em><em>, </em><em>'exp_hamming'</em><em>, </em><em>'same'</em><em>]</em>) – The type of kernel to be used. exp_hamming is not implemented yet.</p></li>
-<li><p><strong>gauss_sigma</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The sigma value for Gaussian kernel.</p></li>
-<li><p><strong>fitting_qubit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The number of qubits to be used for fitting.</p></li>
+<li><p><strong>circuit</strong> (<a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit" title="scikit_quri.circuit.circuit.LearningCircuit"><em>LearningCircuit</em></a>) – Parametric circuit (ansatz). The input portion of the
+circuit is bound to a constant <code class="docutils literal notranslate"><span class="pre">np.array([0])</span></code> placeholder —
+this class learns an unconditional distribution, so any
+<code class="docutils literal notranslate"><span class="pre">add_input_*</span></code> gates should be avoided.</p></li>
+<li><p><strong>solver</strong> (<a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/algo/quri_parts.algo.optimizer.interface.html#quri_parts.algo.optimizer.interface.Optimizer" title="(in QURI Parts)"><em>Optimizer</em></a>) – Optimizer driving theta updates.</p></li>
+<li><p><strong>sampler</strong> (<em>BaseSampler</em>) – Sampling backend implementing <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseSampler</span></code>.</p></li>
+<li><p><strong>n_shots</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of measurement shots per circuit evaluation.
+Used for cost, gradient (per shift), and predict.</p></li>
+<li><p><strong>kernel</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><em>Optional</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.14)"><em>Callable</em></a><em>[</em><em>[</em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>_ScalarType_co</em><em>]</em><em>]</em><em>]</em><em>]</em>) – Kernel <code class="docutils literal notranslate"><span class="pre">K(x,</span> <span class="pre">y)</span> <span class="pre">-&gt;</span> <span class="pre">(n_x,</span> <span class="pre">n_y)</span></code> for the MMD loss. <code class="docutils literal notranslate"><span class="pre">x</span></code> and
+<code class="docutils literal notranslate"><span class="pre">y</span></code> are arrays of bit-string integers. Defaults to a Gaussian
+mixture from <code class="xref py py-func docutils literal notranslate"><span class="pre">default_gaussian_mixture_kernel()</span></code>.</p></li>
+<li><p><strong>fitting_qubit</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><em>Optional</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em>) – Number of qubits used to represent the output
+distribution. When less than <code class="docutils literal notranslate"><span class="pre">circuit.n_qubits</span></code> the higher
+qubits are marginalized out (<code class="docutils literal notranslate"><span class="pre">z</span> <span class="pre">mod</span> <span class="pre">2^fitting_qubit</span></code>).
+Defaults to <code class="docutils literal notranslate"><span class="pre">circuit.n_qubits</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<p>Parameter-shift gradients are computed at the learning-parameter
+level (length = <code class="docutils literal notranslate"><span class="pre">circuit.learning_params_count</span></code>). This is exact
+when each learning parameter controls a single Pauli rotation gate;
+circuits using <code class="docutils literal notranslate"><span class="pre">share_with</span></code> to share one learning parameter
+across multiple gates will receive an approximate gradient — the
+cost function itself is unaffected.</p>
 <dl class="py method">
 <dt class="sig sig-object py">
 <span class="sig-name descname"><span class="pre">fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><dl class="simple">
-<dt>Params:</dt><dd><p>train_data: The training data to be used for fitting.
-maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
-</dd>
-</dl>
+<dd><p>Train against a sample-list target distribution.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>train_data</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
-<li><p><strong>maxiter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – </p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">fit_direct_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_scaled</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.fit_direct_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>train_scaled</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
-<li><p><strong>maxiter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – </p></li>
+<li><p><strong>train_data</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>int64</em><em>]</em><em>]</em>) – Array of bit-string integers; the empirical
+distribution of these is the target.</p></li>
+<li><p><strong>maxiter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Maximum optimizer iterations.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.14)"><em>Tuple</em></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a>, <a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a>]]</p>
+<dd class="field-even"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><dl class="field-list simple">
+<span class="sig-name descname"><span class="pre">fit_direct_distribution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_target_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.fit_direct_distribution"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Train against a target probability vector.</p>
+<p>Internally samples <code class="docutils literal notranslate"><span class="pre">n_target_samples</span></code> bit strings from <code class="docutils literal notranslate"><span class="pre">p</span></code> and
+delegates to <code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code>. The MMD estimator is sample-based.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Target probability vector of length <code class="docutils literal notranslate"><span class="pre">2^fitting_qubit</span></code>.</p></li>
+<li><p><strong>maxiter</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Maximum optimizer iterations.</p></li>
+<li><p><strong>n_target_samples</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Number of target-distribution samples.</p></li>
+<li><p><strong>seed</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Seed for the target sampler.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_shots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Estimate the model’s output probability vector via sampling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>n_shots</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><em>Optional</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>]</em>) – Override sampling shots. Defaults to <code class="docutils literal notranslate"><span class="pre">self.n_shots</span></code>.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Empirical probability vector of length <code class="docutils literal notranslate"><span class="pre">2^fitting_qubit</span></code>.
+Has shot noise of order <code class="docutils literal notranslate"><span class="pre">1/sqrt(n_shots)</span></code>.</p>
+</dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>float64</em>]]</p>
 </dd>
@@ -1822,29 +1895,17 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">conving</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_diff</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.conving"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>data_diff</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>float64</em>]]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py">
-<span class="sig-name descname"><span class="pre">cost_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_scaled</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.cost_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
-<dd><dl class="field-list simple">
+<span class="sig-name descname"><span class="pre">cost_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_samples</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/generation.html#QNNGenerator.cost_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Estimate MMD^2(model, target) with <code class="docutils literal notranslate"><span class="pre">self.n_shots</span></code> model samples.</p>
+<dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>theta</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a><em>]</em>) – </p></li>
-<li><p><strong>train_scaled</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>theta</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>train_samples</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>int64</em><em>]</em><em>]</em>) – </p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>float64</em>]]</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)">float</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1922,11 +1983,11 @@ maxiter: The maximum number of iterations for the optimizer. Default is 100.</p>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-scikit_quri.qnn.generation">scikit_quri.qnn.generation module</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.default_gaussian_mixture_kernel"><code class="docutils literal notranslate"><span class="pre">default_gaussian_mixture_kernel()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator"><code class="docutils literal notranslate"><span class="pre">QNNGenerator</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.fit"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.fit()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.fit_direct_distribution"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.fit_direct_distribution()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.predict"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.predict()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.conving"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.conving()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.generation.QNNGenerator.cost_func"><code class="docutils literal notranslate"><span class="pre">QNNGenerator.cost_func()</span></code></a></li>
 </ul>
 </li>
