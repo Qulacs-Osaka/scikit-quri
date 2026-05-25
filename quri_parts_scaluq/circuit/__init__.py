@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Callable, Union, cast
+import threading
 import numpy as np
 from numpy.typing import ArrayLike
 from typing_extensions import assert_never
@@ -211,12 +212,32 @@ def convert_circuit(circuit: ImmutableQuantumCircuit) -> _backend.Circuit:
     return scaluq_circuit
 
 
+# Single-entry cache: stores the most recently converted circuit only.
+# A strong reference to the circuit is retained so its id() cannot be reused
+# by a different object while the cache is live, which would otherwise cause
+# id-collision false hits with an id-keyed dict cache.
+_convert_cache_last: (
+    tuple[
+        ParametricQuantumCircuitProtocol,
+        ScaluqCircuit,
+        Callable[[Sequence[float]], dict[str, list[float]]],
+    ]
+    | None
+) = None
+_convert_cache_lock = threading.Lock()
+
+
 def convert_parametric_circuit(
     circuit: ParametricQuantumCircuitProtocol,
 ) -> tuple[
     ScaluqCircuit,
     Callable[[Sequence[float]], dict[str, list[float]]],
 ]:
+    global _convert_cache_last
+    with _convert_cache_lock:
+        if _convert_cache_last is not None and _convert_cache_last[0] is circuit:
+            return _convert_cache_last[1], _convert_cache_last[2]
+
     param_circuit: ImmutableParametricQuantumCircuit
     param_mapper: Callable[[Sequence[float]], dict[str, list[float]]]
     if isinstance(circuit, ImmutableLinearMappedParametricQuantumCircuit):
@@ -277,4 +298,6 @@ def convert_parametric_circuit(
         else:
             scaluq_circuit.add_gate(convert_gate(gate))
 
+    with _convert_cache_lock:
+        _convert_cache_last = (circuit, scaluq_circuit, param_mapper)
     return scaluq_circuit, param_mapper

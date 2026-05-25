@@ -28,19 +28,21 @@ class LearningCircuitParameter:
 
 
 def _parametric_estimate(
-    op_state: tuple[Estimatable, LearningCircuit], params: Sequence[LearningCircuitParameter]
+    op_state: tuple[Estimatable, LearningCircuit],
+    params: Sequence[LearningCircuitParameter],
+    estimator: OqtopusEstimator,
 ) -> Sequence[Estimate[complex]]:
     """複数のパラメータセットに対して期待値を一括計算する。
 
     Args:
         op_state: (演算子, 学習回路)のタプル。
         params: パラメータセットのシーケンス。
+        estimator: 期待値計算に使用する推定器。
 
     Returns:
         各パラメータセットに対する期待値のEstimateオブジェクトのシーケンス。
     """
     operator, circuit = op_state
-    estimator = OqtopusEstimator("qulacs")
     n_qubits = circuit.n_qubits
     estimates = []
     states = []
@@ -57,6 +59,7 @@ def numerical_gradient_estimates(
     circuit: LearningCircuit,
     params: LearningCircuitParameter,
     delta: float,
+    estimator: OqtopusEstimator,
 ) -> Sequence[complex]:
     """数値微分により勾配を計算する。
 
@@ -81,7 +84,7 @@ def numerical_gradient_estimates(
         current_learning_param = params.learning_param.copy()
         current_learning_param[i] -= delta * 0.5
         v.append(LearningCircuitParameter(input_param, current_learning_param))
-    estimates = _parametric_estimate((op, circuit), v)
+    estimates = _parametric_estimate((op, circuit), v, estimator)
     grad = []
     for i in range(len(params.learning_param)):
         d = estimates[2 * i].value - estimates[2 * i + 1].value
@@ -129,6 +132,9 @@ class OqtopusGradientEstimator(BaseGradientEstimator):
     OqtopusEstimatorを内部で使用し、数値微分により勾配を計算する。
     """
 
+    def __init__(self) -> None:
+        self.estimator = OqtopusEstimator("qulacs")
+
     def estimate_gradient(self, operators, state, params):
         """全パラメータに対する勾配を計算する。
 
@@ -158,6 +164,6 @@ class OqtopusGradientEstimator(BaseGradientEstimator):
             learning_param=np.array([params[i] for i in circuit.get_learning_params_indexes()]),
         )
         estimate_gradients = numerical_gradient_estimates(
-            operators, circuit, learning_params, delta=1e-5
+            operators, circuit, learning_params, delta=1e-5, estimator=self.estimator
         )
         return estimate_gradients

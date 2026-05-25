@@ -66,7 +66,7 @@ class OqtopusEstimator(BaseEstimator):
 
         if num_ops > 1 and num_states > 1 and num_ops != num_states:
             raise ValueError(
-                f"Number of operators ({num_ops}) does not matchnumber of states ({num_states}).",
+                f"Number of operators ({num_ops}) does not match number of states ({num_states}).",
             )
 
         if num_states == 1:

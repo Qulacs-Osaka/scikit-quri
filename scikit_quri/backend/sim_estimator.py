@@ -23,10 +23,10 @@ class SimEstimator(BaseEstimator):
 
     def __init__(self, use_scaluq: bool = False) -> None:
         self.use_scaluq = use_scaluq
+        self._concurrent_estimator = create_qulacs_vector_concurrent_estimator()
 
     def estimate(self, operators, states):
-        estimator = create_qulacs_vector_concurrent_estimator()
-        return estimator(operators, states)
+        return self._concurrent_estimator(operators, states)
 
     def estimate_scaluq_batched(
         self,

@@ -1,3 +1,3 @@
-from .overlap_estimator import overlap_estimator
+from .overlap_estimator import OverlapEstimator
 
-__all__ = ["overlap_estimator"]
+__all__ = ["OverlapEstimator"]

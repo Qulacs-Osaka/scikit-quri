@@ -9,7 +9,7 @@ from quri_parts.core.sampling import ConcurrentSampler
 from sklearn import svm
 
 from scikit_quri.circuit import LearningCircuit
-from scikit_quri.state import overlap_estimator
+from scikit_quri.state import OverlapEstimator
 
 
 class SVMethodType(Enum):
@@ -25,6 +25,7 @@ class BaseQSV:
         self.sv_method_type = sv_method_type
         self.data_circuits: list[QuantumCircuit] = []
         self.n_qubit = circuit.n_qubits
+        self.estimator = None
 
     def fit(
         self,
@@ -49,7 +50,7 @@ class BaseQSV:
         n_x = len(x)
         gram_train = np.zeros((n_x, n_x))
         self.data_circuits = [self._run_circuit(x[i]) for i in range(n_x)]
-        self.estimator = overlap_estimator(sampler, n_shots)
+        self.estimator = OverlapEstimator(sampler, n_shots)
         gram_train = self.estimator.estimate_concurrent(
             self.data_circuits, self.data_circuits
         ).reshape(n_x, n_x)
@@ -71,7 +72,7 @@ class BaseQSV:
             pred: Predicted values of shape (n_samples,).
 
         """
-        if not self.estimator:
+        if self.estimator is None:
             raise ValueError("run fit() before predict")
         n_x = len(xs)
         gram_test = np.zeros((n_x, len(self.data_circuits)))

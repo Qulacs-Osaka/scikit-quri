@@ -42,6 +42,7 @@ class QNNGenerator:
         self.gauss_sigma = gauss_sigma
         self.fitting_qubit = fitting_qubit
         self.theta: None | List[float] = None
+        self.trained_param: None | List[float] = None
 
         self.observables = [pauli_label(f"Z{i}") for i in range(self.n_qubit)]
 
@@ -78,7 +79,10 @@ class QNNGenerator:
         self.trained_param = optimizer_state.params
 
     def predict(self) -> NDArray[np.float64]:
-        y_pred_in = evaluate_state_to_vector(self._predict_inner()).vector
+        if self.trained_param is None:
+            raise ValueError("run fit() before predict")
+
+        y_pred_in = evaluate_state_to_vector(self._predict_inner(self.trained_param)).vector
         y_pred_conj = y_pred_in.conjugate()
         data_per: NDArray[np.float64] = np.abs(y_pred_in * y_pred_conj)
 
@@ -91,11 +95,11 @@ class QNNGenerator:
         return data_per
 
     def _predict_and_inner(self) -> Tuple[NDArray[np.float64], QuantumState]:
-        state = self._predict_inner()
+        state = self._predict_inner(self.theta)
         y_pred_in = evaluate_state_to_vector(state).vector
         y_pred_conj = y_pred_in.conjugate()
 
-        data_per = y_pred_in * y_pred_conj
+        data_per = (y_pred_in * y_pred_conj).real
 
         if self.n_qubit != self.fitting_qubit:
             data_per = data_per.reshape(
@@ -104,8 +108,8 @@ class QNNGenerator:
             data_per = data_per.sum(axis=0)
         return (data_per, state)
 
-    def _predict_inner(self) -> QuantumState:
-        circuit = self.circuit.bind_input_and_parameters(np.array([0]), np.array(self.theta))
+    def _predict_inner(self, theta: List[float]) -> QuantumState:
+        circuit = self.circuit.bind_input_and_parameters(np.array([0]), np.array(theta))
         state = quantum_state(n_qubits=self.n_qubit, circuit=circuit)
         return state
 
@@ -148,7 +152,8 @@ class QNNGenerator:
         train_scaled: NDArray[np.float64],
     ) -> NDArray[np.float64]:
         self.theta = theta
-        data_diff = self.predict() - train_scaled
+        (pre, _) = self._predict_and_inner()
+        data_diff = pre - train_scaled
         conv_diff = self.conving(data_diff)
         cost = np.dot(data_diff, conv_diff)
         return cost
@@ -167,5 +172,5 @@ class QNNGenerator:
         state_vec = evaluate_state_to_vector(prein).vector
         ret = QulacsQuantumState(self.n_qubit)
         ret.load(convconv_diff * state_vec * 4)
-        grad = np.array(self.circuit.backprop_innner_product([0], self.theta, ret))
+        grad = np.array(self.circuit.backprop_inner_product([0], self.theta, ret))
         return -grad
