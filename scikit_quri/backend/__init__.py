@@ -1,3 +1,13 @@
+import os
+
+# scaluq is built on Kokkos, which prints an "OMP_PROC_BIND ... not set" advisory to
+# stderr at OpenMP initialization when the variable is unset. Provide an overridable
+# default before scaluq is imported below so the import stays quiet. "false" disables
+# thread pinning, which avoids clashing with other OpenMP runtimes (BLAS, etc.) in the
+# same process; set OMP_PROC_BIND=spread and OMP_PLACES=threads yourself for maximum
+# scaluq throughput.
+os.environ.setdefault("OMP_PROC_BIND", "false")
+
 from .base_estimator import BaseEstimator, BatchedSimEstimator
 from .base_sampler import BaseSampler
 from .oqtopus_estimator import OqtopusEstimator

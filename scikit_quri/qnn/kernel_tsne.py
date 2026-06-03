@@ -5,12 +5,8 @@ from numpy.typing import NDArray
 import numpy as np
 from quri_parts.algo.optimizer import Adam
 from quri_parts.qulacs.circuit import convert_circuit
-from functools import partial
-from quri_parts.qulacs.overlap_estimator import (
-    create_qulacs_vector_overlap_estimator,
-    _create_qulacs_initial_state,
-)
-from qulacs.state import inner_product
+from functools import partial, wraps
+from quri_parts.qulacs.overlap_estimator import _create_qulacs_initial_state
 from qulacs import QuantumState
 from quri_parts.core.state import quantum_state, GeneralCircuitQuantumState
 import time
@@ -19,6 +15,23 @@ from scipy.spatial import distance
 from quri_parts.algo.optimizer import OptimizerStatus
 
 EPS_abs = 1e-12
+
+
+def _quiet_accelerate_fp(func):
+    """Suppress spurious FP-flag RuntimeWarnings from numpy matmul on Apple Accelerate.
+
+    On macOS the Accelerate BLAS sets divide/overflow/invalid floating-point flags
+    inside ``@`` / matmul even when the result is finite, producing noisy (harmless)
+    RuntimeWarnings. This decorator scopes the suppression to the decorated function,
+    so genuine FP issues in other code paths remain visible.
+    """
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        with np.errstate(divide="ignore", over="ignore", invalid="ignore"):
+            return func(*args, **kwargs)
+
+    return wrapper
 
 
 class pqc_f_helper:
@@ -50,14 +63,17 @@ class pqc_f_helper:
 
 
 class overlap_estimator:
-    """Alternative implementation of quri-parts' overlap estimator using qulacs directly.
-    Approximately 60x faster than the quri-parts implementation for n_data=500.
+    """Materializes quri-parts quantum states into qulacs state vectors.
+
+    Holds a list of states and converts them to qulacs ``QuantumState`` objects
+    (cached in ``qula_states``). Used by :func:`fidelity_gram` / :func:`fidelity_cross`
+    to obtain the raw state vectors for a single vectorized overlap computation.
     """
 
     def __init__(self, states: List[GeneralCircuitQuantumState]):
         """
         Args:
-            states: List of quantum states to compute overlaps between.
+            states: List of quantum states to materialize.
         """
         self.states = states
         self.qula_states = np.full(len(states), fill_value=None, dtype=object)
@@ -77,31 +93,58 @@ class overlap_estimator:
         return qulacs_state
 
     def calc_all_qula_states(self):
-        """Pre-compute and cache all qulacs states for later use in estimate()."""
+        """Convert and cache the qulacs state vector for every input state."""
         for i in range(len(self.states)):
             self.qula_states[i] = self._state_to_qula_state(self.states[i])
 
-    def estimate(self, i: int, j: int):
-        """Compute the squared overlap |⟨φi|φj⟩|² between the i-th and j-th states.
 
-        Args:
-            i: Index of the ket state.
-            j: Index of the bra state.
+def _state_vectors(states: List[GeneralCircuitQuantumState]) -> NDArray[np.complex128]:
+    """Materialize a list of quantum states into a stacked state-vector matrix.
 
-        Returns:
-            Estimated value of |⟨φi|φj⟩|².
-        """
-        ket = self.qula_states[i]
-        if ket is None:
-            ket = self._state_to_qula_state(self.states[i])
-            self.qula_states[i] = ket
-        bra = self.qula_states[j]
-        if bra is None:
-            bra = self._state_to_qula_state(self.states[j])
-            self.qula_states[j] = bra
-        overlap = inner_product(bra, ket)
-        overlap_mag_sqrd = abs(overlap) ** 2
-        return overlap_mag_sqrd
+    Args:
+        states: Quantum states to evaluate.
+
+    Returns:
+        Array of shape (len(states), 2**n_qubits) whose i-th row is the i-th state vector.
+    """
+    est = overlap_estimator(states)
+    est.calc_all_qula_states()
+    return np.stack([qs.get_vector() for qs in est.qula_states])
+
+
+@_quiet_accelerate_fp
+def fidelity_gram(states: List[GeneralCircuitQuantumState]) -> NDArray[np.float64]:
+    """Compute the symmetric fidelity matrix |⟨φi|φj⟩|² for all pairs in one BLAS call.
+
+    The diagonal is exactly 1 for normalized states.
+
+    Args:
+        states: Quantum states.
+
+    Returns:
+        Fidelity matrix of shape (n, n).
+    """
+    vectors = _state_vectors(states)
+    return np.abs(vectors.conj() @ vectors.T) ** 2
+
+
+@_quiet_accelerate_fp
+def fidelity_cross(
+    states: List[GeneralCircuitQuantumState],
+    states_tr: List[GeneralCircuitQuantumState],
+) -> NDArray[np.float64]:
+    """Compute the rectangular fidelity matrix |⟨φi|ψj⟩|² between two sets of states.
+
+    Args:
+        states: Query states (rows).
+        states_tr: Reference states (columns).
+
+    Returns:
+        Fidelity matrix of shape (len(states), len(states_tr)).
+    """
+    vectors = _state_vectors(states)
+    vectors_tr = _state_vectors(states_tr)
+    return np.abs(vectors.conj() @ vectors_tr.T) ** 2
 
 
 class TSNE:
@@ -135,20 +178,27 @@ class TSNE:
         Returns:
             Symmetric joint probability matrix P of shape (n_samples, n_samples).
         """
-        estimator = overlap_estimator(X_train_state)
-        # Materialize every qulacs state up front so the pairwise loop only does
-        # inner products (was: pair-by-pair estimate() with per-call None checks).
-        estimator.calc_all_qula_states()
-        # Stack all state vectors into a single matrix and compute the full Gram
-        # matrix in one BLAS call: |⟨φi|φj⟩|² = |conj(v_i) · v_j|².
-        vectors = np.stack([qs.get_vector() for qs in estimator.qula_states])
-        overlap_matrix = vectors.conj() @ vectors.T
-        fidelity = np.abs(overlap_matrix) ** 2
+        return self.calc_probabilities_p_from_fidelity(fidelity_gram(X_train_state))
+
+    def calc_probabilities_p_from_fidelity(
+        self, fidelity: NDArray[np.float64]
+    ) -> NDArray[np.float64]:
+        """Compute the joint probability matrix P from a precomputed fidelity matrix.
+
+        Uses 1 - |⟨φi|φj⟩|² as the (squared) distance between quantum states. Kept
+        separate from the fidelity computation so callers that already hold the
+        fidelity matrix (e.g. the embedding kernel) need not recompute it.
+
+        Args:
+            fidelity: Symmetric fidelity matrix |⟨φi|φj⟩|² of shape (n, n).
+
+        Returns:
+            Symmetric joint probability matrix P of shape (n, n).
+        """
         sq_distance = 1.0 - fidelity
         # Diagonal must be zero: floating-point noise can leave it slightly off.
         np.fill_diagonal(sq_distance, 0.0)
-        p_probs = self.joint_probabilities(sq_distance, self.perplexity)
-        return p_probs
+        return self.joint_probabilities(sq_distance, self.perplexity)
 
     def calc_probabilities_q(self, c_data: NDArray[np.float64]) -> NDArray[np.float64]:
         """Compute the t-SNE joint probability matrix Q from the low-dimensional embedding.
@@ -244,23 +294,22 @@ class TSNE:
         return c
 
     def cdist(self, X: NDArray[np.float64], X_tr: NDArray[np.float64]):
-        """Compute pairwise Euclidean distances between rows of X and X_tr.
+        """Compute pairwise SQUARED Euclidean distances between rows of X and X_tr.
+
+        t-SNE uses squared distances in both the high-dimensional Gaussian kernel
+        (``exp(-||x_i - x_j||^2 * beta)``) and the low-dimensional Student-t kernel
+        (``(1 + ||y_i - y_j||^2)^-1``), so callers expect ``sq_distance`` here.
 
         Args:
             X: Array of shape (n_samples, n_features).
             X_tr: Array of shape (m_samples, n_features).
 
         Returns:
-            Distance matrix of shape (n_samples, m_samples).
+            Squared-distance matrix of shape (n_samples, m_samples).
         """
         if X_tr is None:
             raise ValueError("X_tr is None")
-        # n = len(X)
-        # Xsq = np.sum(np.square(X), axis=1)
-        # # sq_distance[i,j]はX[i]とX[j]のユークリッド距離の二乗
-        # sq_distance = (Xsq.reshape(n, 1) + Xsq) - 2 * np.dot(X, X.T)
-        # sq_distance = np.sqrt(sq_distance)
-        sq_distance = distance.cdist(X, X_tr)
+        sq_distance = distance.cdist(X, X_tr, metric="sqeuclidean")
         return sq_distance
 
 
@@ -272,8 +321,9 @@ class quantum_kernel_tsne:
         self.max_iter = max_iter
         self.tsne = TSNE(perplexity)
         self.optimizer = Adam(ftol=1e-12)
-        self.estimator = create_qulacs_vector_overlap_estimator()
         self.X_train = None
+        # Constant KL term sum_ij p log p; set in train() once P is known.
+        self._p_log_p_sum = 0.0
 
     def init(self, pqc_f: Callable[[], LearningCircuit], theta: NDArray[np.float64]) -> None:
         """Set up the parametric quantum circuit used to encode input data.
@@ -301,28 +351,74 @@ class quantum_kernel_tsne:
         loss = self.tsne.kldiv(p_prob, q_prob)
         return loss
 
-    def _calc_grad(
-        self, alpha: NDArray[np.float64], p_prob: NDArray[np.float64], fidelity: NDArray[np.float64]
-    ):
-        """Compute the loss at a given alpha (helper for numerical gradient computation).
+    @_quiet_accelerate_fp
+    def _kl_loss_from_y(self, y: NDArray[np.float64], p_prob: NDArray[np.float64]) -> np.float64:
+        """KL(P || Q) loss evaluated directly from the low-dimensional embedding ``y``.
+
+        Uses the identity (with ``Q`` the Student-t joint distribution)
+
+            KL(P || Q) = sum_ij p log p  +  sum_ij p log(1 + d_ij^2)  +  log Z,
+
+        where ``d_ij^2 = ||y_i - y_j||^2`` and ``Z = sum_{i!=j} 1/(1 + d_ij^2)``.
+        The first term is constant during optimization and is cached in
+        ``self._p_log_p_sum``. This avoids forming ``Q`` explicitly each call
+        (no normalization, no ``p/q`` division, no clamping, a single ``log1p``),
+        which is the dominant cost of the Powell/COBYLA inner loop.
 
         Args:
-            alpha: Flattened embedding coefficients of shape (n_samples * 2,).
-            p_prob: High-dimensional joint probability matrix P.
-            fidelity: Pairwise fidelity matrix of shape (n_samples, n_samples).
+            y: Low-dimensional embedding of shape (n_samples, 2).
+            p_prob: High-dimensional joint probability matrix P (normalized, sum 1).
 
         Returns:
-            Scalar loss value.
+            Scalar KL divergence loss value.
         """
-        y = self.calc_y(fidelity, alpha.reshape(len(alpha) // 2, 2))
-        q_prob = self.tsne.calc_probabilities_q(y)
-        loss = self.calc_loss(p_prob, q_prob)
-        return loss
+        t = self.tsne.cdist(y, y)  # squared distances d^2 (reused as 1 + d^2 below)
+        t += 1.0  # t = 1 + d^2
+        num = 1.0 / t
+        np.fill_diagonal(num, 0.0)
+        Z = num.sum()
+        np.log(t, out=t)  # in-place: t = log(1 + d^2); avoids a temporary array
+        # Diagonal contributes nothing: log(1) = 0 and p has a zero diagonal.
+        # np.dot over raveled arrays is a single BLAS reduction (no temporary).
+        cross = np.dot(p_prob.ravel(), t.ravel())
+        return self._p_log_p_sum + cross + np.log(Z)
 
+    @_quiet_accelerate_fp
+    def _grad_y(self, y: NDArray[np.float64], p_prob: NDArray[np.float64]) -> NDArray[np.float64]:
+        """Analytic gradient of KL(P || Q) with respect to the embedding ``y``.
+
+        Standard t-SNE gradient (van der Maaten & Hinton, 2008):
+
+            dC/dy_i = 4 * sum_j (p_ij - q_ij) * (1 + ||y_i - y_j||^2)^-1 * (y_i - y_j)
+
+        with ``q_ij = num_ij / Z``, ``num_ij = (1 + ||y_i - y_j||^2)^-1`` and
+        ``Z = sum_{k!=l} num_kl``. Computed in O(n^2) closed form (no finite differences).
+
+        Args:
+            y: Low-dimensional embedding of shape (n_samples, 2).
+            p_prob: High-dimensional joint probability matrix P (normalized, sum 1).
+
+        Returns:
+            Gradient dC/dy of shape (n_samples, 2).
+        """
+        num = 1.0 / (1.0 + self.tsne.cdist(y, y))
+        np.fill_diagonal(num, 0.0)
+        Z = num.sum()
+        q = num / Z
+        # L_ij = (p_ij - q_ij) * num_ij; the gradient is 4 * sum_j L_ij (y_i - y_j).
+        L = (p_prob - q) * num
+        return 4.0 * (L.sum(axis=1)[:, None] * y - L @ y)
+
+    @_quiet_accelerate_fp
     def calc_grad(
         self, alpha: NDArray[np.float64], p_prob: NDArray[np.float64], fidelity: NDArray[np.float64]
     ):
-        """Compute the numerical gradient of the loss with respect to alpha using central differences.
+        """Analytic gradient of the loss with respect to the embedding coefficients ``alpha``.
+
+        Since ``y = fidelity @ alpha``, the chain rule gives
+        ``dC/dalpha = fidelity^T @ dC/dy`` (``fidelity`` is symmetric for the train kernel).
+        This replaces the former central-difference gradient, which cost O(n) loss
+        evaluations per gradient and made gradient-based optimizers impractical.
 
         Args:
             alpha: Flattened embedding coefficients of shape (n_samples * 2,).
@@ -330,22 +426,43 @@ class quantum_kernel_tsne:
             fidelity: Pairwise fidelity matrix of shape (n_samples, n_samples).
 
         Returns:
-            Gradient array of the same shape as alpha.
+            Flattened gradient of the same shape as ``alpha``.
         """
-        dx = 1e-6
-        grads = np.zeros(len(alpha))
-        alpha = alpha.copy()
-        for i in range(len(alpha)):
-            print("\r", f"{i}/{len(alpha)}", end="")
-            alpha[i] += dx
-            loss_plus = self._calc_grad(alpha, p_prob, fidelity)
-            alpha[i] -= 2 * dx
-            loss_minus = self._calc_grad(alpha, p_prob, fidelity)
-            alpha[i] += dx
-            grad = (loss_plus - loss_minus) / (2 * dx)
-            grads[i] = grad
-        print(f"{grads=}")
-        return grads
+        y = self.calc_y(fidelity, alpha.reshape(len(alpha) // 2, 2))
+        grad_y = self._grad_y(y, p_prob)
+        grad_alpha = fidelity.T @ grad_y
+        return grad_alpha.ravel()
+
+    @_quiet_accelerate_fp
+    def calc_loss_grad(
+        self, alpha: NDArray[np.float64], p_prob: NDArray[np.float64], fidelity: NDArray[np.float64]
+    ):
+        """Joint loss and gradient w.r.t. ``alpha``, for gradient-based optimizers.
+
+        Computing both together shares the ``d^2`` / ``num`` / ``Z`` work, so a
+        gradient step costs a single ``cdist(y, y)`` instead of two (one for the
+        value and one for the jacobian). Used by the ``L-BFGS-B`` path via
+        ``scipy.optimize.minimize(..., jac=True)``.
+
+        Args:
+            alpha: Flattened embedding coefficients of shape (n_samples * 2,).
+            p_prob: High-dimensional joint probability matrix P (normalized, sum 1).
+            fidelity: Pairwise fidelity matrix of shape (n_samples, n_samples).
+
+        Returns:
+            Tuple ``(loss, grad_alpha)`` where ``grad_alpha`` is flattened like ``alpha``.
+        """
+        y = self.calc_y(fidelity, alpha.reshape(len(alpha) // 2, 2))
+        d2 = self.tsne.cdist(y, y)
+        num = 1.0 / (1.0 + d2)
+        np.fill_diagonal(num, 0.0)
+        Z = num.sum()
+        # loss = sum p log p + sum p log(1 + d^2) + log Z  (see _kl_loss_from_y)
+        loss = self._p_log_p_sum + np.dot(p_prob.ravel(), np.log1p(d2).ravel()) + np.log(Z)
+        # grad: dC/dy_i = 4 sum_j (p_ij - q_ij) num_ij (y_i - y_j),  then chain rule.
+        L = (p_prob - num / Z) * num
+        grad_y = 4.0 * (L.sum(axis=1)[:, None] * y - L @ y)
+        return loss, (fidelity.T @ grad_y).ravel()
 
     def cost_f(
         self,
@@ -366,12 +483,7 @@ class quantum_kernel_tsne:
         """
         # Reshape from 1-D (as passed by the optimizer) to (n_samples, 2)
         y = self.calc_y(fidelity, alpha.reshape(len(alpha) // 2, 2))
-        q_prob = self.tsne.calc_probabilities_q(y)
-        loss = self.calc_loss(p_prob, q_prob)
-        self.cost_f_iter += 1
-        if self.cost_f_iter % 100 == 0:
-            print("\r", f"iter={self.cost_f_iter} {loss=}", end="")
-        return loss
+        return self._kl_loss_from_y(y, p_prob)
 
     def generate_X_train_state(self, X_train: NDArray[np.float64]):
         """Generate quantum states for all training inputs using the cached circuit evaluator.
@@ -393,29 +505,31 @@ class quantum_kernel_tsne:
         Args:
             X_train: Training input array of shape (n_samples, n_features).
             y_label: Class labels of shape (n_samples,). Used only for plotting.
-            method: Optimization method. One of ``"adam"``, ``"COBYLA"``, or ``"Powell"``.
-                Defaults to ``"Powell"``.
+            method: Optimization method. One of ``"L-BFGS-B"``, ``"adam"``, ``"COBYLA"``,
+                or ``"Powell"``. ``"L-BFGS-B"`` and ``"adam"`` use the analytic
+                gradient and converge in far fewer evaluations than the gradient-free
+                ``"Powell"`` / ``"COBYLA"``. Defaults to ``"Powell"``.
         """
         if self.pqc_f is None:
             raise ValueError("please call 'init' before training")
-        self.X_train = X_train
-        n_data = X_train.shape[0]
         # transformで使う
         self.X_train = X_train
-        print("calculating p_ij")
-        # p_ijを求める
-        # p_probs = self.tsne.calc_probabilities_p(X_train)
-        p_probs = self.tsne.calc_probabilities_p_state(self.generate_X_train_state(X_train))
+        n_data = X_train.shape[0]
         print("calculating fidelity")
-        # fidelity計算
+        # The fidelity Gram matrix is both the high-dimensional similarity used for
+        # P and the embedding kernel, so compute it once and reuse it.
         start = time.perf_counter()
         fidelity = self.calc_fidelity(X_train, X_train, self.pqs_f_helper)
         print(f"elapsed time:{time.perf_counter() - start}")
+        print("calculating p_ij")
+        p_probs = self.tsne.calc_probabilities_p_from_fidelity(fidelity)
+        # Cache the constant term sum_ij p log p of the KL divergence (p is fixed
+        # during optimization) so the inner loop only recomputes the y-dependent part.
+        mask = p_probs > 0.0
+        self._p_log_p_sum = float(np.sum(p_probs[mask] * np.log(p_probs[mask])))
         cost_f = partial(self.cost_f, p_prob=p_probs, fidelity=fidelity)
         # d=2次元に落とすので2倍
         alpha = np.random.rand(n_data * 2)
-        # cost_fの呼び出し回数
-        self.cost_f_iter = 0
         self.plot(self.calc_y(fidelity, alpha.reshape(n_data, 2)), y_label, "before")
         if method == "adam":
             self.optimizer_state = self.optimizer.get_init_state(alpha)
@@ -445,6 +559,18 @@ class quantum_kernel_tsne:
             result = minimize(cost_f, alpha, method="Powell", options={"maxfev": self.max_iter})
             print(result)
             self.trained_alpha = result.x
+        elif method == "L-BFGS-B":
+            from scipy.optimize import minimize
+
+            # jac=True: one function returns (loss, grad), sharing the d^2/num/Z work.
+            loss_grad = partial(self.calc_loss_grad, p_prob=p_probs, fidelity=fidelity)
+            result = minimize(
+                loss_grad, alpha, method="L-BFGS-B", jac=True, options={"maxiter": self.max_iter}
+            )
+            print(result)
+            self.trained_alpha = result.x
+        else:
+            raise ValueError(f"unknown optimization method: {method!r}")
 
         y = self.calc_y(fidelity, self.trained_alpha.reshape(n_data, 2))
         self.plot(y, y_label, "after")
@@ -462,6 +588,7 @@ class quantum_kernel_tsne:
         y = self.calc_y(fidelity, self.trained_alpha.reshape(len(self.trained_alpha) // 2, 2))
         return y
 
+    @_quiet_accelerate_fp
     def calc_y(
         self, fidelity: NDArray[np.float64], alpha: NDArray[np.float64]
     ) -> NDArray[np.float64]:
@@ -499,37 +626,6 @@ class quantum_kernel_tsne:
         )
         return circuit_state
 
-    def _calc_fidelity(self, j, data, data_tr, estimator: overlap_estimator):
-        """Compute the j-th row of the fidelity matrix.
-        Exploits symmetry when data == data_tr by only computing k <= j.
-        When data != data_tr, data_tr states are stored at offset n_data in the estimator.
-
-        Args:
-            j: Row index.
-            data: Query data array.
-            data_tr: Reference data array.
-            estimator: overlap_estimator holding states for [data, data_tr].
-
-        Returns:
-            Fidelity values for the j-th query against all reference states.
-        """
-        # TODO: parallelize
-        n_data = len(data)
-        if np.array_equal(data, data_tr):
-            fidelities = np.zeros(n_data)
-            for k in range(j + 1):
-                inner_prod = estimator.estimate(j, k)
-                fidelities[k] = inner_prod
-        else:
-            n_data_offset = n_data
-            n_data_tr = len(data_tr)
-            fidelities = np.zeros(n_data_tr)
-            for k in range(n_data_tr):
-                # data_tr states are stored after data states in the estimator
-                inner_prod = estimator.estimate(j, k + n_data_offset)
-                fidelities[k] = inner_prod
-        return fidelities
-
     def calc_fidelity(self, data, data_tr, pqs_f_helper: pqc_f_helper):
         """Compute the full symmetric fidelity matrix when data == data_tr.
 
@@ -546,17 +642,8 @@ class quantum_kernel_tsne:
         """
         if not np.array_equal(data, data_tr):
             raise ValueError("data and data_tr must be the same")
-        n_data = len(data)
-        n_data_tr = len(data_tr)
-        fidelities = np.zeros((n_data, n_data_tr))
-        estimator = overlap_estimator([pqs_f_helper.get(data[i]) for i in range(n_data)])
-        # Pre-compute all qulacs states since they will all be needed
-        estimator.calc_all_qula_states()
-        for j in range(n_data):
-            fidelities[j] = self._calc_fidelity(j, data, data_tr, estimator)
-            print("\r", f"{j}/{n_data}", end="")
-        fidelities = fidelities + fidelities.T - np.eye(n_data)
-        return fidelities
+        states = [pqs_f_helper.get(x) for x in data]
+        return fidelity_gram(states)
 
     def calc_fidelity_all(self, data, data_tr, pqs_f_helper: pqc_f_helper):
         """Compute the fidelity matrix when data != data_tr (e.g. train vs test).
@@ -569,19 +656,9 @@ class quantum_kernel_tsne:
         Returns:
             Fidelity matrix of shape (n_data, n_data_tr).
         """
-        n_data = len(data)
-        n_data_tr = len(data_tr)
-        fidelities = np.zeros((n_data, n_data_tr))
-        # Store both data and data_tr states in the estimator so indices are [data | data_tr]
-        estimator = overlap_estimator(
-            [pqs_f_helper.get(x) for x in np.concatenate([data, data_tr])]
-        )
-        estimator.calc_all_qula_states()
-        for j in range(n_data):
-            fidelities[j] = self._calc_fidelity(j, data, data_tr, estimator)
-            print("\r", f"{j}/{n_data}", end="")
-        print()
-        return fidelities
+        states = [pqs_f_helper.get(x) for x in data]
+        states_tr = [pqs_f_helper.get(x) for x in data_tr]
+        return fidelity_cross(states, states_tr)
 
     def plot(self, y: NDArray[np.float64], y_label: NDArray[np.int64], title: str):
         """Plot the 2-D embedding with class labels.
