@@ -7,7 +7,6 @@ from quri_parts.algo.optimizer import Adam
 from quri_parts.qulacs.circuit import convert_circuit
 from functools import partial, wraps
 from quri_parts.qulacs.overlap_estimator import _create_qulacs_initial_state
-from qulacs.state import inner_product
 from qulacs import QuantumState
 from quri_parts.core.state import quantum_state, GeneralCircuitQuantumState
 import time
@@ -64,14 +63,17 @@ class pqc_f_helper:
 
 
 class overlap_estimator:
-    """Alternative implementation of quri-parts' overlap estimator using qulacs directly.
-    Approximately 60x faster than the quri-parts implementation for n_data=500.
+    """Materializes quri-parts quantum states into qulacs state vectors.
+
+    Holds a list of states and converts them to qulacs ``QuantumState`` objects
+    (cached in ``qula_states``). Used by :func:`fidelity_gram` / :func:`fidelity_cross`
+    to obtain the raw state vectors for a single vectorized overlap computation.
     """
 
     def __init__(self, states: List[GeneralCircuitQuantumState]):
         """
         Args:
-            states: List of quantum states to compute overlaps between.
+            states: List of quantum states to materialize.
         """
         self.states = states
         self.qula_states = np.full(len(states), fill_value=None, dtype=object)
@@ -91,31 +93,9 @@ class overlap_estimator:
         return qulacs_state
 
     def calc_all_qula_states(self):
-        """Pre-compute and cache all qulacs states for later use in estimate()."""
+        """Convert and cache the qulacs state vector for every input state."""
         for i in range(len(self.states)):
             self.qula_states[i] = self._state_to_qula_state(self.states[i])
-
-    def estimate(self, i: int, j: int):
-        """Compute the squared overlap |⟨φi|φj⟩|² between the i-th and j-th states.
-
-        Args:
-            i: Index of the ket state.
-            j: Index of the bra state.
-
-        Returns:
-            Estimated value of |⟨φi|φj⟩|².
-        """
-        ket = self.qula_states[i]
-        if ket is None:
-            ket = self._state_to_qula_state(self.states[i])
-            self.qula_states[i] = ket
-        bra = self.qula_states[j]
-        if bra is None:
-            bra = self._state_to_qula_state(self.states[j])
-            self.qula_states[j] = bra
-        overlap = inner_product(bra, ket)
-        overlap_mag_sqrd = abs(overlap) ** 2
-        return overlap_mag_sqrd
 
 
 def _state_vectors(states: List[GeneralCircuitQuantumState]) -> NDArray[np.complex128]:

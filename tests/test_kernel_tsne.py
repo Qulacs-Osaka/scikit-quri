@@ -56,32 +56,6 @@ def _reference_gram(states):
     return np.abs(overlap) ** 2
 
 
-# --- overlap_estimator -----------------------------------------------------
-
-
-def test_overlap_estimator_identity_and_symmetry(fitted_states):
-    _, _, states = fitted_states
-    est = overlap_estimator(states)
-    est.calc_all_qula_states()
-    n = len(states)
-    for i in range(n):
-        # A normalized state has unit self-overlap.
-        assert est.estimate(i, i) == pytest.approx(1.0, abs=1e-9)
-        for j in range(n):
-            assert est.estimate(i, j) == pytest.approx(est.estimate(j, i), abs=1e-12)
-            assert -1e-12 <= est.estimate(i, j) <= 1.0 + 1e-9
-
-
-def test_overlap_estimator_matches_blas_gram(fitted_states):
-    _, _, states = fitted_states
-    est = overlap_estimator(states)
-    est.calc_all_qula_states()
-    ref = _reference_gram(states)
-    n = len(states)
-    got = np.array([[est.estimate(i, j) for j in range(n)] for i in range(n)])
-    assert np.allclose(got, ref, atol=1e-10)
-
-
 # --- quantum_kernel_tsne.calc_fidelity -------------------------------------
 
 
@@ -90,13 +64,15 @@ def test_calc_fidelity_symmetric_diagonal_one(fitted_states):
     fidelity = qk.calc_fidelity(X, X, qk.pqs_f_helper)
     n = len(X)
     assert fidelity.shape == (n, n)
+    # Self-fidelity of a normalized state is 1; cross-fidelity lies in [0, 1].
     assert np.allclose(np.diag(fidelity), 1.0, atol=1e-9)
     assert np.allclose(fidelity, fidelity.T, atol=1e-12)
     assert np.all(fidelity >= -1e-9)
+    assert np.all(fidelity <= 1.0 + 1e-9)
 
 
 def test_calc_fidelity_matches_gram(fitted_states):
-    """The pair-by-pair loop must agree with the vectorized Gram matrix."""
+    """calc_fidelity must return the |<phi_i|phi_j>|^2 Gram matrix of the states."""
     qk, X, states = fitted_states
     fidelity = qk.calc_fidelity(X, X, qk.pqs_f_helper)
     ref = _reference_gram(states)
