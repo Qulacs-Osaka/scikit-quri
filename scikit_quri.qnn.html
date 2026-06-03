@@ -402,12 +402,14 @@ document.write(`
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator"><code class="docutils literal notranslate"><span class="pre">overlap_estimator</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator.calc_all_qula_states"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.calc_all_qula_states()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator.estimate"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.fidelity_gram"><code class="docutils literal notranslate"><span class="pre">fidelity_gram()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.fidelity_cross"><code class="docutils literal notranslate"><span class="pre">fidelity_cross()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE"><code class="docutils literal notranslate"><span class="pre">TSNE</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p"><code class="docutils literal notranslate"><span class="pre">TSNE.calc_probabilities_p()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p_state"><code class="docutils literal notranslate"><span class="pre">TSNE.calc_probabilities_p_state()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p_from_fidelity"><code class="docutils literal notranslate"><span class="pre">TSNE.calc_probabilities_p_from_fidelity()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_q"><code class="docutils literal notranslate"><span class="pre">TSNE.calc_probabilities_q()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.joint_probabilities"><code class="docutils literal notranslate"><span class="pre">TSNE.joint_probabilities()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.binary_search_perplexity"><code class="docutils literal notranslate"><span class="pre">TSNE.binary_search_perplexity()</span></code></a></li>
@@ -419,6 +421,7 @@ document.write(`
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.init"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.init()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_loss"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.calc_loss()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_grad"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.calc_grad()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_loss_grad"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.calc_loss_grad()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.cost_f"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.cost_f()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.generate_X_train_state"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.generate_X_train_state()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.train"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.train()</span></code></a></li>
@@ -830,8 +833,10 @@ Has shot noise of order <code class="docutils literal notranslate"><span class="
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.overlap_estimator">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.kernel_tsne.</span></span><span class="sig-name descname"><span class="pre">overlap_estimator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#overlap_estimator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Alternative implementation of quri-parts’ overlap estimator using qulacs directly.
-Approximately 60x faster than the quri-parts implementation for n_data=500.</p>
+<p>Materializes quri-parts quantum states into qulacs state vectors.</p>
+<p>Holds a list of states and converts them to qulacs <code class="docutils literal notranslate"><span class="pre">QuantumState</span></code> objects
+(cached in <code class="docutils literal notranslate"><span class="pre">qula_states</span></code>). Used by <a class="reference internal" href="#scikit_quri.qnn.kernel_tsne.fidelity_gram" title="scikit_quri.qnn.kernel_tsne.fidelity_gram"><code class="xref py py-func docutils literal notranslate"><span class="pre">fidelity_gram()</span></code></a> / <a class="reference internal" href="#scikit_quri.qnn.kernel_tsne.fidelity_cross" title="scikit_quri.qnn.kernel_tsne.fidelity_cross"><code class="xref py py-func docutils literal notranslate"><span class="pre">fidelity_cross()</span></code></a>
+to obtain the raw state vectors for a single vectorized overlap computation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>states</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.GeneralCircuitQuantumState" title="(in QURI Parts)"><em>GeneralCircuitQuantumState</em></a><em>]</em>) – </p>
@@ -840,26 +845,47 @@ Approximately 60x faster than the quri-parts implementation for n_data=500.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.overlap_estimator.calc_all_qula_states">
 <span class="sig-name descname"><span class="pre">calc_all_qula_states</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#overlap_estimator.calc_all_qula_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator.calc_all_qula_states" title="Permalink to this definition">#</a></dt>
-<dd><p>Pre-compute and cache all qulacs states for later use in estimate().</p>
+<dd><p>Convert and cache the qulacs state vector for every input state.</p>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.overlap_estimator.estimate">
-<span class="sig-name descname"><span class="pre">estimate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">j</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#overlap_estimator.estimate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator.estimate" title="Permalink to this definition">#</a></dt>
-<dd><p>Compute the squared overlap <a href="#id1"><span class="problematic" id="id2">|</span></a>⟨φi|φj⟩|² between the i-th and j-th states.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.fidelity_gram">
+<span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.kernel_tsne.</span></span><span class="sig-name descname"><span class="pre">fidelity_gram</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#fidelity_gram"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.fidelity_gram" title="Permalink to this definition">#</a></dt>
+<dd><p>Compute the symmetric fidelity matrix <a href="#id1"><span class="problematic" id="id2">|</span></a>⟨φi|φj⟩|² for all pairs in one BLAS call.</p>
+<p>The diagonal is exactly 1 for normalized states.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>i</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Index of the ket state.</p></li>
-<li><p><strong>j</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Index of the bra state.</p></li>
-</ul>
+<dd class="field-odd"><p><strong>states</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.GeneralCircuitQuantumState" title="(in QURI Parts)"><em>GeneralCircuitQuantumState</em></a><em>]</em>) – Quantum states.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Estimated value of <a href="#id3"><span class="problematic" id="id4">|</span></a>⟨φi|φj⟩|².</p>
+<dd class="field-even"><p>Fidelity matrix of shape (n, n).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>float64</em>]]</p>
 </dd>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.fidelity_cross">
+<span class="sig-prename descclassname"><span class="pre">scikit_quri.qnn.kernel_tsne.</span></span><span class="sig-name descname"><span class="pre">fidelity_cross</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">states</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">states_tr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#fidelity_cross"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.fidelity_cross" title="Permalink to this definition">#</a></dt>
+<dd><p>Compute the rectangular fidelity matrix <a href="#id3"><span class="problematic" id="id4">|</span></a>⟨φi|ψj⟩|² between two sets of states.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>states</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.GeneralCircuitQuantumState" title="(in QURI Parts)"><em>GeneralCircuitQuantumState</em></a><em>]</em>) – Query states (rows).</p></li>
+<li><p><strong>states_tr</strong> (<a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.14)"><em>List</em></a><em>[</em><a class="reference external" href="https://quri-parts.qunasys.com/api/quri_parts/core/quri_parts.core.state.state.html#quri_parts.core.state.state.GeneralCircuitQuantumState" title="(in QURI Parts)"><em>GeneralCircuitQuantumState</em></a><em>]</em>) – Reference states (columns).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Fidelity matrix of shape (len(states), len(states_tr)).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>float64</em>]]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py class">
@@ -895,6 +921,26 @@ Uses 1 - <a href="#id5"><span class="problematic" id="id6">|</span></a>⟨φi|φ
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>Symmetric joint probability matrix P of shape (n_samples, n_samples).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>float64</em>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p_from_fidelity">
+<span class="sig-name descname"><span class="pre">calc_probabilities_p_from_fidelity</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fidelity</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE.calc_probabilities_p_from_fidelity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p_from_fidelity" title="Permalink to this definition">#</a></dt>
+<dd><p>Compute the joint probability matrix P from a precomputed fidelity matrix.</p>
+<p>Uses 1 - <a href="#id7"><span class="problematic" id="id8">|</span></a>⟨φi|φj⟩|² as the (squared) distance between quantum states. Kept
+separate from the fidelity computation so callers that already hold the
+fidelity matrix (e.g. the embedding kernel) need not recompute it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fidelity</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Symmetric fidelity matrix <a href="#id9"><span class="problematic" id="id10">|</span></a>⟨φi|φj⟩|² of shape (n, n).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Symmetric joint probability matrix P of shape (n, n).</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a>[<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)">tuple</a>[<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a>, …], <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a>[<em>float64</em>]]</p>
@@ -973,7 +1019,10 @@ so that the perplexity of the conditional distribution matches the target.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.TSNE.cdist">
 <span class="sig-name descname"><span class="pre">cdist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">X_tr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#TSNE.cdist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.TSNE.cdist" title="Permalink to this definition">#</a></dt>
-<dd><p>Compute pairwise Euclidean distances between rows of X and X_tr.</p>
+<dd><p>Compute pairwise SQUARED Euclidean distances between rows of X and X_tr.</p>
+<p>t-SNE uses squared distances in both the high-dimensional Gaussian kernel
+(<code class="docutils literal notranslate"><span class="pre">exp(-||x_i</span> <span class="pre">-</span> <span class="pre">x_j||^2</span> <span class="pre">*</span> <span class="pre">beta)</span></code>) and the low-dimensional Student-t kernel
+(<code class="docutils literal notranslate"><span class="pre">(1</span> <span class="pre">+</span> <span class="pre">||y_i</span> <span class="pre">-</span> <span class="pre">y_j||^2)^-1</span></code>), so callers expect <code class="docutils literal notranslate"><span class="pre">sq_distance</span></code> here.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -982,7 +1031,7 @@ so that the perplexity of the conditional distribution matches the target.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Distance matrix of shape (n_samples, m_samples).</p>
+<dd class="field-even"><p>Squared-distance matrix of shape (n_samples, m_samples).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1031,7 +1080,11 @@ so that the perplexity of the conditional distribution matches the target.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_grad">
 <span class="sig-name descname"><span class="pre">calc_grad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_prob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fidelity</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.calc_grad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_grad" title="Permalink to this definition">#</a></dt>
-<dd><p>Compute the numerical gradient of the loss with respect to alpha using central differences.</p>
+<dd><p>Analytic gradient of the loss with respect to the embedding coefficients <code class="docutils literal notranslate"><span class="pre">alpha</span></code>.</p>
+<p>Since <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">=</span> <span class="pre">fidelity</span> <span class="pre">&#64;</span> <span class="pre">alpha</span></code>, the chain rule gives
+<code class="docutils literal notranslate"><span class="pre">dC/dalpha</span> <span class="pre">=</span> <span class="pre">fidelity^T</span> <span class="pre">&#64;</span> <span class="pre">dC/dy</span></code> (<code class="docutils literal notranslate"><span class="pre">fidelity</span></code> is symmetric for the train kernel).
+This replaces the former central-difference gradient, which cost O(n) loss
+evaluations per gradient and made gradient-based optimizers impractical.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1041,7 +1094,29 @@ so that the perplexity of the conditional distribution matches the target.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Gradient array of the same shape as alpha.</p>
+<dd class="field-even"><p>Flattened gradient of the same shape as <code class="docutils literal notranslate"><span class="pre">alpha</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_loss_grad">
+<span class="sig-name descname"><span class="pre">calc_loss_grad</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_prob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fidelity</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.calc_loss_grad"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_loss_grad" title="Permalink to this definition">#</a></dt>
+<dd><p>Joint loss and gradient w.r.t. <code class="docutils literal notranslate"><span class="pre">alpha</span></code>, for gradient-based optimizers.</p>
+<p>Computing both together shares the <code class="docutils literal notranslate"><span class="pre">d^2</span></code> / <code class="docutils literal notranslate"><span class="pre">num</span></code> / <code class="docutils literal notranslate"><span class="pre">Z</span></code> work, so a
+gradient step costs a single <code class="docutils literal notranslate"><span class="pre">cdist(y,</span> <span class="pre">y)</span></code> instead of two (one for the
+value and one for the jacobian). Used by the <code class="docutils literal notranslate"><span class="pre">L-BFGS-B</span></code> path via
+<code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize(...,</span> <span class="pre">jac=True)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>alpha</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Flattened embedding coefficients of shape (n_samples * 2,).</p></li>
+<li><p><strong>p_prob</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – High-dimensional joint probability matrix P (normalized, sum 1).</p></li>
+<li><p><strong>fidelity</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Pairwise fidelity matrix of shape (n_samples, n_samples).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(loss,</span> <span class="pre">grad_alpha)</span></code> where <code class="docutils literal notranslate"><span class="pre">grad_alpha</span></code> is flattened like <code class="docutils literal notranslate"><span class="pre">alpha</span></code>.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1088,8 +1163,10 @@ The optimizer passes a 1-D array; it is reshaped to (n_samples, 2) internally.</
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>X_train</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Training input array of shape (n_samples, n_features).</p></li>
 <li><p><strong>y_label</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>int8</em><em>]</em><em>]</em>) – Class labels of shape (n_samples,). Used only for plotting.</p></li>
-<li><p><strong>method</strong> – Optimization method. One of <code class="docutils literal notranslate"><span class="pre">&quot;adam&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;COBYLA&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;Powell&quot;</span></code>.
-Defaults to <code class="docutils literal notranslate"><span class="pre">&quot;Powell&quot;</span></code>.</p></li>
+<li><p><strong>method</strong> – Optimization method. One of <code class="docutils literal notranslate"><span class="pre">&quot;L-BFGS-B&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;adam&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;COBYLA&quot;</span></code>,
+or <code class="docutils literal notranslate"><span class="pre">&quot;Powell&quot;</span></code>. <code class="docutils literal notranslate"><span class="pre">&quot;L-BFGS-B&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;adam&quot;</span></code> use the analytic
+gradient and converge in far fewer evaluations than the gradient-free
+<code class="docutils literal notranslate"><span class="pre">&quot;Powell&quot;</span></code> / <code class="docutils literal notranslate"><span class="pre">&quot;COBYLA&quot;</span></code>. Defaults to <code class="docutils literal notranslate"><span class="pre">&quot;Powell&quot;</span></code>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -1119,7 +1196,7 @@ Defaults to <code class="docutils literal notranslate"><span class="pre">&quot;P
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>fidelity</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Pairwise fidelity matrix <a href="#id7"><span class="problematic" id="id8">|</span></a>⟨φi|φj⟩|² of shape (n_data, n_data).</p></li>
+<li><p><strong>fidelity</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Pairwise fidelity matrix <a href="#id11"><span class="problematic" id="id12">|</span></a>⟨φi|φj⟩|² of shape (n_data, n_data).</p></li>
 <li><p><strong>alpha</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><em>ndarray</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><em>tuple</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>...</em><em>]</em><em>, </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.dtype.html#numpy.dtype" title="(in NumPy v2.4)"><em>dtype</em></a><em>[</em><em>float64</em><em>]</em><em>]</em>) – Embedding coefficients of shape (n_data, 2).</p></li>
 </ul>
 </dd>
@@ -1135,7 +1212,7 @@ Defaults to <code class="docutils literal notranslate"><span class="pre">&quot;P
 <dl class="py method">
 <dt class="sig sig-object py" id="scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.input_quantum_state">
 <span class="sig-name descname"><span class="pre">input_quantum_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pqc_f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/scikit_quri/qnn/kernel_tsne.html#quantum_kernel_tsne.input_quantum_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.input_quantum_state" title="Permalink to this definition">#</a></dt>
-<dd><p>Compute the quantum state <a href="#id9"><span class="problematic" id="id10">|</span></a>φ(input, θ)⟩ for the given input and circuit parameters.</p>
+<dd><p>Compute the quantum state <a href="#id13"><span class="problematic" id="id14">|</span></a>φ(input, θ)⟩ for the given input and circuit parameters.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -2000,12 +2077,14 @@ Has shot noise of order <code class="docutils literal notranslate"><span class="
 </li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator"><code class="docutils literal notranslate"><span class="pre">overlap_estimator</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator.calc_all_qula_states"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.calc_all_qula_states()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.overlap_estimator.estimate"><code class="docutils literal notranslate"><span class="pre">overlap_estimator.estimate()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.fidelity_gram"><code class="docutils literal notranslate"><span class="pre">fidelity_gram()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.fidelity_cross"><code class="docutils literal notranslate"><span class="pre">fidelity_cross()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE"><code class="docutils literal notranslate"><span class="pre">TSNE</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p"><code class="docutils literal notranslate"><span class="pre">TSNE.calc_probabilities_p()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p_state"><code class="docutils literal notranslate"><span class="pre">TSNE.calc_probabilities_p_state()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p_from_fidelity"><code class="docutils literal notranslate"><span class="pre">TSNE.calc_probabilities_p_from_fidelity()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_q"><code class="docutils literal notranslate"><span class="pre">TSNE.calc_probabilities_q()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.joint_probabilities"><code class="docutils literal notranslate"><span class="pre">TSNE.joint_probabilities()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.TSNE.binary_search_perplexity"><code class="docutils literal notranslate"><span class="pre">TSNE.binary_search_perplexity()</span></code></a></li>
@@ -2017,6 +2096,7 @@ Has shot noise of order <code class="docutils literal notranslate"><span class="
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.init"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.init()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_loss"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.calc_loss()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_grad"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.calc_grad()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_loss_grad"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.calc_loss_grad()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.cost_f"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.cost_f()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.generate_X_train_state"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.generate_X_train_state()</span></code></a></li>
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.train"><code class="docutils literal notranslate"><span class="pre">quantum_kernel_tsne.train()</span></code></a></li>

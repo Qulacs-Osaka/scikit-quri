@@ -323,12 +323,8 @@ document.write(`
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.algo.optimizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Adam</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.qulacs.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_circuit</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.qulacs.overlap_estimator</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">create_qulacs_vector_overlap_estimator</span><span class="p">,</span>
-    <span class="n">_create_qulacs_initial_state</span><span class="p">,</span>
-<span class="p">)</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qulacs.state</span><span class="w"> </span><span class="kn">import</span> <span class="n">inner_product</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span><span class="p">,</span> <span class="n">wraps</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.qulacs.overlap_estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">_create_qulacs_initial_state</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">qulacs</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumState</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.state</span><span class="w"> </span><span class="kn">import</span> <span class="n">quantum_state</span><span class="p">,</span> <span class="n">GeneralCircuitQuantumState</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
@@ -337,6 +333,23 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.algo.optimizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptimizerStatus</span>
 
 <span class="n">EPS_abs</span> <span class="o">=</span> <span class="mf">1e-12</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_quiet_accelerate_fp</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Suppress spurious FP-flag RuntimeWarnings from numpy matmul on Apple Accelerate.</span>
+
+<span class="sd">    On macOS the Accelerate BLAS sets divide/overflow/invalid floating-point flags</span>
+<span class="sd">    inside ``@`` / matmul even when the result is finite, producing noisy (harmless)</span>
+<span class="sd">    RuntimeWarnings. This decorator scopes the suppression to the decorated function,</span>
+<span class="sd">    so genuine FP issues in other code paths remain visible.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">over</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">wrapper</span>
 
 
 <div class="viewcode-block" id="pqc_f_helper"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.pqc_f_helper">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">pqc_f_helper</span><span class="p">:</span>
@@ -368,14 +381,17 @@ document.write(`
 
 
 <div class="viewcode-block" id="overlap_estimator"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.overlap_estimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">overlap_estimator</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Alternative implementation of quri-parts&#39; overlap estimator using qulacs directly.</span>
-<span class="sd">    Approximately 60x faster than the quri-parts implementation for n_data=500.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Materializes quri-parts quantum states into qulacs state vectors.</span>
+
+<span class="sd">    Holds a list of states and converts them to qulacs ``QuantumState`` objects</span>
+<span class="sd">    (cached in ``qula_states``). Used by :func:`fidelity_gram` / :func:`fidelity_cross`</span>
+<span class="sd">    to obtain the raw state vectors for a single vectorized overlap computation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">states</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">GeneralCircuitQuantumState</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
-<span class="sd">            states: List of quantum states to compute overlaps between.</span>
+<span class="sd">            states: List of quantum states to materialize.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">states</span> <span class="o">=</span> <span class="n">states</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">qula_states</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">states</span><span class="p">),</span> <span class="n">fill_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
@@ -395,31 +411,58 @@ document.write(`
         <span class="k">return</span> <span class="n">qulacs_state</span>
 
 <div class="viewcode-block" id="overlap_estimator.calc_all_qula_states"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.overlap_estimator.calc_all_qula_states">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_all_qula_states</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pre-compute and cache all qulacs states for later use in estimate().&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert and cache the qulacs state vector for every input state.&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">)):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">qula_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_to_qula_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">i</span><span class="p">])</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">qula_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_to_qula_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">i</span><span class="p">])</span></div></div>
 
-<div class="viewcode-block" id="overlap_estimator.estimate"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.overlap_estimator.estimate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the squared overlap |⟨φi|φj⟩|² between the i-th and j-th states.</span>
 
-<span class="sd">        Args:</span>
-<span class="sd">            i: Index of the ket state.</span>
-<span class="sd">            j: Index of the bra state.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_state_vectors</span><span class="p">(</span><span class="n">states</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">GeneralCircuitQuantumState</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">complex128</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Materialize a list of quantum states into a stacked state-vector matrix.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            Estimated value of |⟨φi|φj⟩|².</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">ket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qula_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">ket</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">ket</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_to_qula_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">qula_states</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">ket</span>
-        <span class="n">bra</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">qula_states</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">bra</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">bra</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_to_qula_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">states</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">qula_states</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">bra</span>
-        <span class="n">overlap</span> <span class="o">=</span> <span class="n">inner_product</span><span class="p">(</span><span class="n">bra</span><span class="p">,</span> <span class="n">ket</span><span class="p">)</span>
-        <span class="n">overlap_mag_sqrd</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">overlap</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
-        <span class="k">return</span> <span class="n">overlap_mag_sqrd</span></div></div>
+<span class="sd">    Args:</span>
+<span class="sd">        states: Quantum states to evaluate.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Array of shape (len(states), 2**n_qubits) whose i-th row is the i-th state vector.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">est</span> <span class="o">=</span> <span class="n">overlap_estimator</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
+    <span class="n">est</span><span class="o">.</span><span class="n">calc_all_qula_states</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">qs</span><span class="o">.</span><span class="n">get_vector</span><span class="p">()</span> <span class="k">for</span> <span class="n">qs</span> <span class="ow">in</span> <span class="n">est</span><span class="o">.</span><span class="n">qula_states</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="fidelity_gram"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.fidelity_gram">[docs]</a><span class="nd">@_quiet_accelerate_fp</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fidelity_gram</span><span class="p">(</span><span class="n">states</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">GeneralCircuitQuantumState</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the symmetric fidelity matrix |⟨φi|φj⟩|² for all pairs in one BLAS call.</span>
+
+<span class="sd">    The diagonal is exactly 1 for normalized states.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        states: Quantum states.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Fidelity matrix of shape (n, n).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vectors</span> <span class="o">=</span> <span class="n">_state_vectors</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">vectors</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span> <span class="o">@</span> <span class="n">vectors</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span></div>
+
+
+<div class="viewcode-block" id="fidelity_cross"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.fidelity_cross">[docs]</a><span class="nd">@_quiet_accelerate_fp</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">fidelity_cross</span><span class="p">(</span>
+    <span class="n">states</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">GeneralCircuitQuantumState</span><span class="p">],</span>
+    <span class="n">states_tr</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">GeneralCircuitQuantumState</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the rectangular fidelity matrix |⟨φi|ψj⟩|² between two sets of states.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        states: Query states (rows).</span>
+<span class="sd">        states_tr: Reference states (columns).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Fidelity matrix of shape (len(states), len(states_tr)).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">vectors</span> <span class="o">=</span> <span class="n">_state_vectors</span><span class="p">(</span><span class="n">states</span><span class="p">)</span>
+    <span class="n">vectors_tr</span> <span class="o">=</span> <span class="n">_state_vectors</span><span class="p">(</span><span class="n">states_tr</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">vectors</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span> <span class="o">@</span> <span class="n">vectors_tr</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span></div>
 
 
 <div class="viewcode-block" id="TSNE"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.TSNE">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">TSNE</span><span class="p">:</span>
@@ -453,20 +496,27 @@ document.write(`
 <span class="sd">        Returns:</span>
 <span class="sd">            Symmetric joint probability matrix P of shape (n_samples, n_samples).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">estimator</span> <span class="o">=</span> <span class="n">overlap_estimator</span><span class="p">(</span><span class="n">X_train_state</span><span class="p">)</span>
-        <span class="c1"># Materialize every qulacs state up front so the pairwise loop only does</span>
-        <span class="c1"># inner products (was: pair-by-pair estimate() with per-call None checks).</span>
-        <span class="n">estimator</span><span class="o">.</span><span class="n">calc_all_qula_states</span><span class="p">()</span>
-        <span class="c1"># Stack all state vectors into a single matrix and compute the full Gram</span>
-        <span class="c1"># matrix in one BLAS call: |⟨φi|φj⟩|² = |conj(v_i) · v_j|².</span>
-        <span class="n">vectors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">qs</span><span class="o">.</span><span class="n">get_vector</span><span class="p">()</span> <span class="k">for</span> <span class="n">qs</span> <span class="ow">in</span> <span class="n">estimator</span><span class="o">.</span><span class="n">qula_states</span><span class="p">])</span>
-        <span class="n">overlap_matrix</span> <span class="o">=</span> <span class="n">vectors</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span> <span class="o">@</span> <span class="n">vectors</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">fidelity</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">overlap_matrix</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_probabilities_p_from_fidelity</span><span class="p">(</span><span class="n">fidelity_gram</span><span class="p">(</span><span class="n">X_train_state</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="TSNE.calc_probabilities_p_from_fidelity"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_p_from_fidelity">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_probabilities_p_from_fidelity</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">fidelity</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the joint probability matrix P from a precomputed fidelity matrix.</span>
+
+<span class="sd">        Uses 1 - |⟨φi|φj⟩|² as the (squared) distance between quantum states. Kept</span>
+<span class="sd">        separate from the fidelity computation so callers that already hold the</span>
+<span class="sd">        fidelity matrix (e.g. the embedding kernel) need not recompute it.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            fidelity: Symmetric fidelity matrix |⟨φi|φj⟩|² of shape (n, n).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Symmetric joint probability matrix P of shape (n, n).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">sq_distance</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">fidelity</span>
         <span class="c1"># Diagonal must be zero: floating-point noise can leave it slightly off.</span>
         <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">sq_distance</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-        <span class="n">p_probs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_probabilities</span><span class="p">(</span><span class="n">sq_distance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">perplexity</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">p_probs</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">joint_probabilities</span><span class="p">(</span><span class="n">sq_distance</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">perplexity</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="TSNE.calc_probabilities_q"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.TSNE.calc_probabilities_q">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_probabilities_q</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c_data</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the t-SNE joint probability matrix Q from the low-dimensional embedding.</span>
@@ -562,23 +612,22 @@ document.write(`
         <span class="k">return</span> <span class="n">c</span></div>
 
 <div class="viewcode-block" id="TSNE.cdist"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.TSNE.cdist">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">cdist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">X_tr</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute pairwise Euclidean distances between rows of X and X_tr.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute pairwise SQUARED Euclidean distances between rows of X and X_tr.</span>
+
+<span class="sd">        t-SNE uses squared distances in both the high-dimensional Gaussian kernel</span>
+<span class="sd">        (``exp(-||x_i - x_j||^2 * beta)``) and the low-dimensional Student-t kernel</span>
+<span class="sd">        (``(1 + ||y_i - y_j||^2)^-1``), so callers expect ``sq_distance`` here.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            X: Array of shape (n_samples, n_features).</span>
 <span class="sd">            X_tr: Array of shape (m_samples, n_features).</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Distance matrix of shape (n_samples, m_samples).</span>
+<span class="sd">            Squared-distance matrix of shape (n_samples, m_samples).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">X_tr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;X_tr is None&quot;</span><span class="p">)</span>
-        <span class="c1"># n = len(X)</span>
-        <span class="c1"># Xsq = np.sum(np.square(X), axis=1)</span>
-        <span class="c1"># # sq_distance[i,j]はX[i]とX[j]のユークリッド距離の二乗</span>
-        <span class="c1"># sq_distance = (Xsq.reshape(n, 1) + Xsq) - 2 * np.dot(X, X.T)</span>
-        <span class="c1"># sq_distance = np.sqrt(sq_distance)</span>
-        <span class="n">sq_distance</span> <span class="o">=</span> <span class="n">distance</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">X_tr</span><span class="p">)</span>
+        <span class="n">sq_distance</span> <span class="o">=</span> <span class="n">distance</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">X_tr</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s2">&quot;sqeuclidean&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">sq_distance</span></div></div>
 
 
@@ -590,8 +639,9 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">max_iter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tsne</span> <span class="o">=</span> <span class="n">TSNE</span><span class="p">(</span><span class="n">perplexity</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">Adam</span><span class="p">(</span><span class="n">ftol</span><span class="o">=</span><span class="mf">1e-12</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="n">create_qulacs_vector_overlap_estimator</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">X_train</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Constant KL term sum_ij p log p; set in train() once P is known.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p_log_p_sum</span> <span class="o">=</span> <span class="mf">0.0</span>
 
 <div class="viewcode-block" id="quantum_kernel_tsne.init"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.init">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">init</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pqc_f</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[],</span> <span class="n">LearningCircuit</span><span class="p">],</span> <span class="n">theta</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Set up the parametric quantum circuit used to encode input data.</span>
@@ -619,10 +669,74 @@ document.write(`
         <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tsne</span><span class="o">.</span><span class="n">kldiv</span><span class="p">(</span><span class="n">p_prob</span><span class="p">,</span> <span class="n">q_prob</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">loss</span></div>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_grad</span><span class="p">(</span>
+    <span class="nd">@_quiet_accelerate_fp</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_kl_loss_from_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">p_prob</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;KL(P || Q) loss evaluated directly from the low-dimensional embedding ``y``.</span>
+
+<span class="sd">        Uses the identity (with ``Q`` the Student-t joint distribution)</span>
+
+<span class="sd">            KL(P || Q) = sum_ij p log p  +  sum_ij p log(1 + d_ij^2)  +  log Z,</span>
+
+<span class="sd">        where ``d_ij^2 = ||y_i - y_j||^2`` and ``Z = sum_{i!=j} 1/(1 + d_ij^2)``.</span>
+<span class="sd">        The first term is constant during optimization and is cached in</span>
+<span class="sd">        ``self._p_log_p_sum``. This avoids forming ``Q`` explicitly each call</span>
+<span class="sd">        (no normalization, no ``p/q`` division, no clamping, a single ``log1p``),</span>
+<span class="sd">        which is the dominant cost of the Powell/COBYLA inner loop.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            y: Low-dimensional embedding of shape (n_samples, 2).</span>
+<span class="sd">            p_prob: High-dimensional joint probability matrix P (normalized, sum 1).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Scalar KL divergence loss value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tsne</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>  <span class="c1"># squared distances d^2 (reused as 1 + d^2 below)</span>
+        <span class="n">t</span> <span class="o">+=</span> <span class="mf">1.0</span>  <span class="c1"># t = 1 + d^2</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">t</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">t</span><span class="p">)</span>  <span class="c1"># in-place: t = log(1 + d^2); avoids a temporary array</span>
+        <span class="c1"># Diagonal contributes nothing: log(1) = 0 and p has a zero diagonal.</span>
+        <span class="c1"># np.dot over raveled arrays is a single BLAS reduction (no temporary).</span>
+        <span class="n">cross</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">p_prob</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">t</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p_log_p_sum</span> <span class="o">+</span> <span class="n">cross</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+
+    <span class="nd">@_quiet_accelerate_fp</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_grad_y</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">p_prob</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Analytic gradient of KL(P || Q) with respect to the embedding ``y``.</span>
+
+<span class="sd">        Standard t-SNE gradient (van der Maaten &amp; Hinton, 2008):</span>
+
+<span class="sd">            dC/dy_i = 4 * sum_j (p_ij - q_ij) * (1 + ||y_i - y_j||^2)^-1 * (y_i - y_j)</span>
+
+<span class="sd">        with ``q_ij = num_ij / Z``, ``num_ij = (1 + ||y_i - y_j||^2)^-1`` and</span>
+<span class="sd">        ``Z = sum_{k!=l} num_kl``. Computed in O(n^2) closed form (no finite differences).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            y: Low-dimensional embedding of shape (n_samples, 2).</span>
+<span class="sd">            p_prob: High-dimensional joint probability matrix P (normalized, sum 1).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Gradient dC/dy of shape (n_samples, 2).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">tsne</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">num</span> <span class="o">/</span> <span class="n">Z</span>
+        <span class="c1"># L_ij = (p_ij - q_ij) * num_ij; the gradient is 4 * sum_j L_ij (y_i - y_j).</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="p">(</span><span class="n">p_prob</span> <span class="o">-</span> <span class="n">q</span><span class="p">)</span> <span class="o">*</span> <span class="n">num</span>
+        <span class="k">return</span> <span class="mf">4.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">L</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">y</span> <span class="o">-</span> <span class="n">L</span> <span class="o">@</span> <span class="n">y</span><span class="p">)</span>
+
+<div class="viewcode-block" id="quantum_kernel_tsne.calc_grad"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_grad">[docs]</a>    <span class="nd">@_quiet_accelerate_fp</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calc_grad</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">p_prob</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">fidelity</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the loss at a given alpha (helper for numerical gradient computation).</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Analytic gradient of the loss with respect to the embedding coefficients ``alpha``.</span>
+
+<span class="sd">        Since ``y = fidelity @ alpha``, the chain rule gives</span>
+<span class="sd">        ``dC/dalpha = fidelity^T @ dC/dy`` (``fidelity`` is symmetric for the train kernel).</span>
+<span class="sd">        This replaces the former central-difference gradient, which cost O(n) loss</span>
+<span class="sd">        evaluations per gradient and made gradient-based optimizers impractical.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            alpha: Flattened embedding coefficients of shape (n_samples * 2,).</span>
@@ -630,40 +744,43 @@ document.write(`
 <span class="sd">            fidelity: Pairwise fidelity matrix of shape (n_samples, n_samples).</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Scalar loss value.</span>
+<span class="sd">            Flattened gradient of the same shape as ``alpha``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_y</span><span class="p">(</span><span class="n">fidelity</span><span class="p">,</span> <span class="n">alpha</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-        <span class="n">q_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tsne</span><span class="o">.</span><span class="n">calc_probabilities_q</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_loss</span><span class="p">(</span><span class="n">p_prob</span><span class="p">,</span> <span class="n">q_prob</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">loss</span>
+        <span class="n">grad_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grad_y</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">p_prob</span><span class="p">)</span>
+        <span class="n">grad_alpha</span> <span class="o">=</span> <span class="n">fidelity</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">grad_y</span>
+        <span class="k">return</span> <span class="n">grad_alpha</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="quantum_kernel_tsne.calc_grad"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_grad">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_grad</span><span class="p">(</span>
+<div class="viewcode-block" id="quantum_kernel_tsne.calc_loss_grad"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_loss_grad">[docs]</a>    <span class="nd">@_quiet_accelerate_fp</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calc_loss_grad</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">p_prob</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">fidelity</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the numerical gradient of the loss with respect to alpha using central differences.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Joint loss and gradient w.r.t. ``alpha``, for gradient-based optimizers.</span>
+
+<span class="sd">        Computing both together shares the ``d^2`` / ``num`` / ``Z`` work, so a</span>
+<span class="sd">        gradient step costs a single ``cdist(y, y)`` instead of two (one for the</span>
+<span class="sd">        value and one for the jacobian). Used by the ``L-BFGS-B`` path via</span>
+<span class="sd">        ``scipy.optimize.minimize(..., jac=True)``.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            alpha: Flattened embedding coefficients of shape (n_samples * 2,).</span>
-<span class="sd">            p_prob: High-dimensional joint probability matrix P.</span>
+<span class="sd">            p_prob: High-dimensional joint probability matrix P (normalized, sum 1).</span>
 <span class="sd">            fidelity: Pairwise fidelity matrix of shape (n_samples, n_samples).</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Gradient array of the same shape as alpha.</span>
+<span class="sd">            Tuple ``(loss, grad_alpha)`` where ``grad_alpha`` is flattened like ``alpha``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">dx</span> <span class="o">=</span> <span class="mf">1e-6</span>
-        <span class="n">grads</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">alpha</span><span class="p">))</span>
-        <span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">alpha</span><span class="p">)):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-            <span class="n">alpha</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">dx</span>
-            <span class="n">loss_plus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_grad</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">p_prob</span><span class="p">,</span> <span class="n">fidelity</span><span class="p">)</span>
-            <span class="n">alpha</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">dx</span>
-            <span class="n">loss_minus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_grad</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">p_prob</span><span class="p">,</span> <span class="n">fidelity</span><span class="p">)</span>
-            <span class="n">alpha</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">dx</span>
-            <span class="n">grad</span> <span class="o">=</span> <span class="p">(</span><span class="n">loss_plus</span> <span class="o">-</span> <span class="n">loss_minus</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">dx</span><span class="p">)</span>
-            <span class="n">grads</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">grad</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">grads</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">grads</span></div>
+        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_y</span><span class="p">(</span><span class="n">fidelity</span><span class="p">,</span> <span class="n">alpha</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">d2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tsne</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">d2</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="c1"># loss = sum p log p + sum p log(1 + d^2) + log Z  (see _kl_loss_from_y)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p_log_p_sum</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">p_prob</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">np</span><span class="o">.</span><span class="n">log1p</span><span class="p">(</span><span class="n">d2</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+        <span class="c1"># grad: dC/dy_i = 4 sum_j (p_ij - q_ij) num_ij (y_i - y_j),  then chain rule.</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="p">(</span><span class="n">p_prob</span> <span class="o">-</span> <span class="n">num</span> <span class="o">/</span> <span class="n">Z</span><span class="p">)</span> <span class="o">*</span> <span class="n">num</span>
+        <span class="n">grad_y</span> <span class="o">=</span> <span class="mf">4.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">L</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">y</span> <span class="o">-</span> <span class="n">L</span> <span class="o">@</span> <span class="n">y</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="p">(</span><span class="n">fidelity</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">grad_y</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="quantum_kernel_tsne.cost_f"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.cost_f">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">cost_f</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -684,12 +801,7 @@ document.write(`
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Reshape from 1-D (as passed by the optimizer) to (n_samples, 2)</span>
         <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_y</span><span class="p">(</span><span class="n">fidelity</span><span class="p">,</span> <span class="n">alpha</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-        <span class="n">q_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tsne</span><span class="o">.</span><span class="n">calc_probabilities_q</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_loss</span><span class="p">(</span><span class="n">p_prob</span><span class="p">,</span> <span class="n">q_prob</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cost_f_iter</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_f_iter</span> <span class="o">%</span> <span class="mi">100</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;iter=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cost_f_iter</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">loss</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">loss</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kl_loss_from_y</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">p_prob</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="quantum_kernel_tsne.generate_X_train_state"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.generate_X_train_state">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">generate_X_train_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X_train</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Generate quantum states for all training inputs using the cached circuit evaluator.</span>
@@ -711,29 +823,31 @@ document.write(`
 <span class="sd">        Args:</span>
 <span class="sd">            X_train: Training input array of shape (n_samples, n_features).</span>
 <span class="sd">            y_label: Class labels of shape (n_samples,). Used only for plotting.</span>
-<span class="sd">            method: Optimization method. One of ``&quot;adam&quot;``, ``&quot;COBYLA&quot;``, or ``&quot;Powell&quot;``.</span>
-<span class="sd">                Defaults to ``&quot;Powell&quot;``.</span>
+<span class="sd">            method: Optimization method. One of ``&quot;L-BFGS-B&quot;``, ``&quot;adam&quot;``, ``&quot;COBYLA&quot;``,</span>
+<span class="sd">                or ``&quot;Powell&quot;``. ``&quot;L-BFGS-B&quot;`` and ``&quot;adam&quot;`` use the analytic</span>
+<span class="sd">                gradient and converge in far fewer evaluations than the gradient-free</span>
+<span class="sd">                ``&quot;Powell&quot;`` / ``&quot;COBYLA&quot;``. Defaults to ``&quot;Powell&quot;``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pqc_f</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;please call &#39;init&#39; before training&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">X_train</span> <span class="o">=</span> <span class="n">X_train</span>
-        <span class="n">n_data</span> <span class="o">=</span> <span class="n">X_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="c1"># transformで使う</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">X_train</span> <span class="o">=</span> <span class="n">X_train</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;calculating p_ij&quot;</span><span class="p">)</span>
-        <span class="c1"># p_ijを求める</span>
-        <span class="c1"># p_probs = self.tsne.calc_probabilities_p(X_train)</span>
-        <span class="n">p_probs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tsne</span><span class="o">.</span><span class="n">calc_probabilities_p_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">generate_X_train_state</span><span class="p">(</span><span class="n">X_train</span><span class="p">))</span>
+        <span class="n">n_data</span> <span class="o">=</span> <span class="n">X_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;calculating fidelity&quot;</span><span class="p">)</span>
-        <span class="c1"># fidelity計算</span>
+        <span class="c1"># The fidelity Gram matrix is both the high-dimensional similarity used for</span>
+        <span class="c1"># P and the embedding kernel, so compute it once and reuse it.</span>
         <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
         <span class="n">fidelity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_fidelity</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">X_train</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pqs_f_helper</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;elapsed time:</span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;calculating p_ij&quot;</span><span class="p">)</span>
+        <span class="n">p_probs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tsne</span><span class="o">.</span><span class="n">calc_probabilities_p_from_fidelity</span><span class="p">(</span><span class="n">fidelity</span><span class="p">)</span>
+        <span class="c1"># Cache the constant term sum_ij p log p of the KL divergence (p is fixed</span>
+        <span class="c1"># during optimization) so the inner loop only recomputes the y-dependent part.</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">p_probs</span> <span class="o">&gt;</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p_log_p_sum</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">p_probs</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">p_probs</span><span class="p">[</span><span class="n">mask</span><span class="p">])))</span>
         <span class="n">cost_f</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost_f</span><span class="p">,</span> <span class="n">p_prob</span><span class="o">=</span><span class="n">p_probs</span><span class="p">,</span> <span class="n">fidelity</span><span class="o">=</span><span class="n">fidelity</span><span class="p">)</span>
         <span class="c1"># d=2次元に落とすので2倍</span>
         <span class="n">alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">n_data</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="c1"># cost_fの呼び出し回数</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cost_f_iter</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">calc_y</span><span class="p">(</span><span class="n">fidelity</span><span class="p">,</span> <span class="n">alpha</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">2</span><span class="p">)),</span> <span class="n">y_label</span><span class="p">,</span> <span class="s2">&quot;before&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;adam&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">optimizer_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="o">.</span><span class="n">get_init_state</span><span class="p">(</span><span class="n">alpha</span><span class="p">)</span>
@@ -763,6 +877,18 @@ document.write(`
             <span class="n">result</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span><span class="n">cost_f</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;Powell&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;maxfev&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">})</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">trained_alpha</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;L-BFGS-B&quot;</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">minimize</span>
+
+            <span class="c1"># jac=True: one function returns (loss, grad), sharing the d^2/num/Z work.</span>
+            <span class="n">loss_grad</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">calc_loss_grad</span><span class="p">,</span> <span class="n">p_prob</span><span class="o">=</span><span class="n">p_probs</span><span class="p">,</span> <span class="n">fidelity</span><span class="o">=</span><span class="n">fidelity</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">minimize</span><span class="p">(</span>
+                <span class="n">loss_grad</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;L-BFGS-B&quot;</span><span class="p">,</span> <span class="n">jac</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;maxiter&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">}</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">trained_alpha</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">x</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unknown optimization method: </span><span class="si">{</span><span class="n">method</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_y</span><span class="p">(</span><span class="n">fidelity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">trained_alpha</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_data</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_label</span><span class="p">,</span> <span class="s2">&quot;after&quot;</span><span class="p">)</span></div>
@@ -780,7 +906,8 @@ document.write(`
         <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_y</span><span class="p">(</span><span class="n">fidelity</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">trained_alpha</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trained_alpha</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">y</span></div>
 
-<div class="viewcode-block" id="quantum_kernel_tsne.calc_y"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_y">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_y</span><span class="p">(</span>
+<div class="viewcode-block" id="quantum_kernel_tsne.calc_y"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_y">[docs]</a>    <span class="nd">@_quiet_accelerate_fp</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calc_y</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">fidelity</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">alpha</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the low-dimensional embedding y = fidelity @ alpha.</span>
@@ -817,37 +944,6 @@ document.write(`
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">circuit_state</span></div>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_calc_fidelity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">data_tr</span><span class="p">,</span> <span class="n">estimator</span><span class="p">:</span> <span class="n">overlap_estimator</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the j-th row of the fidelity matrix.</span>
-<span class="sd">        Exploits symmetry when data == data_tr by only computing k &lt;= j.</span>
-<span class="sd">        When data != data_tr, data_tr states are stored at offset n_data in the estimator.</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            j: Row index.</span>
-<span class="sd">            data: Query data array.</span>
-<span class="sd">            data_tr: Reference data array.</span>
-<span class="sd">            estimator: overlap_estimator holding states for [data, data_tr].</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            Fidelity values for the j-th query against all reference states.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># TODO: parallelize</span>
-        <span class="n">n_data</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">data_tr</span><span class="p">):</span>
-            <span class="n">fidelities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_data</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">j</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-                <span class="n">inner_prod</span> <span class="o">=</span> <span class="n">estimator</span><span class="o">.</span><span class="n">estimate</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
-                <span class="n">fidelities</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">inner_prod</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">n_data_offset</span> <span class="o">=</span> <span class="n">n_data</span>
-            <span class="n">n_data_tr</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_tr</span><span class="p">)</span>
-            <span class="n">fidelities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_data_tr</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_data_tr</span><span class="p">):</span>
-                <span class="c1"># data_tr states are stored after data states in the estimator</span>
-                <span class="n">inner_prod</span> <span class="o">=</span> <span class="n">estimator</span><span class="o">.</span><span class="n">estimate</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">k</span> <span class="o">+</span> <span class="n">n_data_offset</span><span class="p">)</span>
-                <span class="n">fidelities</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">inner_prod</span>
-        <span class="k">return</span> <span class="n">fidelities</span>
-
 <div class="viewcode-block" id="quantum_kernel_tsne.calc_fidelity"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_fidelity">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_fidelity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">data_tr</span><span class="p">,</span> <span class="n">pqs_f_helper</span><span class="p">:</span> <span class="n">pqc_f_helper</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the full symmetric fidelity matrix when data == data_tr.</span>
 
@@ -864,17 +960,8 @@ document.write(`
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">data_tr</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;data and data_tr must be the same&quot;</span><span class="p">)</span>
-        <span class="n">n_data</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="n">n_data_tr</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_tr</span><span class="p">)</span>
-        <span class="n">fidelities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_data</span><span class="p">,</span> <span class="n">n_data_tr</span><span class="p">))</span>
-        <span class="n">estimator</span> <span class="o">=</span> <span class="n">overlap_estimator</span><span class="p">([</span><span class="n">pqs_f_helper</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_data</span><span class="p">)])</span>
-        <span class="c1"># Pre-compute all qulacs states since they will all be needed</span>
-        <span class="n">estimator</span><span class="o">.</span><span class="n">calc_all_qula_states</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_data</span><span class="p">):</span>
-            <span class="n">fidelities</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_fidelity</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">data_tr</span><span class="p">,</span> <span class="n">estimator</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">n_data</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="n">fidelities</span> <span class="o">=</span> <span class="n">fidelities</span> <span class="o">+</span> <span class="n">fidelities</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n_data</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">fidelities</span></div>
+        <span class="n">states</span> <span class="o">=</span> <span class="p">[</span><span class="n">pqs_f_helper</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">fidelity_gram</span><span class="p">(</span><span class="n">states</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="quantum_kernel_tsne.calc_fidelity_all"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.calc_fidelity_all">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_fidelity_all</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">data_tr</span><span class="p">,</span> <span class="n">pqs_f_helper</span><span class="p">:</span> <span class="n">pqc_f_helper</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the fidelity matrix when data != data_tr (e.g. train vs test).</span>
@@ -887,19 +974,9 @@ document.write(`
 <span class="sd">        Returns:</span>
 <span class="sd">            Fidelity matrix of shape (n_data, n_data_tr).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">n_data</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="n">n_data_tr</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data_tr</span><span class="p">)</span>
-        <span class="n">fidelities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_data</span><span class="p">,</span> <span class="n">n_data_tr</span><span class="p">))</span>
-        <span class="c1"># Store both data and data_tr states in the estimator so indices are [data | data_tr]</span>
-        <span class="n">estimator</span> <span class="o">=</span> <span class="n">overlap_estimator</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">pqs_f_helper</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">data</span><span class="p">,</span> <span class="n">data_tr</span><span class="p">])]</span>
-        <span class="p">)</span>
-        <span class="n">estimator</span><span class="o">.</span><span class="n">calc_all_qula_states</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_data</span><span class="p">):</span>
-            <span class="n">fidelities</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_fidelity</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">data_tr</span><span class="p">,</span> <span class="n">estimator</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">n_data</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">fidelities</span></div>
+        <span class="n">states</span> <span class="o">=</span> <span class="p">[</span><span class="n">pqs_f_helper</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data</span><span class="p">]</span>
+        <span class="n">states_tr</span> <span class="o">=</span> <span class="p">[</span><span class="n">pqs_f_helper</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">data_tr</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">fidelity_cross</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">states_tr</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="quantum_kernel_tsne.plot"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.plot">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">y_label</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">],</span> <span class="n">title</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the 2-D embedding with class labels.</span>
