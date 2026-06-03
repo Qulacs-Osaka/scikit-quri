@@ -342,6 +342,8 @@ class quantum_kernel_tsne:
         self.tsne = TSNE(perplexity)
         self.optimizer = Adam(ftol=1e-12)
         self.X_train = None
+        # Constant KL term sum_ij p log p; set in train() once P is known.
+        self._p_log_p_sum = 0.0
 
     def init(self, pqc_f: Callable[[], LearningCircuit], theta: NDArray[np.float64]) -> None:
         """Set up the parametric quantum circuit used to encode input data.
@@ -451,6 +453,37 @@ class quantum_kernel_tsne:
         grad_alpha = fidelity.T @ grad_y
         return grad_alpha.ravel()
 
+    @_quiet_accelerate_fp
+    def calc_loss_grad(
+        self, alpha: NDArray[np.float64], p_prob: NDArray[np.float64], fidelity: NDArray[np.float64]
+    ):
+        """Joint loss and gradient w.r.t. ``alpha``, for gradient-based optimizers.
+
+        Computing both together shares the ``d^2`` / ``num`` / ``Z`` work, so a
+        gradient step costs a single ``cdist(y, y)`` instead of two (one for the
+        value and one for the jacobian). Used by the ``L-BFGS-B`` path via
+        ``scipy.optimize.minimize(..., jac=True)``.
+
+        Args:
+            alpha: Flattened embedding coefficients of shape (n_samples * 2,).
+            p_prob: High-dimensional joint probability matrix P (normalized, sum 1).
+            fidelity: Pairwise fidelity matrix of shape (n_samples, n_samples).
+
+        Returns:
+            Tuple ``(loss, grad_alpha)`` where ``grad_alpha`` is flattened like ``alpha``.
+        """
+        y = self.calc_y(fidelity, alpha.reshape(len(alpha) // 2, 2))
+        d2 = self.tsne.cdist(y, y)
+        num = 1.0 / (1.0 + d2)
+        np.fill_diagonal(num, 0.0)
+        Z = num.sum()
+        # loss = sum p log p + sum p log(1 + d^2) + log Z  (see _kl_loss_from_y)
+        loss = self._p_log_p_sum + np.dot(p_prob.ravel(), np.log1p(d2).ravel()) + np.log(Z)
+        # grad: dC/dy_i = 4 sum_j (p_ij - q_ij) num_ij (y_i - y_j),  then chain rule.
+        L = (p_prob - num / Z) * num
+        grad_y = 4.0 * (L.sum(axis=1)[:, None] * y - L @ y)
+        return loss, (fidelity.T @ grad_y).ravel()
+
     def cost_f(
         self,
         alpha: NDArray[np.float64],
@@ -549,9 +582,10 @@ class quantum_kernel_tsne:
         elif method == "L-BFGS-B":
             from scipy.optimize import minimize
 
-            grad_f = partial(self.calc_grad, p_prob=p_probs, fidelity=fidelity)
+            # jac=True: one function returns (loss, grad), sharing the d^2/num/Z work.
+            loss_grad = partial(self.calc_loss_grad, p_prob=p_probs, fidelity=fidelity)
             result = minimize(
-                cost_f, alpha, method="L-BFGS-B", jac=grad_f, options={"maxiter": self.max_iter}
+                loss_grad, alpha, method="L-BFGS-B", jac=True, options={"maxiter": self.max_iter}
             )
             print(result)
             self.trained_alpha = result.x

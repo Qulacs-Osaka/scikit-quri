@@ -223,6 +223,28 @@ def test_analytic_gradient_matches_numerical():
     assert np.allclose(analytic, numeric, rtol=1e-4, atol=1e-6)
 
 
+def test_fused_loss_grad_matches_separate():
+    """calc_loss_grad must return the same loss and gradient as the separate paths."""
+    rng = np.random.default_rng(11)
+    n = 10
+    K = rng.uniform(0, 1, size=(n, n))
+    K = (K + K.T) / 2
+    P = rng.uniform(0, 1, size=(n, n))
+    P = (P + P.T) / 2
+    np.fill_diagonal(P, 0.0)
+    P /= P.sum()
+
+    qk = quantum_kernel_tsne(perplexity=3)
+    m = P > 0
+    qk._p_log_p_sum = float(np.sum(P[m] * np.log(P[m])))
+    alpha = rng.uniform(-1, 1, size=n * 2)
+
+    loss, grad = qk.calc_loss_grad(alpha, P, K)
+    y = qk.calc_y(K, alpha.reshape(n, 2))
+    assert loss == pytest.approx(qk._kl_loss_from_y(y, P), abs=1e-12)
+    assert np.allclose(grad, qk.calc_grad(alpha, P, K), atol=1e-12)
+
+
 def test_lbfgs_training_reduces_loss_and_separates_classes():
     """Gradient-based L-BFGS-B training should converge and cluster a toy 2-class set."""
     rng = np.random.default_rng(10)
