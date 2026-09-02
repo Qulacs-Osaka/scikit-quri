@@ -84,6 +84,13 @@ class QNNRegressor:
     do_y_scale: bool = field(default=True)
     n_outputs: int = field(default=1)
     y_exp_ratio: float = field(default=2.2)
+    #: Use the exact adjoint (backpropagation) gradient instead of ``gradient_estimator``.
+    #: Requires an exact statevector backend; ~10-140x faster and exact. Set to False to
+    #: force the supplied ``gradient_estimator`` (e.g. to study finite-difference error).
+    use_adjoint_gradient: bool = field(default=True)
+    #: Seed for the initial parameter draw. ``None`` uses fresh OS entropy, which
+    #: makes every fit (and therefore every accuracy assertion) non-reproducible.
+    seed: Optional[int] = field(default=None)
 
     trained_param: Optional[Params] = field(default=None)
 
@@ -141,7 +148,7 @@ class QNNRegressor:
         parameter_count = self.ansatz.learning_params_count
 
         # set initial learning parameters
-        init_params = 2 * np.pi * np.random.random(parameter_count)
+        init_params = 2 * np.pi * np.random.default_rng(self.seed).random(parameter_count)
         optimizer_state = self.optimizer.get_init_state(init_params)
 
         c = 0
@@ -259,6 +266,7 @@ class QNNRegressor:
             x_scaled,
             params,
             estimator=self.estimator,
+            use_adjoint=self.use_adjoint_gradient,
         )
 
     def _predict_inner(self, x_scaled: NDArray[np.float64], params: Params) -> NDArray[np.float64]:

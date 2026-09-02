@@ -72,6 +72,13 @@ class QNNClassifier:
 
     do_x_scale: bool = field(default=True)
     y_exp_ratio: float = field(default=2.2)
+    #: Use the exact adjoint (backpropagation) gradient instead of ``gradient_estimator``.
+    #: Requires an exact statevector backend; ~10-140x faster and exact. Set to False to
+    #: force the supplied ``gradient_estimator`` (e.g. to study finite-difference error).
+    use_adjoint_gradient: bool = field(default=True)
+    #: Seed for the initial parameter draw. ``None`` uses fresh OS entropy, which
+    #: makes every fit (and therefore every accuracy assertion) non-reproducible.
+    seed: Optional[int] = field(default=None)
 
     trained_param: Optional[Params] = field(default=None)
 
@@ -125,7 +132,7 @@ class QNNClassifier:
 
         parameter_count = self.ansatz.learning_params_count
         if self.trained_param is None:
-            init_params = 2 * np.pi * np.random.random(parameter_count)
+            init_params = 2 * np.pi * np.random.default_rng(self.seed).random(parameter_count)
         else:
             init_params = self.trained_param
         # print(f"{init_params=}")
@@ -232,4 +239,5 @@ class QNNClassifier:
             x_scaled,
             params,
             estimator=self.estimator,
+            use_adjoint=self.use_adjoint_gradient,
         )

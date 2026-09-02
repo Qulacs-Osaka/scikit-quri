@@ -18,6 +18,7 @@ from typing_extensions import TypeAlias
 
 from scikit_quri.backend import BaseEstimator, BatchedSimEstimator
 from scikit_quri.circuit import LearningCircuit
+from scikit_quri.circuit.gradient import adjoint_expectation_gradients
 
 GradientEstimatorType: TypeAlias = GradientEstimator[_ParametricStateT]
 
@@ -188,6 +189,7 @@ def estimate_grad(
     params: Params,
     estimator: BaseEstimator | None = None,
     delta: float = 1e-5,
+    use_adjoint: bool = False,
 ) -> NDArray[np.float64]:
     """Estimate gradients of learning parameters for each input and operator.
 
@@ -204,6 +206,14 @@ def estimate_grad(
     Returns:
         Gradient tensor. Shape: (n_samples, n_operators, n_learning_params).
     """
+    # Exact statevector backends can use the adjoint method: one forward pass plus
+    # one backpropagation per observable, instead of 2 * parameter_count circuit
+    # simulations. Same quantity, ~10-140x faster and exact rather than O(delta^2).
+    if use_adjoint:
+        return np.asarray(
+            [adjoint_expectation_gradients(ansatz, x, params, list(operators)) for x in x_scaled]
+        )
+
     # Capability dispatch: batched-simulation backends take the fast path.
     if isinstance(estimator, BatchedSimEstimator):
         n_learning = ansatz.learning_params_count
