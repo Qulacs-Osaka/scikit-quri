@@ -1,0 +1,27 @@
+scikit-quri
+Copyright (c) 2024 Qulacs-Osaka
+
+This product is licensed under the MIT License (see LICENSE), with one exception
+described below.
+
+--------------------------------------------------------------------------------
+quri_parts_scaluq/
+--------------------------------------------------------------------------------
+
+The `quri_parts_scaluq/` directory is a scaluq backend adapter written against the
+QURI Parts backend interfaces, following the structure of the QURI Parts qulacs
+backend (`quri_parts.qulacs.circuit`, `quri_parts.qulacs.operator`,
+`quri_parts.qulacs.estimator`). It carries the Apache License 2.0 header used
+throughout QURI Parts and is licensed under Apache-2.0 rather than MIT.
+
+    QURI Parts
+    Copyright QURI Parts Authors (QunaSys Inc., opensource@qunasys.com)
+    Licensed under the Apache License, Version 2.0
+    https://github.com/QunaSys/quri-parts
+
+A copy of the Apache License 2.0 is available at
+http://www.apache.org/licenses/LICENSE-2.0 and is reproduced in the header of every
+file in that directory.
+
+It is vendored rather than depended upon because no `quri-parts-scaluq` package is
+published; the directory was added in commit a1857d1 (2026-03-29).
