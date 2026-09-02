@@ -22,7 +22,10 @@ from scikit_quri.backend import (
     ExactStatevectorEstimator,
 )
 from scikit_quri.circuit import LearningCircuit
-from scikit_quri.circuit.gradient import adjoint_expectation_gradients
+from scikit_quri.circuit.gradient import (
+    adjoint_expectation_gradients_batch,
+    exact_expectations_batch,
+)
 
 GradientEstimatorType: TypeAlias = GradientEstimator[_ParametricStateT]
 
@@ -121,6 +124,13 @@ def predict_inner(
         res = np.array(results, dtype=np.float64).T
         res *= y_exp_ratio
         return res
+
+    # Exact statevector backends: convert the circuit and the observables once and
+    # rebind per sample, instead of letting quri-parts rebuild the qulacs circuit for
+    # every sample (profiling test_qcnn showed convert_gate called 1,063,040 times).
+    if isinstance(estimator, ExactStatevectorEstimator):
+        res = exact_expectations_batch(ansatz, x_scaled, params, list(operators))
+        return res * y_exp_ratio
 
     circuit_states = build_circuit_states(ansatz, x_scaled, params)
     return compute_expectations(estimator, operators, circuit_states, y_exp_ratio)
@@ -223,9 +233,7 @@ def estimate_grad(
     # simulation. Use the parameter-shift rule there - it needs only ordinary circuit
     # executions - e.g. SimGradientEstimator(method="parameter_shift").
     if use_adjoint and isinstance(estimator, ExactStatevectorEstimator):
-        return np.asarray(
-            [adjoint_expectation_gradients(ansatz, x, params, list(operators)) for x in x_scaled]
-        )
+        return adjoint_expectation_gradients_batch(ansatz, x_scaled, params, list(operators))
 
     # Capability dispatch: batched-simulation backends take the fast path.
     if isinstance(estimator, BatchedSimEstimator):

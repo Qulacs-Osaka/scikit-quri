@@ -19,6 +19,7 @@ from quri_parts.core.estimator.gradient import create_numerical_gradient_estimat
 
 from scikit_quri.circuit import LearningCircuit
 from scikit_quri.circuit.gradient import hadamard_gradient
+from scikit_quri.circuit import create_qcl_ansatz
 from scikit_quri.circuit.pre_defined import create_qcnn_ansatz
 from scikit_quri.qnn._qnn_common import estimate_grad
 
@@ -289,3 +290,32 @@ def test_oqtopus_gradient_estimator_requires_x_and_theta():
         estimator.estimate_learning_param_gradient(
             Operator({pauli_label("Z 0"): 1.0}), circuit, [0.0, 0.0, 0.0, 0.0]
         )
+
+
+@pytest.mark.parametrize(
+    "make_circuit",
+    [lambda: create_qcnn_ansatz(6, 0), lambda: create_qcl_ansatz(5, 3, 0.5, 0)],
+    ids=["qcnn", "qcl"],
+)
+def test_exact_expectations_batch_matches_per_state_estimation(make_circuit):
+    """The batched predict path converts the circuit once; it must be bit-identical
+    to binding each sample and calling the estimator."""
+    from scikit_quri.backend import QulacsEstimator
+    from scikit_quri.circuit.gradient import exact_expectations_batch
+    from scikit_quri.qnn._qnn_common import build_circuit_states, compute_expectations
+
+    circuit = make_circuit()
+    rng = np.random.default_rng(0)
+    theta = rng.uniform(0, 2 * np.pi, circuit.learning_params_count)
+    x = rng.uniform(-1, 1, (9, 2))
+    ops = [
+        Operator({pauli_label("Z 0"): 1.0}),
+        Operator({pauli_label("Z 1"): 0.6, pauli_label("X 0"): 0.3}),
+    ]
+
+    reference = compute_expectations(
+        QulacsEstimator(), ops, build_circuit_states(circuit, x, theta), 1.0
+    )
+    got = exact_expectations_batch(circuit, x, theta, ops)
+    assert got.shape == reference.shape
+    np.testing.assert_allclose(got, reference, atol=1e-12)

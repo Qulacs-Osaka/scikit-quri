@@ -10,14 +10,23 @@ simulations a finite-difference estimator needs. On ``create_dqn_cl(6, 5, 2)``
 (102 gate parameters) this is ~140x faster and, being exact, is also more
 accurate than the ``delta=1e-10`` numerical estimator the README recommends.
 
+The circuit structure is identical across samples — only the bound parameters
+change — so the qulacs conversion of the circuit and of the observables is done
+once per batch rather than once per sample. Profiling ``test_qcnn`` showed
+``convert_gate`` being called 1,063,040 times, about 60% of the runtime, purely
+from rebuilding the same circuit.
+
 Note on the sign: qulacs' ``backprop_inner_product`` uses the opposite rotation
 convention, so the raw result is negated here. This is covered by
 ``tests/test_gradient_correctness.py``, which compares against finite differences.
+
+It is simulator-only: hardware cannot expose ``|psi>`` as a vector, nor replay the
+circuit backwards. Use :mod:`~scikit_quri.circuit.gradient.parameter_shift` there.
 """
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING, List, Sequence
 
 import numpy as np
 from numpy.typing import NDArray
@@ -30,46 +39,102 @@ if TYPE_CHECKING:
     from ..circuit import LearningCircuit
 
 
+def _prepared(circuit: "LearningCircuit", operators: Sequence[Operator]):
+    """Convert the parametric circuit and the observables to qulacs once."""
+    qulacs_circuit, param_mapper = convert_parametric_circuit(circuit.circuit)
+    qulacs_operators = [convert_operator(op, circuit.n_qubits) for op in operators]
+    return qulacs_circuit, param_mapper, qulacs_operators
+
+
+def adjoint_expectation_gradients_batch(
+    circuit: "LearningCircuit",
+    x_batch: NDArray[np.float64],
+    theta: NDArray[np.float64],
+    operators: Sequence[Operator],
+) -> NDArray[np.float64]:
+    """Gradients for a whole batch of inputs.
+
+    Args:
+        circuit: The learning circuit.
+        x_batch: Input data of shape ``(n_samples, n_features)``.
+        theta: Learning-parameter vector.
+        operators: Observables to differentiate.
+
+    Returns:
+        Array of shape ``(n_samples, len(operators), circuit.learning_params_count)``.
+    """
+    n_qubits = circuit.n_qubits
+    qulacs_circuit, param_mapper, qulacs_operators = _prepared(circuit, operators)
+
+    psi = QulacsQuantumState(n_qubits)
+    work = QulacsQuantumState(n_qubits)
+    o_psi = QulacsQuantumState(n_qubits)
+
+    grads = np.empty(
+        (len(x_batch), len(operators), circuit.learning_params_count), dtype=np.float64
+    )
+    for s, x in enumerate(x_batch):
+        bound_params = circuit.generate_bound_params(x, theta)
+        for i, value in enumerate(param_mapper(bound_params)):
+            qulacs_circuit.set_parameter(i, value)
+
+        psi.set_zero_state()
+        qulacs_circuit.update_quantum_state(psi)
+
+        chain_factors = circuit.input_chain_factors(x, theta)
+        for k, qulacs_operator in enumerate(qulacs_operators):
+            o_psi.set_zero_state()
+            qulacs_operator.apply_to_state(work, psi, o_psi)
+            gate_gradients = -2.0 * np.asarray(
+                qulacs_circuit.backprop_inner_product(o_psi), dtype=np.float64
+            )
+            grads[s, k] = circuit.aggregate_gate_gradients(
+                gate_gradients, skip_is_input=False, chain_factors=chain_factors
+            )
+    return grads
+
+
 def adjoint_expectation_gradients(
     circuit: "LearningCircuit",
     x: NDArray[np.float64],
     theta: NDArray[np.float64],
     operators: Sequence[Operator],
 ) -> NDArray[np.float64]:
-    """Gradients of ``<O_k>`` w.r.t. the learning parameters, for several observables.
-
-    Args:
-        circuit: The learning circuit.
-        x: Input data for one sample.
-        theta: Learning-parameter vector.
-        operators: Observables to differentiate.
+    """Gradients of ``<O_k>`` w.r.t. the learning parameters, for one sample.
 
     Returns:
         Array of shape ``(len(operators), circuit.learning_params_count)``.
     """
+    return adjoint_expectation_gradients_batch(
+        circuit, np.asarray(x).reshape(1, -1), theta, operators
+    )[0]
+
+
+def exact_expectations_batch(
+    circuit: "LearningCircuit",
+    x_batch: NDArray[np.float64],
+    theta: NDArray[np.float64],
+    operators: Sequence[Operator],
+) -> NDArray[np.float64]:
+    """Exact expectation values for a batch, reusing one qulacs circuit conversion.
+
+    Equivalent to binding each sample separately and calling a state-vector
+    estimator, but converts the circuit and the observables once instead of once
+    per sample.
+
+    Returns:
+        Array of shape ``(n_samples, len(operators))``.
+    """
     n_qubits = circuit.n_qubits
-    bound_params = circuit.generate_bound_params(x, theta)
-    qulacs_circuit, param_mapper = convert_parametric_circuit(circuit.circuit)
-    for i, value in enumerate(param_mapper(bound_params)):
-        qulacs_circuit.set_parameter(i, value)
+    qulacs_circuit, param_mapper, qulacs_operators = _prepared(circuit, operators)
 
     psi = QulacsQuantumState(n_qubits)
-    psi.set_zero_state()
-    qulacs_circuit.update_quantum_state(psi)
-
-    chain_factors = circuit.input_chain_factors(x, theta)
-    work = QulacsQuantumState(n_qubits)
-    o_psi = QulacsQuantumState(n_qubits)
-
-    grads = np.empty((len(operators), circuit.learning_params_count), dtype=np.float64)
-    for k, operator in enumerate(operators):
-        qulacs_operator = convert_operator(operator, n_qubits)
-        o_psi.set_zero_state()
-        qulacs_operator.apply_to_state(work, psi, o_psi)
-        gate_gradients = -2.0 * np.asarray(
-            qulacs_circuit.backprop_inner_product(o_psi), dtype=np.float64
-        )
-        grads[k] = circuit.aggregate_gate_gradients(
-            gate_gradients, skip_is_input=False, chain_factors=chain_factors
-        )
-    return grads
+    values: List[List[float]] = []
+    for x in x_batch:
+        bound_params = circuit.generate_bound_params(x, theta)
+        for i, value in enumerate(param_mapper(bound_params)):
+            qulacs_circuit.set_parameter(i, value)
+        psi.set_zero_state()
+        qulacs_circuit.update_quantum_state(psi)
+        values.append([op.get_expectation_value(psi).real for op in qulacs_operators])
+    return np.asarray(values, dtype=np.float64)
