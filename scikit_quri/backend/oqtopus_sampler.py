@@ -14,11 +14,20 @@ from .base_sampler import BaseSampler
 
 
 class OqtopusSampler(BaseSampler):
-    def __init__(self, device_id: str, config: Optional[OqtopusConfig]) -> None:
+    def __init__(
+        self,
+        device_id: str,
+        config: Optional[OqtopusConfig] = None,
+        job_name: str = "scikit-quri sampling",
+    ) -> None:
         self.backend = OqtopusSamplingBackend(config)
         self.device_id = device_id
         self.config = config
         self.device_backend = OqtopusDeviceBackend(config)
+        # OQTOPUS Cloud rejects a job whose name is null, but the SDK defaults the
+        # argument to None, so it has to be supplied here or every submission fails
+        # with "Invalid value for `name`, must not be `None`".
+        self.job_name = job_name
 
     def get_device_qubit_count(self) -> int:
         """Oqtopusのデバイスの量子ビット数を取得する関数
@@ -38,7 +47,9 @@ class OqtopusSampler(BaseSampler):
         Raises:
             BackendError: Oqtopusでの実行に失敗した場合
         """
-        result = self.backend.sample(circuit, device_id=self.device_id, shots=n_shots).result()
+        result = self.backend.sample(
+            circuit, device_id=self.device_id, shots=n_shots, name=self.job_name
+        ).result()
         return result.counts
 
     def sample(
@@ -83,6 +94,7 @@ class OqtopusSampler(BaseSampler):
                 batched_circuits,
                 device_id=self.device_id,
                 shots=max_shots,
+                name=self.job_name,
                 transpiler_info=transpiler_info,
             ).result()
             if req.divided_counts is None:
