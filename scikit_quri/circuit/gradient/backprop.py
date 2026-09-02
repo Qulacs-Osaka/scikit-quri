@@ -41,4 +41,10 @@ def backprop_inner_product(
     for i, v in enumerate(param_mapper(params)):
         qulacs_circuit.set_parameter(i, v)
     gate_gradients = np.asarray(qulacs_circuit.backprop_inner_product(state), dtype=np.float64)
-    return circuit._registry.aggregate_gate_gradients(gate_gradients)
+    # Parametric-input gates need the df/dtheta chain factor; previously they were
+    # silently zeroed here while the other gradient paths reported d<O>/d(angle),
+    # so the three paths disagreed on the same circuit.
+    chain_factors = circuit.input_chain_factors(x, theta)
+    return circuit.aggregate_gate_gradients(
+        gate_gradients, skip_is_input=False, chain_factors=chain_factors
+    )

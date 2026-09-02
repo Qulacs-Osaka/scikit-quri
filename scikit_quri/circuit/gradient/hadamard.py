@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, List, Sequence
 import numpy as np
 from numpy.typing import NDArray
 from quri_parts.circuit import ParametricQuantumGate, QuantumCircuit, QuantumGate
+from quri_parts.circuit.inverse import inverse_gate
 from quri_parts.core.estimator import ConcurrentQuantumEstimator
 from quri_parts.core.operator import Operator, pauli_label
 from quri_parts.core.state import GeneralCircuitQuantumState
@@ -71,15 +72,21 @@ def _apply_gates(
 
 
 def _invert_gate(gate: QuantumGate) -> QuantumGate:
-    return QuantumGate(
-        name=gate.name,
-        target_indices=gate.target_indices,
-        control_indices=gate.control_indices,
-        classical_indices=gate.classical_indices,
-        params=[-p for p in gate.params],
-        pauli_ids=gate.pauli_ids,
-        unitary_matrix=gate.unitary_matrix,
-    )
+    """Return the inverse of a non-parametric gate.
+
+    Delegates to quri-parts so that gates whose inverse is not obtained by
+    negating ``params`` (S, T, SqrtX, SqrtY, ... whose ``params`` is empty) are
+    handled correctly. Negating ``params`` alone silently returned the *same*
+    gate for those, which made the Hadamard test build ``U_{>j}`` where
+    ``U†_{>j}`` was intended and produced wrong gradients (sign flips included).
+    """
+    try:
+        return inverse_gate(gate)
+    except ValueError as e:  # non-invertible (e.g. measurement) or unsupported
+        raise NotImplementedError(
+            f"Cannot invert gate {gate.name!r} while building the Hadamard-test "
+            f"circuit; the gradient would be silently wrong. Original error: {e}"
+        ) from e
 
 
 def _hadamard_observable(operator: Operator, ancilla_qubit: int) -> Operator:
@@ -181,6 +188,7 @@ def hadamard_gradient(
     learning_param_indexes = circuit.get_learning_params_indexes()
 
     states = []
+    gate_positions: List[int] = []
     param_gate_count = -1
     for i, gate in enumerate(circuit.circuit.gates):
         if not isinstance(gate, ParametricQuantumGate):
@@ -190,7 +198,23 @@ def hadamard_gradient(
             continue
         test_circuit = _hadamard_test_circuit(circuit, x, theta, i)
         states.append(GeneralCircuitQuantumState(circuit.n_qubits + 1, test_circuit))
+        gate_positions.append(param_gate_count)
 
     operators = [observable] * len(states)
     results = estimator(operators, states)
-    return np.array([res.value for res in results])
+
+    # Scatter the per-gate-position derivatives d<O>/d(angle) into a full
+    # parameter_count-length vector, then let the registry aggregate them into
+    # per-learning-parameter derivatives. This applies share_with coefficients,
+    # sums positions that share a parameter, and applies the chain-rule factor
+    # for parametric-input gates. Returning the raw per-position array (as this
+    # function used to) is wrong whenever share_with or f(theta, x) is used, and
+    # does not even have length learning_params_count.
+    gate_gradients = np.zeros(circuit.parameter_count, dtype=np.float64)
+    for pos, res in zip(gate_positions, results):
+        gate_gradients[pos] = np.real(res.value)
+
+    chain_factors = circuit._registry.input_chain_factors(x, theta)
+    return circuit._registry.aggregate_gate_gradients(
+        gate_gradients, skip_is_input=False, chain_factors=chain_factors
+    )

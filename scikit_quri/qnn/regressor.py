@@ -240,7 +240,15 @@ class QNNRegressor:
         diff = y_pred - y_scaled
         n_samples = len(diff)
         # grads[p] = (1/N) * sum_s (1/n_outputs) * sum_o 2 * diff[s,o] * y_pred_grads[s,o,p]
-        grads = (2.0 / (n_samples * self.n_outputs)) * np.einsum("so,sop->p", diff, y_pred_grads)
+        # ``_predict_inner`` scales expectation values by ``y_exp_ratio`` but
+        # ``_estimate_grad`` does not, so the same factor has to be applied here for
+        # grad_fn to be the gradient of cost_fn (QNNClassifier already does this).
+        grads = (
+            2.0
+            * self.y_exp_ratio
+            / (n_samples * self.n_outputs)
+            * np.einsum("so,sop->p", diff, y_pred_grads)
+        )
         return grads
 
     def _estimate_grad(self, x_scaled: NDArray[np.float64], params: Params) -> NDArray[np.float64]:

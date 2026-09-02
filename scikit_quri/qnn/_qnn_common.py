@@ -240,6 +240,15 @@ def estimate_grad(
     # Hoist parametric state construction out of the per-sample loop.
     param_state = quantum_state(n_qubits=ansatz.n_qubits, circuit=ansatz.circuit)
 
+    # Parametric-input gates have angle = f(theta, x), so the per-gate derivative
+    # d<O>/d(angle) must be scaled by df/dtheta to become d<O>/d(theta). The factor
+    # depends on x, so it is applied per sample. Without it the reported gradient is
+    # off by df/dtheta (e.g. exactly x for f = theta * x), which is not even a
+    # constant factor across samples and breaks the descent direction.
+    has_input_chain = any(
+        ip.companion_parameter_id is not None for ip in ansatz._registry.input_parameters
+    )
+
     grads = []
     values_matrix = np.zeros((n_ops, n_active), dtype=np.float64)
     for x in x_scaled:
@@ -248,5 +257,11 @@ def estimate_grad(
             estimate = gradient_estimator(op, param_state, circuit_params)
             values = np.ascontiguousarray(np.asarray(estimate.values).real, dtype=np.float64)
             values_matrix[i, :] = values[active_idx]
-        grads.append(np.einsum("ij,jk->ik", values_matrix, A))
+        if has_input_chain:
+            chain = ansatz.input_chain_factors(x, params)
+            scale = np.array([chain.get(p, 1.0) for p in active_positions], dtype=np.float64)
+            A_x = A * scale[:, None]
+        else:
+            A_x = A
+        grads.append(np.einsum("ij,jk->ik", values_matrix, A_x))
     return np.asarray(grads)
