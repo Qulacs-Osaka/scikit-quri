@@ -251,3 +251,41 @@ def test_estimate_grad_falls_back_when_backend_is_not_exact():
         use_adjoint=True,
     )
     assert calls, "gradient_estimator must be used when the backend is not exact"
+
+
+@pytest.mark.parametrize(
+    "make_circuit",
+    [
+        lambda: create_qcnn_ansatz(4, seed=0),
+        _chain_rule_circuit,
+    ],
+    ids=["qcnn_multi_pauli_share_with", "parametric_input"],
+)
+def test_parameter_shift_gradient_matches_finite_difference(make_circuit):
+    """The parameter-shift rule is what hardware backends must use, so it has to
+    agree with the other paths on share_with and on angle = f(theta, x)."""
+    from scikit_quri.circuit.gradient import parameter_shift_gradient
+
+    circuit = make_circuit()
+    rng = np.random.default_rng(0)
+    theta = rng.uniform(0, 2 * np.pi, circuit.learning_params_count)
+    x = rng.uniform(-1, 1, max(1, circuit.n_qubits))
+    op = Operator({pauli_label("Z 0"): 1.0, pauli_label("Z 1"): 0.6})
+
+    expected = _numerical_gradient(circuit, x, theta, op)
+    got = parameter_shift_gradient(circuit, x, theta, op, ESTIMATOR)
+    assert len(got) == circuit.learning_params_count
+    np.testing.assert_allclose(got, expected, atol=1e-6)
+
+
+def test_oqtopus_gradient_estimator_requires_x_and_theta():
+    """The old signature sliced resolved gate angles out of ``params`` and fed them
+    back as raw input data, which is a different circuit."""
+    from scikit_quri.backend import OqtopusGradientEstimator
+
+    estimator = OqtopusGradientEstimator.__new__(OqtopusGradientEstimator)
+    circuit = _chain_rule_circuit()
+    with pytest.raises(ValueError, match="needs x and theta"):
+        estimator.estimate_learning_param_gradient(
+            Operator({pauli_label("Z 0"): 1.0}), circuit, [0.0, 0.0, 0.0, 0.0]
+        )

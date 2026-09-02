@@ -8,9 +8,11 @@ free function taking the circuit and inputs explicitly.
 from .adjoint import adjoint_expectation_gradients
 from .backprop import backprop_inner_product
 from .hadamard import hadamard_gradient
+from .parameter_shift import parameter_shift_gradient
 
 __all__ = [
     "adjoint_expectation_gradients",
     "backprop_inner_product",
     "hadamard_gradient",
+    "parameter_shift_gradient",
 ]
