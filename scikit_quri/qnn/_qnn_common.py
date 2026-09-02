@@ -18,6 +18,7 @@ from typing_extensions import TypeAlias
 
 from scikit_quri.backend import (
     BaseEstimator,
+    BaseGradientEstimator,
     BatchedSimEstimator,
     ExactStatevectorEstimator,
 )
@@ -220,6 +221,28 @@ def estimate_grad(
     Returns:
         Gradient tensor. Shape: (n_samples, n_operators, n_learning_params).
     """
+    # An explicitly supplied BaseGradientEstimator wins: it is a deliberate choice of
+    # gradient rule (e.g. parameter shift for hardware), not a default. These objects
+    # expose estimate_learning_param_gradient rather than __call__, so without this
+    # dispatch passing one raised "not callable" from the loop below — the library's
+    # own gradient abstraction did not work with the library's own models.
+    if isinstance(gradient_estimator, BaseGradientEstimator):
+        grads = np.empty(
+            (len(x_scaled), len(operators), ansatz.learning_params_count), dtype=np.float64
+        )
+        for s, x in enumerate(x_scaled):
+            bound_params = ansatz.generate_bound_params(x, params)
+            for i, op in enumerate(operators):
+                grads[s, i] = np.real(
+                    np.asarray(
+                        gradient_estimator.estimate_learning_param_gradient(
+                            op, ansatz, bound_params, x=x, theta=params
+                        ),
+                        dtype=np.complex128,
+                    )
+                )
+        return grads
+
     # Exact statevector backends can use the adjoint method: one forward pass plus
     # one backpropagation per observable, instead of 2 * parameter_count circuit
     # simulations. Same quantity, ~10-140x faster and exact rather than O(delta^2).

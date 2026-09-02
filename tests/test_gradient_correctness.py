@@ -319,3 +319,57 @@ def test_exact_expectations_batch_matches_per_state_estimation(make_circuit):
     got = exact_expectations_batch(circuit, x, theta, ops)
     assert got.shape == reference.shape
     np.testing.assert_allclose(got, reference, atol=1e-12)
+
+
+def _adjoint_reference(circuit, x_batch, theta, ops):
+    from scikit_quri.circuit.gradient import adjoint_expectation_gradients_batch
+
+    return adjoint_expectation_gradients_batch(circuit, x_batch, theta, ops)
+
+
+def test_base_gradient_estimator_is_usable_from_the_qnn_path():
+    """SimGradientEstimator exposes estimate_learning_param_gradient, not __call__.
+
+    Without an explicit dispatch, passing it to a QNN raised "not callable" — the
+    library's own gradient abstraction did not work with the library's own models.
+    """
+    from scikit_quri.backend import QulacsEstimator, SimGradientEstimator
+
+    circuit = create_qcnn_ansatz(4, 0)
+    rng = np.random.default_rng(0)
+    theta = rng.uniform(0, 2 * np.pi, circuit.learning_params_count)
+    x = rng.uniform(-1, 1, (3, 4))
+    ops = [Operator({pauli_label("Z 0"): 1.0}), Operator({pauli_label("Z 1"): 0.5})]
+
+    got = estimate_grad(
+        circuit,
+        SimGradientEstimator(method="parameter_shift"),
+        ops,
+        x,
+        theta,
+        estimator=QulacsEstimator(),
+    )
+    assert got.shape == (3, len(ops), circuit.learning_params_count)
+    np.testing.assert_allclose(got, _adjoint_reference(circuit, x, theta, ops), atol=1e-9)
+
+
+def test_oqtopus_gradient_estimator_wiring_with_a_stub_backend():
+    """Exercise the hardware gradient path end to end without a device.
+
+    The device call is replaced by an exact simulator, so this checks the wiring
+    (shift construction, aggregation, chain rule, shape) rather than the hardware.
+    """
+    from scikit_quri.backend import OqtopusGradientEstimator, QulacsEstimator
+
+    gradient_estimator = OqtopusGradientEstimator.__new__(OqtopusGradientEstimator)
+    gradient_estimator._concurrent_estimator = lambda ops, states: ESTIMATOR(ops, states)
+
+    circuit = create_qcnn_ansatz(4, 0)
+    rng = np.random.default_rng(0)
+    theta = rng.uniform(0, 2 * np.pi, circuit.learning_params_count)
+    x = rng.uniform(-1, 1, (2, 4))
+    ops = [Operator({pauli_label("Z 0"): 1.0})]
+
+    got = estimate_grad(circuit, gradient_estimator, ops, x, theta, estimator=QulacsEstimator())
+    assert got.shape == (2, 1, circuit.learning_params_count)
+    np.testing.assert_allclose(got, _adjoint_reference(circuit, x, theta, ops), atol=1e-9)

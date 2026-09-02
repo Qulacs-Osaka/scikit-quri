@@ -9,6 +9,7 @@ import os
 os.environ.setdefault("OMP_PROC_BIND", "false")
 
 from .base_estimator import BaseEstimator, BatchedSimEstimator, ExactStatevectorEstimator
+from .base_gradient_estimator import BaseGradientEstimator
 from .base_sampler import BaseSampler
 from .oqtopus_estimator import OqtopusEstimator
 from .oqtopus_gradient_estimator import OqtopusGradientEstimator
@@ -25,6 +26,7 @@ from .sim_gradient_estimator import SimGradientEstimator
 
 __all__ = [
     "BaseEstimator",
+    "BaseGradientEstimator",
     "BaseSampler",
     "BatchedSimEstimator",
     "ExactStatevectorEstimator",
