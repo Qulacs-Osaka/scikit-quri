@@ -8,7 +8,7 @@ import os
 # scaluq throughput.
 os.environ.setdefault("OMP_PROC_BIND", "false")
 
-from .base_estimator import BaseEstimator, BatchedSimEstimator
+from .base_estimator import BaseEstimator, BatchedSimEstimator, ExactStatevectorEstimator
 from .base_sampler import BaseSampler
 from .oqtopus_estimator import OqtopusEstimator
 from .oqtopus_gradient_estimator import OqtopusGradientEstimator
@@ -27,6 +27,7 @@ __all__ = [
     "BaseEstimator",
     "BaseSampler",
     "BatchedSimEstimator",
+    "ExactStatevectorEstimator",
     "OqtopusEstimator",
     "OqtopusGradientEstimator",
     "OqtopusSampler",

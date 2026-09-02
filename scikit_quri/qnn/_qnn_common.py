@@ -16,7 +16,11 @@ from quri_parts.core.state import ParametricCircuitQuantumState, quantum_state
 from quri_parts.qulacs import QulacsStateT
 from typing_extensions import TypeAlias
 
-from scikit_quri.backend import BaseEstimator, BatchedSimEstimator
+from scikit_quri.backend import (
+    BaseEstimator,
+    BatchedSimEstimator,
+    ExactStatevectorEstimator,
+)
 from scikit_quri.circuit import LearningCircuit
 from scikit_quri.circuit.gradient import adjoint_expectation_gradients
 
@@ -209,7 +213,16 @@ def estimate_grad(
     # Exact statevector backends can use the adjoint method: one forward pass plus
     # one backpropagation per observable, instead of 2 * parameter_count circuit
     # simulations. Same quantity, ~10-140x faster and exact rather than O(delta^2).
-    if use_adjoint:
+    #
+    # It is simulator-only: the adjoint method needs |psi> and O|psi> as vectors and
+    # replays the circuit backwards, none of which is available on hardware, where
+    # measurement collapses the state and recovering it would take exponentially many
+    # tomography shots. Backends that cannot provide this (OQTOPUS and any other real
+    # device) fall through to the supplied ``gradient_estimator``; the adjoint path is
+    # never taken for them, so a hardware run is never silently replaced by a local
+    # simulation. Use the parameter-shift rule there - it needs only ordinary circuit
+    # executions - e.g. SimGradientEstimator(method="parameter_shift").
+    if use_adjoint and isinstance(estimator, ExactStatevectorEstimator):
         return np.asarray(
             [adjoint_expectation_gradients(ansatz, x, params, list(operators)) for x in x_scaled]
         )

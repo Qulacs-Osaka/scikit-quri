@@ -84,9 +84,12 @@ class QNNRegressor:
     do_y_scale: bool = field(default=True)
     n_outputs: int = field(default=1)
     y_exp_ratio: float = field(default=2.2)
-    #: Use the exact adjoint (backpropagation) gradient instead of ``gradient_estimator``.
-    #: Requires an exact statevector backend; ~10-140x faster and exact. Set to False to
-    #: force the supplied ``gradient_estimator`` (e.g. to study finite-difference error).
+    #: Use the exact adjoint (backpropagation) gradient when the estimator supports it
+    #: (``ExactStatevectorEstimator``: Qulacs, Scaluq). ~10-140x faster than a
+    #: finite-difference estimator and exact rather than O(delta^2).
+    #: The adjoint method cannot run on hardware, so with a device backend (OQTOPUS)
+    #: this flag has no effect and the supplied ``gradient_estimator`` is used - use
+    #: the parameter-shift rule there. Set to False to always use ``gradient_estimator``.
     use_adjoint_gradient: bool = field(default=True)
     #: Seed for the initial parameter draw. ``None`` uses fresh OS entropy, which
     #: makes every fit (and therefore every accuracy assertion) non-reproducible.

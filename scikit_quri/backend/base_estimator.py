@@ -32,6 +32,22 @@ class BaseEstimator(metaclass=ABCMeta):
         """
 
 
+class ExactStatevectorEstimator(BaseEstimator, metaclass=ABCMeta):
+    """Capability marker: the backend evaluates expectation values from the exact
+    state vector, with no sampling noise and with the state itself accessible.
+
+    Only such a backend can use the adjoint (backpropagation) gradient, which needs
+    ``|psi>`` and ``O|psi>`` as vectors and replays the circuit backwards. On real
+    hardware neither is obtainable: measurement collapses the state and recovering it
+    would need exponentially many tomography shots. Hardware backends (OQTOPUS) must
+    **not** inherit from this class — the parameter-shift rule is the correct choice
+    there, since it needs only ordinary circuit executions.
+
+    ``_qnn_common.estimate_grad`` dispatches on
+    ``isinstance(estimator, ExactStatevectorEstimator)``.
+    """
+
+
 class BatchedSimEstimator(BaseEstimator, metaclass=ABCMeta):
     """Capability extension for simulation backends that natively batch
     expectation-value evaluation over a single parametric circuit with many

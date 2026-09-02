@@ -198,3 +198,56 @@ def test_regressor_grad_matches_cost_gradient():
 
     scale = max(1e-12, np.max(np.abs(numeric)))
     assert np.max(np.abs(analytic - numeric)) / scale < 1e-4
+
+
+def test_adjoint_is_not_used_on_hardware_backends():
+    """The adjoint method is simulator-only and must never run for a device backend.
+
+    It needs ``|psi>`` and ``O|psi>`` as vectors and replays the circuit backwards;
+    on hardware measurement collapses the state. Taking that path for a device would
+    quietly compute the gradient on a local simulator instead of the device.
+    """
+    from scikit_quri.backend import (
+        ExactStatevectorEstimator,
+        OqtopusEstimator,
+        QulacsEstimator,
+        ScaluqEstimator,
+    )
+
+    assert issubclass(QulacsEstimator, ExactStatevectorEstimator)
+    assert issubclass(ScaluqEstimator, ExactStatevectorEstimator)
+    assert not issubclass(OqtopusEstimator, ExactStatevectorEstimator)
+
+
+def test_estimate_grad_falls_back_when_backend_is_not_exact():
+    """With a non-exact backend, estimate_grad must use the supplied gradient_estimator."""
+    from scikit_quri.backend import BaseEstimator
+
+    class _DeviceLikeEstimator(BaseEstimator):
+        def estimate(self, operators, states):  # pragma: no cover - not exercised here
+            raise AssertionError("should not be called by the gradient path")
+
+    circuit = _chain_rule_circuit()
+    op = Operator({pauli_label("Z0"): 1.0})
+    theta = np.array([0.41, 0.55, 0.27])
+    x = np.array([3.0]).reshape(1, -1)
+
+    calls = []
+    base = create_numerical_gradient_estimator(
+        create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-6
+    )
+
+    def counting_gradient_estimator(*args, **kwargs):
+        calls.append(1)
+        return base(*args, **kwargs)
+
+    estimate_grad(
+        circuit,
+        counting_gradient_estimator,
+        [op],
+        x,
+        theta,
+        estimator=_DeviceLikeEstimator(),
+        use_adjoint=True,
+    )
+    assert calls, "gradient_estimator must be used when the backend is not exact"
