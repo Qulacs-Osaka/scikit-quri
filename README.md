@@ -29,7 +29,7 @@ from quri_parts.core.estimator.gradient import create_numerical_gradient_estimat
 from quri_parts.qulacs.estimator import create_qulacs_vector_concurrent_parametric_estimator
 from quri_parts.algo.optimizer import Adam
 
-from scikit_quri.backend import SimEstimator
+from scikit_quri.backend import ScaluqEstimator
 from scikit_quri.circuit import create_qcl_ansatz
 from scikit_quri.qnn.classifier import QNNClassifier
 
@@ -38,21 +38,23 @@ num_class = 3
 
 circuit = create_qcl_ansatz(n_qubits, 3, 1.0)
 
-# use_scaluq=True enables batched estimation via the scaluq backend
-estimator = SimEstimator(use_scaluq=True)
+# ScaluqEstimator batches expectation values across samples; QulacsEstimator
+# evaluates them one at a time. Both are exact state-vector simulators.
+estimator = ScaluqEstimator()
 gradient_estimator = create_numerical_gradient_estimator(
     create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
 )
 adam = Adam()
 
-qnn = QNNClassifier(circuit, num_class, estimator, gradient_estimator, adam)
+# seed makes the initial parameters reproducible; without it every fit differs.
+qnn = QNNClassifier(circuit, num_class, estimator, gradient_estimator, adam, seed=0)
 qnn.fit(x_train, y_train, maxiter=50)
 y_pred = qnn.predict(x_test)
 ```
 
 ### Scaluq backend
 
-Setting `SimEstimator(use_scaluq=True)` uses [scaluq](https://github.com/qulacs/scaluq)'s `StateVectorBatched` for expectation value computation and numerical gradient estimation.
+`ScaluqEstimator` uses [scaluq](https://github.com/qulacs/scaluq)'s `StateVectorBatched` for expectation value computation and numerical gradient estimation.
 By batching circuit execution across all samples, larger datasets benefit from greater speedups.
 
 | Batch size | predict_inner speedup | Full training speedup |
@@ -72,16 +74,27 @@ scikit-quri exposes two backend abstractions to keep algorithm code independent 
 
 | Class | Backend | Notes |
 |---|---|---|
-| `SimEstimator(use_scaluq=False)` | quri-parts-qulacs (state vector) | Default simulator. Per-sample expectation evaluation. |
-| `SimEstimator(use_scaluq=True)` | scaluq | Batched expectation over many parameter vectors via `StateVectorBatched`. Faster for QNN training. |
-| `OqtopusEstimator(device_id, shots, config)` | OQTOPUS Cloud | Real hardware (or hardware-simulator), shot-based expectation. |
+| `QulacsEstimator()` | quri-parts-qulacs (state vector) | Exact. Per-sample expectation evaluation. |
+| `ScaluqEstimator()` | scaluq | Exact. Batched expectation over many parameter vectors via `StateVectorBatched`. Faster for QNN training. |
+| `OqtopusEstimator(device_id, shots=...)` | OQTOPUS Cloud | Real hardware (or hardware-simulator), shot-based expectation. |
+| `SimEstimator(use_scaluq=...)` | — | **Deprecated**, kept for compatibility. Emits `DeprecationWarning`; use the two above. |
+
+Gradients follow the backend. On the exact simulators the adjoint (backpropagation)
+method is used by default — one forward pass plus one backpropagation per observable
+instead of `2 * parameter_count` simulations — which is both exact and 10-140x faster
+than a finite-difference estimator. It cannot run on hardware, so `OqtopusEstimator`
+falls back to the `gradient_estimator` you supply; use the parameter-shift rule there
+(`SimGradientEstimator(method="parameter_shift")` or `OqtopusGradientEstimator`), since
+a finite difference on shot-based expectation values is dominated by sampling noise.
+Pass `use_adjoint_gradient=False` to always use your own estimator.
 
 Construct directly:
 
 ```python
-from scikit_quri.backend import SimEstimator, OqtopusEstimator
-estimator = SimEstimator(use_scaluq=True)            # batched simulation
-# estimator = OqtopusEstimator(device_id="qulacs")    # real hardware
+from scikit_quri.backend import ScaluqEstimator, QulacsEstimator, OqtopusEstimator
+estimator = ScaluqEstimator()                        # batched simulation
+# estimator = QulacsEstimator()                      # per-sample simulation
+# estimator = OqtopusEstimator(device_id="qulacs")   # real hardware
 ```
 
 ### Available Samplers (`BaseSampler` implementations)
@@ -105,7 +118,7 @@ A `BaseSampler` instance is also a quri-parts `ConcurrentSampler` (it implements
 
 | Algorithm | Backend type | Recommended default |
 |---|---|---|
-| QNN classifier / regressor | Estimator | `SimEstimator(use_scaluq=True)` for training, `OqtopusEstimator` for hardware inference |
+| QNN classifier / regressor | Estimator | `ScaluqEstimator()` for training, `OqtopusEstimator` for hardware inference |
 | QNN generator (QCBM) | Sampler | `QulacsSampler()` for training, `OqtopusSampler` for hardware sampling |
 | Quantum SVM / KRR | Sampler | `QulacsSampler()` for simulation, `OqtopusSampler` for hardware |
 | Overlap estimator (state/) | Sampler | Same as above |

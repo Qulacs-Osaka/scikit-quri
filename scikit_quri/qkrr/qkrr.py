@@ -1,5 +1,6 @@
 # mypy: ignore-errors
-from typing import List
+import warnings
+from typing import List, Optional
 
 import numpy as np
 from numpy.typing import NDArray
@@ -17,10 +18,25 @@ from scikit_quri.state.overlap_estimator import OverlapEstimator
 class QKRR:
     """class to solve regression problems with kernel ridge regressor with a quantum kernel"""
 
-    def __init__(self, circuit: LearningCircuit, n_iteration=10) -> None:
+    def __init__(
+        self,
+        circuit: LearningCircuit,
+        n_iteration=10,
+        sampler: Optional[BaseSampler] = None,
+    ) -> None:
         """
         :param circuit: circuit to generate quantum feature
+        :param sampler: sampling backend; a property of the model, not of the data
         """
+        if circuit.learning_params_count:
+            raise ValueError(
+                f"{type(self).__name__} is a kernel method: it evaluates the feature map "
+                f"only and never optimizes parameters, so the circuit must have no "
+                f"learnable parameters (got {circuit.learning_params_count}). Use a "
+                f"data-encoding circuit such as create_ibm_embedding_circuit. Passing a "
+                f"trainable ansatz used to fail later with an unrelated IndexError."
+            )
+        self.sampler = sampler
         self.krr = KernelRidge(kernel="precomputed")
         self.kernel_ridge_tuned = None
         self.circuit = circuit
@@ -29,18 +45,42 @@ class QKRR:
         self.n_iteration = n_iteration
         self.estimator = None
 
-    def fit(self, x: NDArray[np.float64], y: NDArray[np.int_], sampler: BaseSampler) -> None:
+    def fit(
+        self,
+        x: NDArray[np.float64],
+        y: NDArray[np.int_],
+        sampler: Optional[BaseSampler] = None,
+    ) -> None:
         """
         train the machine.
         :param x: training inputs
         :param y: training teacher values
+        :param sampler: deprecated; pass it to the constructor instead
         """
+        if sampler is not None:
+            warnings.warn(
+                "Passing sampler to fit() is deprecated; pass it to the constructor "
+                "instead. Configuration in fit() prevents use with scikit-learn's "
+                "Pipeline and cross-validation helpers, which call fit(X, y).",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self.sampler = sampler
+        if self.sampler is None:
+            raise ValueError(
+                "No sampler configured. Pass one to the constructor, e.g. "
+                "QKRR(circuit, sampler=QulacsSampler())."
+            )
+
         kar = np.zeros((len(x), len(x)))
-        # Compute UΦx to get kernel of `x` and `y`.
+        # Reset rather than append: fitting a second time used to keep the circuits
+        # from the first fit, so the Gram matrix no longer matched len(x) and the
+        # reshape below raised "cannot reshape array of size ... into shape ...".
+        self.data_circuits = []
         for i in range(len(x)):
             self.data_circuits.append(self._run_circuit(x[i]))
 
-        self.estimator = OverlapEstimator(sampler)
+        self.estimator = OverlapEstimator(self.sampler)
         kar = self.estimator.estimate_concurrent(self.data_circuits, self.data_circuits).reshape(
             len(x), len(x)
         )

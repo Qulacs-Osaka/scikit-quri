@@ -128,10 +128,11 @@ class QNNClassifier:
             x_scaled = x_train
 
         # operator設定
-        operators = []
-        for i in range(self.num_class):
-            operators.append(Operator({pauli_label(f"Z {i}"): 1.0}))
-        self.operator = operators
+        # Respect an operator supplied to the constructor. It used to be overwritten
+        # here unconditionally, so the most natural customization -- choosing the
+        # observable -- was discarded with no error.
+        if not self.operator:
+            self.operator = [Operator({pauli_label(f"Z {i}"): 1.0}) for i in range(self.num_class)]
 
         parameter_count = self.ansatz.learning_params_count
         if self.trained_param is None:
