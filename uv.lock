@@ -2263,7 +2263,7 @@ requires-dist = [
     { name = "quri-parts", marker = "extra == 'qulacs'", specifier = ">=0.24.1" },
     { name = "quri-parts-openfermion", specifier = ">=0.23.0,<0.24" },
     { name = "quri-parts-oqtopus", specifier = ">=1.1.5,<2" },
-    { name = "scaluq", specifier = ">=0.1.0" },
+    { name = "scaluq", specifier = ">=0.1.0,<0.3" },
     { name = "scikit-learn", specifier = ">=1.4.0,<2" },
 ]
 provides-extras = ["qulacs"]

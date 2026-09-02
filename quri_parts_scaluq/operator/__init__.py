@@ -24,14 +24,20 @@ def _scaluq_pauli(pauli_label: PauliLabel, coef: complex) -> _backend.PauliOpera
 
 
 def convert_operator(operator: Union[Operator, PauliLabel], n_qubits: int) -> _backend.Operator:
-    op = _backend.Operator(n_qubits)
-
     paulis: Iterable[tuple[PauliLabel, complex]]
     if isinstance(operator, Operator):
         paulis = operator.items()
     else:
         paulis = [(operator, 1.0)]
-    for pauli, coef in paulis:
-        op.add_operator(_scaluq_pauli(pauli, coef))
+    terms = [_scaluq_pauli(pauli, coef) for pauli, coef in paulis]
 
-    return op
+    # scaluq 0.1: Operator(n_qubits), then add_operator() per term.
+    # scaluq 0.2: add_operator is gone and the int overload of the constructor means
+    # the number of *terms*, not qubits — so the 0.1 call still runs and silently
+    # builds the wrong operator. Prefer the sequence overload, which is unambiguous.
+    if hasattr(_backend.Operator, "add_operator"):
+        op = _backend.Operator(n_qubits)
+        for term in terms:
+            op.add_operator(term)
+        return op
+    return _backend.Operator(terms)

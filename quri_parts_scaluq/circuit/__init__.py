@@ -203,8 +203,20 @@ def convert_parametric_gate(
     assert False, "Unreachable"
 
 
+def _new_scaluq_circuit(n_qubits: int) -> "ScaluqCircuit":
+    """Create an empty scaluq circuit.
+
+    scaluq 0.1 takes the qubit count in the constructor; 0.2 makes ``Circuit()``
+    argument-less and derives the width from the state it is applied to.
+    """
+    try:
+        return _backend.Circuit(n_qubits)
+    except TypeError:
+        return _backend.Circuit()
+
+
 def convert_circuit(circuit: ImmutableQuantumCircuit) -> _backend.Circuit:
-    scaluq_circuit = _backend.Circuit(circuit.qubit_count)
+    scaluq_circuit = _new_scaluq_circuit(circuit.qubit_count)
 
     for gate in circuit.gates:
         scaluq_circuit.add_gate(convert_gate(gate))
@@ -264,7 +276,7 @@ def convert_parametric_circuit(
     else:
         raise ValueError(f"Unsupported parametric circuit type: {type(circuit)}")
 
-    scaluq_circuit = _backend.Circuit(circuit.qubit_count)
+    scaluq_circuit = _new_scaluq_circuit(circuit.qubit_count)
     param_count = 0
     for gate, _ in param_circuit._gates:
         if is_parametric_gate_name(gate.name):
