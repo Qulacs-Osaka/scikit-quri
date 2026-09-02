@@ -153,10 +153,13 @@ def predict_inner_cached(
     step by storing the most recent result keyed on the params content and a
     composite x_scaled fingerprint.
 
-    The x fingerprint combines ``id(x_scaled)`` with ``shape`` and ``dtype`` to
-    guard against the case where the previously cached array was garbage
-    collected and a new array reuses the same memory address. A params hash is
-    used as a fast-fail check before the exact ``np.array_equal`` comparison.
+    The cache keeps a strong reference to ``x_scaled`` and compares it by identity
+    first, then by content. Keying on ``id(x_scaled)`` without holding the array was
+    unsound: ``x_scaled`` is a temporary produced by the scaler inside ``predict``, so
+    it is freed on return and the next call's array frequently lands on the same
+    address. ``shape`` and ``dtype`` did not help, because calling ``predict`` twice
+    with batches of the same shape — the ordinary case — matches on both, and the
+    stale prediction of the previous batch was returned with no error.
 
     Args:
         ansatz: Learning circuit.
@@ -166,23 +169,33 @@ def predict_inner_cached(
         params: Learning parameters.
         y_exp_ratio: Scaling factor applied to expectation values.
         cache: Mutable dict with keys ``cached_params`` (Optional[NDArray]),
-            ``y_pred`` (Optional[NDArray]), ``cached_x_fp`` (Optional[tuple]),
+            ``y_pred`` (Optional[NDArray]), ``cached_x`` (Optional[NDArray]),
             ``cached_params_hash`` (Optional[int]).
 
     Returns:
         Prediction matrix. Shape: (n_samples, n_operators).
     """
     params_arr = np.ascontiguousarray(np.asarray(params))
-    x_fp = (id(x_scaled), x_scaled.shape, x_scaled.dtype)
     params_hash = hash(params_arr.tobytes())
     cached_params: NDArray[np.float64] | None = cache.get("cached_params")
     cached_y_pred: NDArray[np.float64] | None = cache.get("y_pred")
-    cached_x_fp: tuple | None = cache.get("cached_x_fp")
+    cached_x: NDArray[np.float64] | None = cache.get("cached_x")
     cached_params_hash: int | None = cache.get("cached_params_hash")
+    x_hit = cached_x is not None and (
+        # Identity is the common case (the same training batch every iteration);
+        # fall back to content so an array that was rebuilt or mutated in place is
+        # not mistaken for the cached one.
+        cached_x is x_scaled
+        or (
+            cached_x.shape == x_scaled.shape
+            and cached_x.dtype == x_scaled.dtype
+            and np.array_equal(cached_x, x_scaled)
+        )
+    )
     if (
         cached_params is not None
         and cached_y_pred is not None
-        and cached_x_fp == x_fp
+        and x_hit
         and cached_params_hash == params_hash
         and cached_params.shape == params_arr.shape
         and np.array_equal(cached_params, params_arr)
@@ -191,7 +204,7 @@ def predict_inner_cached(
     y_pred = predict_inner(ansatz, estimator, operators, x_scaled, params, y_exp_ratio)
     cache["cached_params"] = params_arr.copy()
     cache["y_pred"] = y_pred
-    cache["cached_x_fp"] = x_fp
+    cache["cached_x"] = x_scaled
     cache["cached_params_hash"] = params_hash
     return y_pred
 

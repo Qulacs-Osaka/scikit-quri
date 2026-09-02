@@ -373,3 +373,88 @@ def test_oqtopus_gradient_estimator_wiring_with_a_stub_backend():
     got = estimate_grad(circuit, gradient_estimator, ops, x, theta, estimator=QulacsEstimator())
     assert got.shape == (2, 1, circuit.learning_params_count)
     np.testing.assert_allclose(got, _adjoint_reference(circuit, x, theta, ops), atol=1e-9)
+
+
+def test_prediction_cache_does_not_return_a_stale_batch():
+    """The cache must not confuse two different batches of the same shape.
+
+    ``x_scaled`` is a temporary built by the scaler inside ``predict``, so keying the
+    cache on ``id(x_scaled)`` without holding a reference let a freed array's address
+    be reused by the next batch. shape and dtype matched too — that is the ordinary
+    case — so the previous batch's prediction was returned silently.
+    """
+    from scikit_quri.backend import QulacsEstimator
+    from scikit_quri.qnn._qnn_common import predict_inner, predict_inner_cached
+
+    circuit = create_qcl_ansatz(3, 2, 0.5, 0)
+    estimator = QulacsEstimator()
+    ops = [Operator({pauli_label("Z 0"): 1.0})]
+    rng = np.random.default_rng(0)
+    theta = rng.uniform(0, 2 * np.pi, circuit.learning_params_count)
+    cache: dict = {}
+
+    for _ in range(200):
+        x = rng.uniform(-1, 1, (4, 1))
+        expected = predict_inner(circuit, estimator, ops, x, theta, 1.0)
+        got = predict_inner_cached(circuit, estimator, ops, x, theta, 1.0, cache)
+        np.testing.assert_allclose(got, expected, atol=1e-12)
+        del x
+
+
+def test_prediction_cache_still_hits_on_repeat():
+    """The fix must not disable the cache: the same batch must not be recomputed."""
+    from scikit_quri.qnn import _qnn_common
+    from scikit_quri.backend import QulacsEstimator
+    from scikit_quri.qnn._qnn_common import predict_inner_cached
+
+    circuit = create_qcl_ansatz(3, 2, 0.5, 0)
+    ops = [Operator({pauli_label("Z 0"): 1.0})]
+    rng = np.random.default_rng(0)
+    theta = rng.uniform(0, 2 * np.pi, circuit.learning_params_count)
+    x = rng.uniform(-1, 1, (4, 1))
+
+    calls = {"n": 0}
+    original = _qnn_common.predict_inner
+
+    def counting(*args, **kwargs):
+        calls["n"] += 1
+        return original(*args, **kwargs)
+
+    _qnn_common.predict_inner = counting
+    try:
+        cache: dict = {}
+        estimator = QulacsEstimator()
+        first = predict_inner_cached(circuit, estimator, ops, x, theta, 1.0, cache)
+        assert calls["n"] == 1
+        second = predict_inner_cached(circuit, estimator, ops, x, theta, 1.0, cache)
+        np.testing.assert_allclose(first, second, atol=1e-12)
+        assert calls["n"] == 1, "second call with the same batch must hit the cache"
+        # A different batch of the same shape must miss.
+        predict_inner_cached(circuit, estimator, ops, rng.uniform(-1, 1, (4, 1)), theta, 1.0, cache)
+        assert calls["n"] == 2
+    finally:
+        _qnn_common.predict_inner = original
+
+
+def test_prediction_cache_keeps_the_array_alive():
+    """The cache must hold the array it keyed on.
+
+    This is the invariant the id()-based key violated: it stored the integer address
+    of an array it did not reference, so once that array was freed the address could
+    be handed to the next batch and the stale prediction was returned. Holding the
+    array makes the address impossible to recycle while the entry is live.
+    """
+    from scikit_quri.backend import QulacsEstimator
+    from scikit_quri.qnn._qnn_common import predict_inner_cached
+
+    circuit = create_qcl_ansatz(3, 2, 0.5, 0)
+    ops = [Operator({pauli_label("Z 0"): 1.0})]
+    rng = np.random.default_rng(0)
+    theta = rng.uniform(0, 2 * np.pi, circuit.learning_params_count)
+    x = rng.uniform(-1, 1, (4, 1))
+
+    cache: dict = {}
+    predict_inner_cached(circuit, QulacsEstimator(), ops, x, theta, 1.0, cache)
+    assert any(value is x for value in cache.values()), (
+        "the cache keyed on x without keeping a reference to it"
+    )

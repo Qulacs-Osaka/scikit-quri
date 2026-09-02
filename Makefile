@@ -1,4 +1,7 @@
 PYTEST := uv run pytest
+# OQTOPUS tests reach the cloud and need an account, so they are not part of the
+# default run. Use `make test-oqtopus` when an account is configured.
+DESELECT_OQTOPUS := -m "not oqtopus"
 FORMATTER := uv run ruff format
 LINTER := uv run ruff check
 TYPE_CHECKER := uv run mypy
@@ -29,18 +32,22 @@ check:
 
 .PHONY: test
 test:
-	$(PYTEST) -v $(TEST_DIR)
+	$(PYTEST) -v $(DESELECT_OQTOPUS) $(TEST_DIR)
+
+.PHONY: test-oqtopus
+test-oqtopus:
+	$(PYTEST) -v -m oqtopus $(TEST_DIR)
 
 tests/%.py: FORCE
 	$(PYTEST) $@
 
 .PHONY: cov
 cov:
-	$(PYTEST) $(COVERAGE_OPT) --cov-report html $(TEST_DIR)
+	$(PYTEST) $(COVERAGE_OPT) $(DESELECT_OQTOPUS) --cov-report html $(TEST_DIR)
 
 .PHONY: cov_ci
 cov_ci:
-	$(PYTEST) $(COVERAGE_OPT) --cov-report xml $(TEST_DIR)
+	$(PYTEST) $(COVERAGE_OPT) $(DESELECT_OQTOPUS) --cov-report xml $(TEST_DIR)
 
 .PHONY: serve_cov
 serve_cov: cov
