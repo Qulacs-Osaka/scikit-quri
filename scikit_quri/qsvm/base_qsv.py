@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import warnings
 from enum import Enum
-from typing import Optional
+from typing import Optional, TypeVar
 
 import numpy as np
 from numpy.typing import NDArray
@@ -18,6 +18,11 @@ from scikit_quri.state import OverlapEstimator
 class SVMethodType(Enum):
     SVC = 1
     SVR = 2
+
+
+# typing.Self is 3.11+, and this package supports 3.10, so fit() is annotated with a
+# bound TypeVar to keep `QSVC(...).fit(x, y)` typed as QSVC rather than as the base.
+_QSV = TypeVar("_QSV", bound="BaseQSV")
 
 
 class BaseQSV(SklearnBaseEstimator):
@@ -54,14 +59,14 @@ class BaseQSV(SklearnBaseEstimator):
         self.estimator: Optional[OverlapEstimator] = None
 
     def fit(
-        self,
+        self: _QSV,
         x: NDArray[np.float64],
         y: NDArray[np.float64],
         sampler: Optional[BaseSampler] = None,
         n_shots: Optional[int] = None,
         max_iter: Optional[int] = None,
         verbose: Optional[bool] = None,
-    ) -> None:
+    ) -> _QSV:
         """Fit the model to the training data.
 
         Args:
@@ -71,6 +76,9 @@ class BaseQSV(SklearnBaseEstimator):
             n_shots: Deprecated. Pass it to ``__init__`` instead.
             max_iter: Deprecated. Pass it to ``__init__`` instead.
             verbose: Deprecated. Pass it to ``__init__`` instead.
+
+        Returns:
+            self, as scikit-learn estimators do, so ``fit(x, y).predict(x)`` works.
 
         """
         for name, value in (
@@ -113,6 +121,7 @@ class BaseQSV(SklearnBaseEstimator):
             )
         self.sv_method.fit(gram_train, y)
         self.gram_train = gram_train
+        return self
 
     def __sklearn_is_fitted__(self) -> bool:
         """Tell scikit-learn whether this estimator has been fitted.

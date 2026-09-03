@@ -50,12 +50,13 @@ class QKRR(RegressorMixin, SklearnBaseEstimator):
         x: NDArray[np.float64],
         y: NDArray[np.int_],
         sampler: Optional[BaseSampler] = None,
-    ) -> None:
+    ) -> "QKRR":
         """
         train the machine.
         :param x: training inputs
         :param y: training teacher values
         :param sampler: deprecated; pass it to the constructor instead
+        :return: self, as scikit-learn estimators do, so ``fit(x, y).predict(x)`` works
         """
         if sampler is not None:
             warnings.warn(
@@ -84,7 +85,9 @@ class QKRR(RegressorMixin, SklearnBaseEstimator):
         kar = self.estimator.estimate_concurrent(self.data_circuits, self.data_circuits).reshape(
             len(x), len(x)
         )
-        self.krr.fit(kar, y)
+        # self.krr is not fitted here on purpose: RandomizedSearchCV clones it and fits
+        # the clones, and predict() only ever uses kernel_ridge_tuned. Fitting it first
+        # solved the same n x n system for nothing.
 
         # hyperparameter tuning
         alpha_low = 1e-3
@@ -106,8 +109,9 @@ class QKRR(RegressorMixin, SklearnBaseEstimator):
         )
 
         kernel_ridge_tuned.fit(kar, y)
-        print(kernel_ridge_tuned.best_params_)
         self.kernel_ridge_tuned = kernel_ridge_tuned
+        self.best_params_ = kernel_ridge_tuned.best_params_
+        return self
 
     def __sklearn_is_fitted__(self) -> bool:
         """Tell scikit-learn whether this estimator has been fitted.

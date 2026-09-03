@@ -110,14 +110,14 @@ class QNNClassifier(ClassifierMixin, SklearnBaseEstimator):
         x_train: NDArray[np.float64],
         y_train: NDArray[np.int64],
         maxiter: int = 100,
-    ):
+    ) -> "QNNClassifier":
         """
         Args:
             x_train: List of training data inputs whose shape is (n_samples, n_features).
             y_train: List of labels to fit. Labels must be represented as integers. Shape is (n_samples,).
             maxiter: The number of maximum iterations for the optimizer.
         Returns:
-            None
+            self, as scikit-learn estimators do, so ``fit(x, y).predict(x)`` works.
         """
         if x_train.ndim == 1:
             x_train = x_train.reshape(-1, 1)
@@ -166,6 +166,7 @@ class QNNClassifier(ClassifierMixin, SklearnBaseEstimator):
         # Drop cached training-batch prediction so it doesn't pin the y_pred matrix
         # for the remainder of the instance's lifetime.
         self._pred_cache.clear()
+        return self
 
     def __sklearn_is_fitted__(self) -> bool:
         """Tell scikit-learn whether this estimator has been fitted.
