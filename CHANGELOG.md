@@ -56,9 +56,11 @@ released.
   whose copy has the published form. The angle multiplies `Z_i Z_j` and so has to be
   symmetric in `i` and `j`; the shipped one was not (for `x_i=-0.5, x_j=0.8` it gave
   4.31 one way and 0.23 the other). On 4 qubits the encoded state had a mean fidelity
-  of 0.086 against the intended one. Both forms are valid kernels, so accuracy on the
-  bundled toy tasks barely moves (iris f1 0.9482 → 0.9468, noisy-sine MSE 0.0026 →
-  0.0039); what was wrong is that the function did not implement the paper it cites.
+  of 0.086 against the intended one. Both forms are valid kernels and the accidental one
+  happens to score better on the bundled toy tasks (`test_noisy_sine` MSE, median of 25
+  runs: 0.0035 before, 0.0075 after; iris f1 0.9482 → 0.9468 — both still far from the
+  0.0306 and 0.3769 that the trivial baselines score). What was wrong is not the accuracy
+  but that the function did not implement the paper it cites.
   The docstring also pointed at arXiv:1802.06002 (Farhi & Neven), which does not define
   this feature map; it is Havlíček et al., [arXiv:1804.11326](https://arxiv.org/abs/1804.11326)
   (Nature 567, 209). The term is now `scikit_quri.circuit.pre_defined.zz_data_map`, with
@@ -148,7 +150,10 @@ through a thread pool, with a 1s poll interval instead of the SDK's 10s.
   moved 0.94 → 0.95 and `maxiter` 10 → 30, because at 10 iterations 1 seed in 8 landed
   at 0.9217. For wine, majority 0.3769 and logistic regression 0.9693; 0.8 → 0.90. For
   the noisy-sine regression, 0.03 → 0.012 against a measured 0.0027–0.0073 — at 0.03 the
-  2.2x gradient error above passed both before and after being fixed.
+  2.2x gradient error above passed both before and after being fixed. `test_noisy_sine`
+  is sampler-based and `QulacsSampler` cannot be seeded, so its threshold is set against
+  the measured shot-noise distribution (p50 0.0075, max 0.0090 over 25 runs) rather than
+  a single observation: 0.008 sat at the p90 and flaked on CI.
 - OQTOPUS tests are deselected by default (`make test`, `make cov`, `make cov_ci`);
   `make test-oqtopus` runs them. The repository secret is never available to pull
   requests from forks, so those runs could not be made green.
