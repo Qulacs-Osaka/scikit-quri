@@ -145,7 +145,6 @@ module = [
     "scikit_quri.qnn.regressor",
     "scikit_quri.qnn._qnn_common",
     "scikit_quri.qkrr.qkrr",
-    "quri_parts_scaluq.*",
 ]
 disable_error_code = ["union-attr", "index", "type-var", "arg-type", "call-arg", "var-annotated", "misc", "assignment"]
 disallow_untyped_defs = false

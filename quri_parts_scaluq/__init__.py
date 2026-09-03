@@ -23,15 +23,19 @@ from quri_parts.core.state import (
 )
 
 
+# The non-parametric estimators read ``state.circuit``, which the parametric state
+# types do not have, and quri-parts' QuantumEstimator only accepts these two. Listing
+# the parametric ones here made every use of the alias a type error.
 scaluqStateT: TypeAlias = Union[
     CircuitQuantumState,
     QuantumStateVector,
-    ParametricCircuitQuantumState,
-    ParametricQuantumStateVector,
 ]
 scaluqParametricStateT: TypeAlias = Union[
     ParametricCircuitQuantumState, ParametricQuantumStateVector
 ]
+# The initial-state helpers only read ``qubit_count`` and, for vector states,
+# ``vector``; they work for parametric states too.
+scaluqAnyStateT: TypeAlias = Union[scaluqStateT, scaluqParametricStateT]
 
 Numerics = TypeVar("Numerics", int, float, complex)
 
