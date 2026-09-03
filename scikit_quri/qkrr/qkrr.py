@@ -109,6 +109,16 @@ class QKRR(RegressorMixin, SklearnBaseEstimator):
         print(kernel_ridge_tuned.best_params_)
         self.kernel_ridge_tuned = kernel_ridge_tuned
 
+    def __sklearn_is_fitted__(self) -> bool:
+        """Tell scikit-learn whether this estimator has been fitted.
+
+        ``check_is_fitted`` otherwise looks for attributes whose names end in ``_``,
+        a convention this library does not follow (kernel_ridge_tuned carries the fitted state).
+        Without this hook ``Pipeline.predict`` raises ``NotFittedError`` on
+        scikit-learn 1.9, while 1.7 happened to let it through.
+        """
+        return self.kernel_ridge_tuned is not None and self.estimator is not None
+
     def predict(self, xs: NDArray[np.float64]) -> NDArray[np.float64]:
         """
         predict y values for each of xs

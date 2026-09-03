@@ -167,6 +167,16 @@ class QNNClassifier(ClassifierMixin, SklearnBaseEstimator):
         # for the remainder of the instance's lifetime.
         self._pred_cache.clear()
 
+    def __sklearn_is_fitted__(self) -> bool:
+        """Tell scikit-learn whether this estimator has been fitted.
+
+        ``check_is_fitted`` otherwise looks for attributes whose names end in ``_``,
+        a convention this library does not follow (trained_param carries the fitted state).
+        Without this hook ``Pipeline.predict`` raises ``NotFittedError`` on
+        scikit-learn 1.9, while 1.7 happened to let it through.
+        """
+        return self.trained_param is not None
+
     def decision_function(self, x_test: NDArray[np.float64]) -> NDArray[np.float64]:
         """Raw class scores: the scaled Pauli-Z expectation value per class.
 

@@ -200,6 +200,16 @@ class QNNRegressor(RegressorMixin, SklearnBaseEstimator):
         cost = mean_squared_error(y_scaled, y_pred)
         return cost
 
+    def __sklearn_is_fitted__(self) -> bool:
+        """Tell scikit-learn whether this estimator has been fitted.
+
+        ``check_is_fitted`` otherwise looks for attributes whose names end in ``_``,
+        a convention this library does not follow (trained_param carries the fitted state).
+        Without this hook ``Pipeline.predict`` raises ``NotFittedError`` on
+        scikit-learn 1.9, while 1.7 happened to let it through.
+        """
+        return self.trained_param is not None
+
     def predict(self, x_test: NDArray[np.float64]) -> NDArray[np.float64]:
         """
         Predict outcome for each input data in `x_test`.
