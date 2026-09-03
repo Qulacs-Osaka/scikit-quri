@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, List, Optional, Sequence, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
-from quri_parts.circuit import Parameter, QuantumGate, UnboundParametricQuantumCircuit
+from quri_parts.circuit import QuantumGate, UnboundParametricQuantumCircuit
 from quri_parts.rust.circuit.circuit_parametric import ImmutableBoundParametricQuantumCircuit
 
 from .parameters import InputFunc, InputFuncWithParam, ParameterRegistry
