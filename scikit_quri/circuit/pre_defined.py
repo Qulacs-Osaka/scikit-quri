@@ -1,4 +1,3 @@
-# mypy: ignore-errors
 from functools import reduce
 from typing import List, Optional
 

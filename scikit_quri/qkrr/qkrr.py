@@ -1,4 +1,3 @@
-# mypy: ignore-errors
 import warnings
 from typing import List, Optional
 
@@ -39,12 +38,12 @@ class QKRR(RegressorMixin, SklearnBaseEstimator):
             )
         self.sampler = sampler
         self.krr = KernelRidge(kernel="precomputed")
-        self.kernel_ridge_tuned = None
+        self.kernel_ridge_tuned: Optional[KernelRidge] = None
         self.circuit = circuit
         self.data_circuits: List[QuantumCircuit] = []
         self.n_qubit: int = circuit.n_qubits
         self.n_iteration = n_iteration
-        self.estimator = None
+        self.estimator: Optional[OverlapEstimator] = None
 
     def fit(
         self,

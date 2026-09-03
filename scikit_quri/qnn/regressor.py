@@ -1,4 +1,3 @@
-# mypy: ignore-errors
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -106,11 +105,11 @@ class QNNRegressor(RegressorMixin, SklearnBaseEstimator):
         self.n_qubit = self.ansatz.n_qubits
         if self.do_x_scale:
             self.scale_x_scaler = MinMaxScaler(
-                feature_range=(-self.x_norm_range, self.x_norm_range)  # type: ignore
+                feature_range=(-self.x_norm_range, self.x_norm_range)
             )
         if self.do_y_scale:
             self.scale_y_scaler = MinMaxScaler(
-                feature_range=(-self.y_norm_range, self.y_norm_range)  # type: ignore
+                feature_range=(-self.y_norm_range, self.y_norm_range)
             )
 
     def fit(self, x_train: NDArray[np.float64], y_train: NDArray[np.float64], maxiter=20) -> None:

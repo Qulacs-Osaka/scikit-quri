@@ -1,4 +1,3 @@
-# mypy: ignore-errors
 """Quantum Circuit Born Machine (QCBM) generative model.
 
 Implements the MMD-based training algorithm from
@@ -249,9 +248,10 @@ class QNNGenerator:
         shift = np.pi / 2
 
         model_samples = self._sample(theta, self.n_shots)
-        marginalize = self.fitting_qubit < self.n_qubit
-        mod = 2**self.fitting_qubit if marginalize else None
-        if marginalize:
+        # `mod is None` rather than a sentinel value: `else 1` would type-check but
+        # turn `samples % mod` into all zeros the moment a guard is dropped.
+        mod = 2**self.fitting_qubit if self.fitting_qubit < self.n_qubit else None
+        if mod is not None:
             model_samples = model_samples % mod
 
         # Shift one **gate position** at a time and let the parameter registry map the
@@ -272,7 +272,7 @@ class QNNGenerator:
 
             plus_samples = self._sample_bound(plus_bound, self.n_shots)
             minus_samples = self._sample_bound(minus_bound, self.n_shots)
-            if marginalize:
+            if mod is not None:
                 plus_samples = plus_samples % mod
                 minus_samples = minus_samples % mod
 

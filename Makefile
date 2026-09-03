@@ -31,7 +31,7 @@ fix:
 check:
 	$(FORMATTER) $(CHECK_DIR) --diff
 	$(LINTER) $(CHECK_DIR) --diff
-# $(TYPE_CHECKER) $(CHECK_DIR)
+	$(TYPE_CHECKER) $(PROJECT_DIR) $(VENDOR_DIR)
 
 .PHONY: test
 test:

@@ -51,7 +51,7 @@ class BaseQSV(SklearnBaseEstimator):
         self.verbose = verbose
         self.data_circuits: list[QuantumCircuit] = []
         self.n_qubit = circuit.n_qubits
-        self.estimator = None
+        self.estimator: Optional[OverlapEstimator] = None
 
     def fit(
         self,

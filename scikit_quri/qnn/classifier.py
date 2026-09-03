@@ -1,4 +1,3 @@
-# mypy: ignore-errors
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -97,7 +96,7 @@ class QNNClassifier(ClassifierMixin, SklearnBaseEstimator):
             raise ValueError(f"num_class ({self.num_class}) must be <= n_qubits ({self.n_qubit})")
         if self.do_x_scale:
             self.scale_x_scaler = MinMaxScaler(
-                feature_range=(-self.x_norm_range, self.x_norm_range)  # type: ignore
+                feature_range=(-self.x_norm_range, self.x_norm_range)
             )
 
     @staticmethod

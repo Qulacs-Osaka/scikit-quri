@@ -26,12 +26,12 @@ circuit backwards. Use :mod:`~scikit_quri.circuit.gradient.parameter_shift` ther
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Sequence
+from typing import TYPE_CHECKING, Any, List, Sequence, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
 from qulacs import QuantumState as QulacsQuantumState
-from quri_parts.core.operator import Operator
+from quri_parts.core.estimator import Estimatable
 from quri_parts.qulacs.circuit import convert_parametric_circuit
 from quri_parts.qulacs.operator import convert_operator
 
@@ -39,7 +39,9 @@ if TYPE_CHECKING:
     from ..circuit import LearningCircuit
 
 
-def _prepared(circuit: "LearningCircuit", operators: Sequence[Operator]):
+def _prepared(
+    circuit: "LearningCircuit", operators: Sequence[Estimatable]
+) -> Tuple[Any, Any, List[Any]]:
     """Convert the parametric circuit and the observables to qulacs once."""
     qulacs_circuit, param_mapper = convert_parametric_circuit(circuit.circuit)
     qulacs_operators = [convert_operator(op, circuit.n_qubits) for op in operators]
@@ -50,7 +52,7 @@ def adjoint_expectation_gradients_batch(
     circuit: "LearningCircuit",
     x_batch: NDArray[np.float64],
     theta: NDArray[np.float64],
-    operators: Sequence[Operator],
+    operators: Sequence[Estimatable],
 ) -> NDArray[np.float64]:
     """Gradients for a whole batch of inputs.
 
@@ -98,23 +100,25 @@ def adjoint_expectation_gradients(
     circuit: "LearningCircuit",
     x: NDArray[np.float64],
     theta: NDArray[np.float64],
-    operators: Sequence[Operator],
+    operators: Sequence[Estimatable],
 ) -> NDArray[np.float64]:
     """Gradients of ``<O_k>`` w.r.t. the learning parameters, for one sample.
 
     Returns:
         Array of shape ``(len(operators), circuit.learning_params_count)``.
     """
-    return adjoint_expectation_gradients_batch(
+    batch: NDArray[np.float64] = adjoint_expectation_gradients_batch(
         circuit, np.asarray(x).reshape(1, -1), theta, operators
-    )[0]
+    )
+    first: NDArray[np.float64] = batch[0]
+    return first
 
 
 def exact_expectations_batch(
     circuit: "LearningCircuit",
     x_batch: NDArray[np.float64],
     theta: NDArray[np.float64],
-    operators: Sequence[Operator],
+    operators: Sequence[Estimatable],
 ) -> NDArray[np.float64]:
     """Exact expectation values for a batch, reusing one qulacs circuit conversion.
 
@@ -137,4 +141,5 @@ def exact_expectations_batch(
         psi.set_zero_state()
         qulacs_circuit.update_quantum_state(psi)
         values.append([op.get_expectation_value(psi).real for op in qulacs_operators])
-    return np.asarray(values, dtype=np.float64)
+    result: NDArray[np.float64] = np.asarray(values, dtype=np.float64)
+    return result
