@@ -316,8 +316,7 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for scikit_quri.qnn.classifier</h1><div class="highlight"><pre>
-<span></span><span class="c1"># mypy: ignore-errors</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
@@ -326,6 +325,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">LearningCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEstimator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEstimator</span> <span class="k">as</span> <span class="n">SklearnBaseEstimator</span><span class="p">,</span> <span class="n">ClassifierMixin</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.preprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">MinMaxScaler</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">log_loss</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Operator</span><span class="p">,</span> <span class="n">pauli_label</span>
@@ -338,7 +338,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="QNNClassifier"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier">[docs]</a><span class="nd">@dataclass</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">QNNClassifier</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">QNNClassifier</span><span class="p">(</span><span class="n">ClassifierMixin</span><span class="p">,</span> <span class="n">SklearnBaseEstimator</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Class to solve classification problems by quantum neural networks.</span>
 <span class="sd">    The prediction is made by making a vector which predicts one-hot encoding of labels.</span>
 <span class="sd">    The prediction is made by</span>
@@ -414,7 +414,7 @@ document.write(`
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;num_class (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_class</span><span class="si">}</span><span class="s2">) must be &lt;= n_qubits (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_x_scale</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">scale_x_scaler</span> <span class="o">=</span> <span class="n">MinMaxScaler</span><span class="p">(</span>
-                <span class="n">feature_range</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">x_norm_range</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_norm_range</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+                <span class="n">feature_range</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">x_norm_range</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_norm_range</span><span class="p">)</span>
             <span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
@@ -485,13 +485,30 @@ document.write(`
         <span class="c1"># for the remainder of the instance&#39;s lifetime.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pred_cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="QNNClassifier.predict"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier.predict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_test</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Predict outcome for each input data in ``x_test``. This method returns the predicted outcome as a vector of probabilities for each class.</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__sklearn_is_fitted__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tell scikit-learn whether this estimator has been fitted.</span>
+
+<span class="sd">        ``check_is_fitted`` otherwise looks for attributes whose names end in ``_``,</span>
+<span class="sd">        a convention this library does not follow (trained_param carries the fitted state).</span>
+<span class="sd">        Without this hook ``Pipeline.predict`` raises ``NotFittedError`` on</span>
+<span class="sd">        scikit-learn 1.9, while 1.7 happened to let it through.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trained_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="QNNClassifier.decision_function"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier.decision_function">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">decision_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_test</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Raw class scores: the scaled Pauli-Z expectation value per class.</span>
+
+<span class="sd">        These are **not** probabilities. They are ``y_exp_ratio`` times an expectation</span>
+<span class="sd">        value in [-1, 1], so they are unnormalized and may be negative. ``predict``</span>
+<span class="sd">        used to return this matrix while documenting it as &quot;a vector of probabilities</span>
+<span class="sd">        for each class&quot;, which meant ``accuracy_score(y, model.predict(X))`` and</span>
+<span class="sd">        ``log_loss(y, model.predict(X))`` were both wrong.</span>
+
 <span class="sd">        Args:</span>
 <span class="sd">            x_test: Input data whose shape is ``(n_samples, n_features)``.</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            y_pred: Predicted outcome whose shape is ``(n_samples, num_class)``.</span>
 
+<span class="sd">        Returns:</span>
+<span class="sd">            Score matrix of shape ``(n_samples, num_class)``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">trained_param</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Model is not trained.&quot;</span><span class="p">)</span>
@@ -502,8 +519,32 @@ document.write(`
             <span class="n">x_scaled</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_x_scaler</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x_test</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">x_scaled</span> <span class="o">=</span> <span class="n">x_test</span>
-        <span class="n">y_pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_predict_inner</span><span class="p">(</span><span class="n">x_scaled</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">trained_param</span><span class="p">)</span>  <span class="c1"># .argmax(axis=1)</span>
-        <span class="k">return</span> <span class="n">y_pred</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_predict_inner</span><span class="p">(</span><span class="n">x_scaled</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">trained_param</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QNNClassifier.predict_proba"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier.predict_proba">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict_proba</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_test</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Class probabilities, i.e. the softmax of :meth:`decision_function`.</span>
+
+<span class="sd">        This is the quantity the old ``predict`` docstring described. It is what the</span>
+<span class="sd">        training loss is computed on.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Probability matrix of shape ``(n_samples, num_class)``; rows sum to 1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_softmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">decision_function</span><span class="p">(</span><span class="n">x_test</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="QNNClassifier.predict"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier.predict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_test</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Predicted class label for each sample, following the scikit-learn contract.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Labels of shape ``(n_samples,)``.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            Before 2.1 this returned the score matrix, so callers wrote</span>
+<span class="sd">            ``model.predict(X).argmax(axis=1)``. That is now just ``model.predict(X)``;</span>
+<span class="sd">            use :meth:`decision_function` for the matrix and :meth:`predict_proba` for</span>
+<span class="sd">            probabilities.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">decision_function</span><span class="p">(</span><span class="n">x_test</span><span class="p">)</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span></div>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_predict_inner</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">x_scaled</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">params</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>

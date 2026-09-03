@@ -316,14 +316,14 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for scikit_quri.qkrr.qkrr</h1><div class="highlight"><pre>
-<span></span><span class="c1"># mypy: ignore-errors</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.stats</span><span class="w"> </span><span class="kn">import</span> <span class="n">loguniform</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEstimator</span> <span class="k">as</span> <span class="n">SklearnBaseEstimator</span><span class="p">,</span> <span class="n">RegressorMixin</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.kernel_ridge</span><span class="w"> </span><span class="kn">import</span> <span class="n">KernelRidge</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">RandomizedSearchCV</span>
 
@@ -333,7 +333,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.state.overlap_estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">OverlapEstimator</span>
 
 
-<div class="viewcode-block" id="QKRR"><a class="viewcode-back" href="../../../scikit_quri.qkrr.html#scikit_quri.qkrr.qkrr.QKRR">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QKRR</span><span class="p">:</span>
+<div class="viewcode-block" id="QKRR"><a class="viewcode-back" href="../../../scikit_quri.qkrr.html#scikit_quri.qkrr.qkrr.QKRR">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QKRR</span><span class="p">(</span><span class="n">RegressorMixin</span><span class="p">,</span> <span class="n">SklearnBaseEstimator</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;class to solve regression problems with kernel ridge regressor with a quantum kernel&quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -356,12 +356,12 @@ document.write(`
             <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">sampler</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">krr</span> <span class="o">=</span> <span class="n">KernelRidge</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="s2">&quot;precomputed&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">kernel_ridge_tuned</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel_ridge_tuned</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">KernelRidge</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="o">=</span> <span class="n">circuit</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">n_qubits</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_iteration</span> <span class="o">=</span> <span class="n">n_iteration</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">OverlapEstimator</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="QKRR.fit"><a class="viewcode-back" href="../../../scikit_quri.qkrr.html#scikit_quri.qkrr.qkrr.QKRR.fit">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -426,6 +426,16 @@ document.write(`
         <span class="n">kernel_ridge_tuned</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">kar</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">kernel_ridge_tuned</span><span class="o">.</span><span class="n">best_params_</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kernel_ridge_tuned</span> <span class="o">=</span> <span class="n">kernel_ridge_tuned</span></div>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__sklearn_is_fitted__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tell scikit-learn whether this estimator has been fitted.</span>
+
+<span class="sd">        ``check_is_fitted`` otherwise looks for attributes whose names end in ``_``,</span>
+<span class="sd">        a convention this library does not follow (kernel_ridge_tuned carries the fitted state).</span>
+<span class="sd">        Without this hook ``Pipeline.predict`` raises ``NotFittedError`` on</span>
+<span class="sd">        scikit-learn 1.9, while 1.7 happened to let it through.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_ridge_tuned</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="QKRR.predict"><a class="viewcode-back" href="../../../scikit_quri.qkrr.html#scikit_quri.qkrr.qkrr.QKRR.predict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

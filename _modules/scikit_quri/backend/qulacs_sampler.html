@@ -332,7 +332,7 @@ document.write(`
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span> <span class="o">=</span> <span class="n">create_qulacs_vector_concurrent_sampler</span><span class="p">()</span>
 
-<div class="viewcode-block" id="QulacsSampler.sample"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.QulacsSampler.sample">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit_shots_tuples</span><span class="p">):</span>
+<div class="viewcode-block" id="QulacsSampler.sample"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.QulacsSampler.sample">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit_shots_tuples</span><span class="p">):</span>  <span class="c1"># noqa: ANN001</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_impl</span><span class="p">(</span><span class="n">circuit_shots_tuples</span><span class="p">)</span></div></div>
 </pre></div>
 

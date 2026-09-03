@@ -316,8 +316,7 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for scikit_quri.qnn.regressor</h1><div class="highlight"><pre>
-<span></span><span class="c1"># mypy: ignore-errors</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -325,6 +324,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.algo.optimizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optimizer</span><span class="p">,</span> <span class="n">OptimizerStatus</span><span class="p">,</span> <span class="n">Params</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Estimatable</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Operator</span><span class="p">,</span> <span class="n">pauli_label</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEstimator</span> <span class="k">as</span> <span class="n">SklearnBaseEstimator</span><span class="p">,</span> <span class="n">RegressorMixin</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.preprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">MinMaxScaler</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEstimator</span>
@@ -354,7 +354,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="QNNRegressor"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor">[docs]</a><span class="nd">@dataclass</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">QNNRegressor</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">QNNRegressor</span><span class="p">(</span><span class="n">RegressorMixin</span><span class="p">,</span> <span class="n">SklearnBaseEstimator</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class to solve regression problems with quantum neural networks.</span>
 <span class="sd">    The out is taken as expectation values of ``Pauli Z`` operators acting on the first qubit. i.e., output is ``&lt;Z_0&gt;``.</span>
@@ -423,11 +423,11 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ansatz</span><span class="o">.</span><span class="n">n_qubits</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_x_scale</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">scale_x_scaler</span> <span class="o">=</span> <span class="n">MinMaxScaler</span><span class="p">(</span>
-                <span class="n">feature_range</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">x_norm_range</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_norm_range</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+                <span class="n">feature_range</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">x_norm_range</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x_norm_range</span><span class="p">)</span>
             <span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">do_y_scale</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">scale_y_scaler</span> <span class="o">=</span> <span class="n">MinMaxScaler</span><span class="p">(</span>
-                <span class="n">feature_range</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">y_norm_range</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_norm_range</span><span class="p">)</span>  <span class="c1"># type: ignore</span>
+                <span class="n">feature_range</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">y_norm_range</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_norm_range</span><span class="p">)</span>
             <span class="p">)</span>
 
 <div class="viewcode-block" id="QNNRegressor.fit"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.fit">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_train</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">y_train</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">maxiter</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -517,6 +517,16 @@ document.write(`
         <span class="c1"># Case of MSE</span>
         <span class="n">cost</span> <span class="o">=</span> <span class="n">mean_squared_error</span><span class="p">(</span><span class="n">y_scaled</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cost</span></div>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">__sklearn_is_fitted__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tell scikit-learn whether this estimator has been fitted.</span>
+
+<span class="sd">        ``check_is_fitted`` otherwise looks for attributes whose names end in ``_``,</span>
+<span class="sd">        a convention this library does not follow (trained_param carries the fitted state).</span>
+<span class="sd">        Without this hook ``Pipeline.predict`` raises ``NotFittedError`` on</span>
+<span class="sd">        scikit-learn 1.9, while 1.7 happened to let it through.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">trained_param</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="QNNRegressor.predict"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.predict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_test</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>

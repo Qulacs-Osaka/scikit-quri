@@ -326,6 +326,7 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumCircuit</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn</span><span class="w"> </span><span class="kn">import</span> <span class="n">svm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEstimator</span> <span class="k">as</span> <span class="n">SklearnBaseEstimator</span><span class="p">,</span> <span class="n">ClassifierMixin</span><span class="p">,</span> <span class="n">RegressorMixin</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseSampler</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">LearningCircuit</span>
@@ -337,7 +338,7 @@ document.write(`
     <span class="n">SVR</span> <span class="o">=</span> <span class="mi">2</span></div>
 
 
-<div class="viewcode-block" id="BaseQSV"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">BaseQSV</span><span class="p">:</span>
+<div class="viewcode-block" id="BaseQSV"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">BaseQSV</span><span class="p">(</span><span class="n">SklearnBaseEstimator</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for Quantum Support Vector Machine.&quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -368,7 +369,7 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">n_qubits</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">OverlapEstimator</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="BaseQSV.fit"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV.fit">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -431,6 +432,16 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">sv_method</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">gram_train</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gram_train</span> <span class="o">=</span> <span class="n">gram_train</span></div>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">__sklearn_is_fitted__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Tell scikit-learn whether this estimator has been fitted.</span>
+
+<span class="sd">        ``check_is_fitted`` otherwise looks for attributes whose names end in ``_``,</span>
+<span class="sd">        a convention this library does not follow (estimator carries the fitted state).</span>
+<span class="sd">        Without this hook ``Pipeline.predict`` raises ``NotFittedError`` on</span>
+<span class="sd">        scikit-learn 1.9, while 1.7 happened to let it through.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
 <div class="viewcode-block" id="BaseQSV.predict"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV.predict">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xs</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Predict outcomes for the given test data.</span>
 
@@ -458,7 +469,7 @@ document.write(`
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">bind_input_and_parameters</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([]))</span><span class="o">.</span><span class="n">get_mutable_copy</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="QSVC"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.QSVC">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QSVC</span><span class="p">(</span><span class="n">BaseQSV</span><span class="p">):</span>
+<div class="viewcode-block" id="QSVC"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.QSVC">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QSVC</span><span class="p">(</span><span class="n">ClassifierMixin</span><span class="p">,</span> <span class="n">BaseQSV</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Quantum Support Vector Classifier.</span>
 
 <span class="sd">    Args:</span>
@@ -488,7 +499,7 @@ document.write(`
         <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="QSVR"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.QSVR">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QSVR</span><span class="p">(</span><span class="n">BaseQSV</span><span class="p">):</span>
+<div class="viewcode-block" id="QSVR"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.QSVR">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QSVR</span><span class="p">(</span><span class="n">RegressorMixin</span><span class="p">,</span> <span class="n">BaseQSV</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Quantum Support Vector Regressor.</span>
 
 <span class="sd">    Args:</span>
