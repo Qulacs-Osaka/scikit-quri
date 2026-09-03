@@ -8,6 +8,23 @@ Versions before 2.0.0 were never tagged or published; `1.1.0` sat in
 that number does not identify a release. 2.0.0 is the first version intended to be
 released.
 
+## [Unreleased]
+
+### Fixed
+
+- **`fit` returned `None` on every model**, so `model.fit(x, y).predict(x)` — the
+  ordinary scikit-learn idiom — raised `AttributeError: 'NoneType' object has no
+  attribute 'predict'`. All of `QNNClassifier`, `QNNRegressor`, `QNNGenerator`,
+  `BaseQSV` (`QSVC` / `QSVR`) and `QKRR` now return `self`. `Pipeline` and
+  `GridSearchCV` ignore the return value, which is why the estimator-contract tests
+  passed while the most common call shape was broken.
+- **`QKRR.fit` printed `best_params_` to stdout** on every call. The value is kept as
+  `best_params_` on the model instead.
+- **`QNNRegressor.fit` printed the final cost** to stdout. Kept as `final_cost_`.
+- `QKRR.fit` fitted `self.krr` and then threw the result away: `RandomizedSearchCV`
+  clones the estimator and `predict` only uses the tuned one, so an n x n kernel ridge
+  system was being solved for nothing.
+
 ## [2.0.0] - 2026-09-02
 
 ### Wrong results (all of these returned plausible numbers with no error)

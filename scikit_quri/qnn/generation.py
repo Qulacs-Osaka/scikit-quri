@@ -123,18 +123,22 @@ class QNNGenerator:
 
     # --- Training ---------------------------------------------------------
 
-    def fit(self, train_data: NDArray[np.int_], maxiter: int = 100) -> None:
+    def fit(self, train_data: NDArray[np.int_], maxiter: int = 100) -> "QNNGenerator":
         """Train against a sample-list target distribution.
 
         Args:
             train_data: Array of bit-string integers; the empirical
                 distribution of these is the target.
             maxiter: Maximum optimizer iterations.
+
+        Returns:
+            self, as scikit-learn estimators do, so ``fit(data).sample(n)`` works.
         """
         train_samples = np.asarray(train_data, dtype=np.int64)
         if self.fitting_qubit < self.n_qubit:
             train_samples = train_samples % (2**self.fitting_qubit)
         self._fit_inner(train_samples, maxiter)
+        return self
 
     def fit_direct_distribution(
         self,
@@ -142,7 +146,7 @@ class QNNGenerator:
         maxiter: int = 100,
         n_target_samples: int = 10000,
         seed: int = 0,
-    ) -> None:
+    ) -> "QNNGenerator":
         """Train against a target probability vector.
 
         Internally samples ``n_target_samples`` bit strings from ``p`` and
@@ -153,6 +157,9 @@ class QNNGenerator:
             maxiter: Maximum optimizer iterations.
             n_target_samples: Number of target-distribution samples.
             seed: Seed for the target sampler.
+
+        Returns:
+            self, matching :meth:`fit`.
         """
         if len(p) != 2**self.fitting_qubit:
             raise ValueError(
@@ -161,6 +168,7 @@ class QNNGenerator:
         rng = np.random.default_rng(seed)
         train_samples = rng.choice(len(p), size=n_target_samples, p=p).astype(np.int64)
         self._fit_inner(train_samples, maxiter)
+        return self
 
     def _fit_inner(self, train_samples: NDArray[np.int64], maxiter: int) -> None:
         n_params = self.circuit.learning_params_count

@@ -112,7 +112,9 @@ class QNNRegressor(RegressorMixin, SklearnBaseEstimator):
                 feature_range=(-self.y_norm_range, self.y_norm_range)
             )
 
-    def fit(self, x_train: NDArray[np.float64], y_train: NDArray[np.float64], maxiter=20) -> None:
+    def fit(
+        self, x_train: NDArray[np.float64], y_train: NDArray[np.float64], maxiter=20
+    ) -> "QNNRegressor":
         """
         Fit the model to the training data.
 
@@ -120,6 +122,9 @@ class QNNRegressor(RegressorMixin, SklearnBaseEstimator):
             x_train: Input data whose shape is (n_samples, n_features).
             y_train: Output data whose shape is (n_samples, n_outputs).
             batch_size: The number of samples in each batch.
+
+        Returns:
+            self, as scikit-learn estimators do, so ``fit(x, y).predict(x)`` works.
 
         """
         if x_train.ndim == 1:
@@ -179,7 +184,10 @@ class QNNRegressor(RegressorMixin, SklearnBaseEstimator):
         # Drop cached training-batch prediction so it doesn't pin the y_pred matrix
         # for the remainder of the instance's lifetime.
         self._pred_cache.clear()
-        print(f"{optimizer_state.cost=}")
+        # Was printed unconditionally on every fit. Kept as an attribute instead so a
+        # caller can read it without the library writing to stdout.
+        self.final_cost_ = optimizer_state.cost
+        return self
 
     def cost_fn(
         self, x_scaled: NDArray[np.float64], y_scaled: NDArray[np.float64], params: Params

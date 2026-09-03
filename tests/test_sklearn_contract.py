@@ -135,3 +135,30 @@ def test_generator_predict_is_deprecated_in_favour_of_sample():
 
     with pytest.warns(DeprecationWarning, match="use sample"):
         model.predict(n_shots=256)
+
+
+@pytest.mark.parametrize("factory", ALL, ids=IDS)
+def test_fit_returns_self(factory):
+    """`model.fit(X, y).predict(X)` is the ordinary scikit-learn idiom.
+
+    Every fit() returned None, so chaining raised
+    "AttributeError: 'NoneType' object has no attribute 'predict'". Pipeline and
+    GridSearchCV ignore the return value, which is why the rest of this file passed
+    while the most common call shape was broken.
+    """
+    x, y = _data()
+    model = factory()
+    fitted = _quiet(model.fit, x, y.astype(float) if factory is not _qnn_classifier else y)
+    assert fitted is model
+    assert _quiet(fitted.predict, x).shape[0] == len(x)
+
+
+def test_qkrr_does_not_print_and_exposes_best_params():
+    """fit() used to `print(best_params_)`; a library should not write to stdout."""
+    x, y = _data()
+    model = _qkrr()
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        model.fit(x, y.astype(float))
+    assert buf.getvalue() == "", f"QKRR.fit printed: {buf.getvalue()!r}"
+    assert "alpha" in model.best_params_
