@@ -68,7 +68,7 @@ def test_qcnn(solver: Optimizer, maxiter: int):
 
     x_train, y_train, x_test, y_test = generate_data(n_qubit)
     qcl.fit(x_train, y_train, maxiter)
-    y_pred = qcl.predict(x_test).argmax(axis=1)
+    y_pred = qcl.predict(x_test)
     score = f1_score(y_test, y_pred, average="weighted")
     # 多数派クラスが f1=0.3806、深さ2の決定木が 1.0000（この課題の上限）。
     # seed=0・maxiter=20 での実測は 0.9376。シードを振ると maxiter=20 で

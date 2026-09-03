@@ -8,6 +8,7 @@ import numpy as np
 from numpy.typing import NDArray
 from quri_parts.circuit import QuantumCircuit
 from sklearn import svm
+from sklearn.base import BaseEstimator as SklearnBaseEstimator, ClassifierMixin, RegressorMixin
 
 from scikit_quri.backend import BaseSampler
 from scikit_quri.circuit import LearningCircuit
@@ -19,7 +20,7 @@ class SVMethodType(Enum):
     SVR = 2
 
 
-class BaseQSV:
+class BaseQSV(SklearnBaseEstimator):
     """Base class for Quantum Support Vector Machine."""
 
     def __init__(
@@ -140,7 +141,7 @@ class BaseQSV:
         return self.circuit.bind_input_and_parameters(x, np.array([])).get_mutable_copy()
 
 
-class QSVC(BaseQSV):
+class QSVC(ClassifierMixin, BaseQSV):
     """Quantum Support Vector Classifier.
 
     Args:
@@ -170,7 +171,7 @@ class QSVC(BaseQSV):
         )
 
 
-class QSVR(BaseQSV):
+class QSVR(RegressorMixin, BaseQSV):
     """Quantum Support Vector Regressor.
 
     Args:

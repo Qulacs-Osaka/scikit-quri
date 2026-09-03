@@ -7,6 +7,7 @@ from numpy.typing import NDArray
 from quri_parts.algo.optimizer import Optimizer, OptimizerStatus, Params
 from quri_parts.core.estimator import Estimatable
 from quri_parts.core.operator import Operator, pauli_label
+from sklearn.base import BaseEstimator as SklearnBaseEstimator, RegressorMixin
 from sklearn.preprocessing import MinMaxScaler
 
 from scikit_quri.backend import BaseEstimator
@@ -36,7 +37,7 @@ def mean_squared_error(y_true: NDArray[np.float64], y_pred: NDArray[np.float64])
 
 
 @dataclass
-class QNNRegressor:
+class QNNRegressor(RegressorMixin, SklearnBaseEstimator):
     """
     Class to solve regression problems with quantum neural networks.
     The out is taken as expectation values of ``Pauli Z`` operators acting on the first qubit. i.e., output is ``<Z_0>``.

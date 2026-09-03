@@ -8,6 +8,7 @@ from quri_parts.core.estimator import Estimatable
 from scikit_quri.circuit import LearningCircuit
 from scikit_quri.backend import BaseEstimator
 from typing import Any, Dict, List, Optional
+from sklearn.base import BaseEstimator as SklearnBaseEstimator, ClassifierMixin
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import log_loss
 from quri_parts.core.operator import Operator, pauli_label
@@ -20,7 +21,7 @@ from ._qnn_common import (
 
 
 @dataclass
-class QNNClassifier:
+class QNNClassifier(ClassifierMixin, SklearnBaseEstimator):
     """Class to solve classification problems by quantum neural networks.
     The prediction is made by making a vector which predicts one-hot encoding of labels.
     The prediction is made by
@@ -167,13 +168,20 @@ class QNNClassifier:
         # for the remainder of the instance's lifetime.
         self._pred_cache.clear()
 
-    def predict(self, x_test: NDArray[np.float64]) -> NDArray[np.float64]:
-        """Predict outcome for each input data in ``x_test``. This method returns the predicted outcome as a vector of probabilities for each class.
+    def decision_function(self, x_test: NDArray[np.float64]) -> NDArray[np.float64]:
+        """Raw class scores: the scaled Pauli-Z expectation value per class.
+
+        These are **not** probabilities. They are ``y_exp_ratio`` times an expectation
+        value in [-1, 1], so they are unnormalized and may be negative. ``predict``
+        used to return this matrix while documenting it as "a vector of probabilities
+        for each class", which meant ``accuracy_score(y, model.predict(X))`` and
+        ``log_loss(y, model.predict(X))`` were both wrong.
+
         Args:
             x_test: Input data whose shape is ``(n_samples, n_features)``.
-        Returns:
-            y_pred: Predicted outcome whose shape is ``(n_samples, num_class)``.
 
+        Returns:
+            Score matrix of shape ``(n_samples, num_class)``.
         """
         if self.trained_param is None:
             raise ValueError("Model is not trained.")
@@ -184,8 +192,32 @@ class QNNClassifier:
             x_scaled = self.scale_x_scaler.transform(x_test)
         else:
             x_scaled = x_test
-        y_pred = self._predict_inner(x_scaled, self.trained_param)  # .argmax(axis=1)
-        return y_pred
+        return self._predict_inner(x_scaled, self.trained_param)
+
+    def predict_proba(self, x_test: NDArray[np.float64]) -> NDArray[np.float64]:
+        """Class probabilities, i.e. the softmax of :meth:`decision_function`.
+
+        This is the quantity the old ``predict`` docstring described. It is what the
+        training loss is computed on.
+
+        Returns:
+            Probability matrix of shape ``(n_samples, num_class)``; rows sum to 1.
+        """
+        return self._softmax(self.decision_function(x_test), axis=1)
+
+    def predict(self, x_test: NDArray[np.float64]) -> NDArray[np.int64]:
+        """Predicted class label for each sample, following the scikit-learn contract.
+
+        Returns:
+            Labels of shape ``(n_samples,)``.
+
+        Note:
+            Before 2.1 this returned the score matrix, so callers wrote
+            ``model.predict(X).argmax(axis=1)``. That is now just ``model.predict(X)``;
+            use :meth:`decision_function` for the matrix and :meth:`predict_proba` for
+            probabilities.
+        """
+        return np.asarray(self.decision_function(x_test).argmax(axis=1), dtype=np.int64)
 
     def _predict_inner(
         self, x_scaled: NDArray[np.float64], params: NDArray[np.float64]

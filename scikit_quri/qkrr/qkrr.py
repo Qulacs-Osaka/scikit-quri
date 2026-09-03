@@ -6,6 +6,7 @@ import numpy as np
 from numpy.typing import NDArray
 from quri_parts.circuit import QuantumCircuit
 from scipy.stats import loguniform
+from sklearn.base import BaseEstimator as SklearnBaseEstimator, RegressorMixin
 from sklearn.kernel_ridge import KernelRidge
 from sklearn.model_selection import RandomizedSearchCV
 
@@ -15,7 +16,7 @@ from scikit_quri.circuit import LearningCircuit
 from scikit_quri.state.overlap_estimator import OverlapEstimator
 
 
-class QKRR:
+class QKRR(RegressorMixin, SklearnBaseEstimator):
     """class to solve regression problems with kernel ridge regressor with a quantum kernel"""
 
     def __init__(
