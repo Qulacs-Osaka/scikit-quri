@@ -3,9 +3,26 @@ repos:
   # Ruff version.
   rev: v0.13.1
   hooks:
-    # Run the linter.
-    # - id: ruff-check
-    #   args: [ --fix ]
+    # Run the linter. Kept without --fix so it reports instead of silently rewriting;
+    # this is the same check `make check` runs, and it is what CI enforces. It used to
+    # be commented out, which let an unused import reach CI.
+    - id: ruff-check
+      types_or: [ python, pyi ]
     # Run the formatter.
     - id: ruff-format
       types_or: [ python, pyi ]
+
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v5.0.0
+  hooks:
+    # pyproject.toml and the workflow files are edited by hand and are not covered by
+    # any test, so a syntax error in them only shows up as a broken CI run.
+    - id: check-toml
+    - id: check-yaml
+    - id: check-merge-conflict
+    # Notebooks keep their outputs on purpose (the plots are the documentation), but
+    # 512 KB is well above every file tracked today except uv.lock, and would have
+    # caught the 718 KB notebook of stray stdout in PR #18.
+    - id: check-added-large-files
+      args: [ --maxkb=512 ]
+      exclude: ^uv\.lock$

@@ -10,7 +10,10 @@ SPHINX_APIDOC := uv run sphinx-apidoc
 
 PROJECT_DIR := scikit_quri
 TEST_DIR := tests
-CHECK_DIR := $(PROJECT_DIR) $(TEST_DIR)
+# The vendored adapter is source we ship, so it is linted too. Leaving it out
+# meant an unused import there was invisible to both `make check` and CI.
+VENDOR_DIR := quri_parts_scaluq
+CHECK_DIR := $(PROJECT_DIR) $(TEST_DIR) $(VENDOR_DIR)
 
 COVERAGE_OPT := --cov scikit_quri --cov-branch
 BENCHMARK_OPT := --benchmark-autosave -v

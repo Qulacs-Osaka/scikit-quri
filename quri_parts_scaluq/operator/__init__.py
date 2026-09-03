@@ -11,7 +11,6 @@
 from collections.abc import Iterable
 from typing import Union
 
-from typing_extensions import TypeAlias
 from quri_parts.core.operator import Operator, PauliLabel, pauli_name
 
 from .. import _backend
