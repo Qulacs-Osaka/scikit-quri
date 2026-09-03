@@ -1,4 +1,3 @@
-# mypy: ignore-errors
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
@@ -7,6 +6,7 @@ from numpy.typing import NDArray
 from quri_parts.algo.optimizer import Optimizer, OptimizerStatus, Params
 from quri_parts.core.estimator import Estimatable
 from quri_parts.core.operator import Operator, pauli_label
+from sklearn.base import BaseEstimator as SklearnBaseEstimator, RegressorMixin
 from sklearn.preprocessing import MinMaxScaler
 
 from scikit_quri.backend import BaseEstimator
@@ -36,7 +36,7 @@ def mean_squared_error(y_true: NDArray[np.float64], y_pred: NDArray[np.float64])
 
 
 @dataclass
-class QNNRegressor:
+class QNNRegressor(RegressorMixin, SklearnBaseEstimator):
     """
     Class to solve regression problems with quantum neural networks.
     The out is taken as expectation values of ``Pauli Z`` operators acting on the first qubit. i.e., output is ``<Z_0>``.
@@ -105,11 +105,11 @@ class QNNRegressor:
         self.n_qubit = self.ansatz.n_qubits
         if self.do_x_scale:
             self.scale_x_scaler = MinMaxScaler(
-                feature_range=(-self.x_norm_range, self.x_norm_range)  # type: ignore
+                feature_range=(-self.x_norm_range, self.x_norm_range)
             )
         if self.do_y_scale:
             self.scale_y_scaler = MinMaxScaler(
-                feature_range=(-self.y_norm_range, self.y_norm_range)  # type: ignore
+                feature_range=(-self.y_norm_range, self.y_norm_range)
             )
 
     def fit(self, x_train: NDArray[np.float64], y_train: NDArray[np.float64], maxiter=20) -> None:
@@ -199,6 +199,16 @@ class QNNRegressor:
         # Case of MSE
         cost = mean_squared_error(y_scaled, y_pred)
         return cost
+
+    def __sklearn_is_fitted__(self) -> bool:
+        """Tell scikit-learn whether this estimator has been fitted.
+
+        ``check_is_fitted`` otherwise looks for attributes whose names end in ``_``,
+        a convention this library does not follow (trained_param carries the fitted state).
+        Without this hook ``Pipeline.predict`` raises ``NotFittedError`` on
+        scikit-learn 1.9, while 1.7 happened to let it through.
+        """
+        return self.trained_param is not None
 
     def predict(self, x_test: NDArray[np.float64]) -> NDArray[np.float64]:
         """

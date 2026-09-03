@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING, Callable, Union, cast
+from typing import TYPE_CHECKING, Any, Callable, Union, cast
 import threading
 import numpy as np
 from numpy.typing import ArrayLike
@@ -161,10 +161,18 @@ def convert_gate(
                 *gate.target_indices, *gate.params
             )
         else:
-            assert False, "Unreachable"
+            raise ValueError(
+                f"Unsupported gate {gate.name!r}: quri-parts knows this gate but the "
+                "scaluq adapter has no conversion for it. This path previously ended in a "
+                "bare assertion, which python -O removes entirely."
+            )
     elif is_two_qubit_gate_name(gate.name):
+        if gate.name not in _two_qubit_gate_scaluq:
+            raise ValueError(f"Unsupported gate {gate.name!r}: no scaluq conversion (two-qubit)")
         return _two_qubit_gate_scaluq[gate.name](*gate.control_indices, *gate.target_indices)
     elif is_three_qubit_gate_name(gate.name):
+        if gate.name not in _three_qubit_gate_scaluq:
+            raise ValueError(f"Unsupported gate {gate.name!r}: no scaluq conversion (three-qubit)")
         return _three_qubit_gate_scaluq[gate.name](*gate.control_indices, *gate.target_indices)
     elif is_multi_qubit_gate_name(gate.name):
         target_indices = cast_to_list(gate.target_indices)
@@ -177,13 +185,21 @@ def convert_gate(
             angle = gate.params[0]
             return _multi_pauli_rotation_gate_scaluq[gate.name](pauli, angle)
         else:
-            assert False, "Unreachable"
+            raise ValueError(
+                f"Unsupported gate {gate.name!r}: quri-parts knows this gate but the "
+                "scaluq adapter has no conversion for it. This path previously ended in a "
+                "bare assertion, which python -O removes entirely."
+            )
     elif is_unitary_matrix_gate_name(gate.name):
         return dense_matrix_gate_scaluq(gate.target_indices, gate.unitary_matrix)
     elif is_parametric_gate_name(gate.name):
         raise ValueError("Parametric gates are not supported")
     else:
-        assert False, "Unreachable"
+        raise ValueError(
+            f"Unsupported gate {gate.name!r}: quri-parts knows this gate but the "
+            "scaluq adapter has no conversion for it. This path previously ended in a "
+            "bare assertion, which python -O removes entirely."
+        )
 
 
 def convert_parametric_gate(
@@ -193,14 +209,20 @@ def convert_parametric_gate(
         raise ValueError(f"Unknown parametric gate name: {gate.name}")
 
     if gate.name != gate_names.ParametricPauliRotation:
-        return _single_param_gate_scaluq[gate.name](*gate.target_indices, 1.0)
+        factory = cast(
+            Callable[..., "_backend.Gate"], _single_param_gate_scaluq[cast(Any, gate.name)]
+        )
+        return factory(*gate.target_indices, 1.0)
 
     elif gate.name == gate_names.ParametricPauliRotation:
         target_indices = cast_to_list(gate.target_indices)
         pauli_ids = cast_to_list(gate.pauli_ids)
         pauli = _backend.PauliOperator(target_indices, pauli_ids)
         return _backend.gate.ParamPauliRotation(pauli)
-    assert False, "Unreachable"
+    raise ValueError(
+        f"Unsupported parametric gate {gate.name!r}: no scaluq conversion. This used to "
+        "be a bare assertion, which python -O removes entirely."
+    )
 
 
 def _new_scaluq_circuit(n_qubits: int) -> "ScaluqCircuit":
@@ -210,9 +232,10 @@ def _new_scaluq_circuit(n_qubits: int) -> "ScaluqCircuit":
     argument-less and derives the width from the state it is applied to.
     """
     try:
-        return _backend.Circuit(n_qubits)
+        circuit: "ScaluqCircuit" = _backend.Circuit(n_qubits)
     except TypeError:
-        return _backend.Circuit()
+        circuit = _backend.Circuit()
+    return circuit
 
 
 def convert_circuit(circuit: ImmutableQuantumCircuit) -> _backend.Circuit:
@@ -308,7 +331,7 @@ def convert_parametric_circuit(
             param_count += 1
 
         else:
-            scaluq_circuit.add_gate(convert_gate(gate))
+            scaluq_circuit.add_gate(convert_gate(cast(QuantumGate, gate)))
 
     with _convert_cache_lock:
         _convert_cache_last = (circuit, scaluq_circuit, param_mapper)

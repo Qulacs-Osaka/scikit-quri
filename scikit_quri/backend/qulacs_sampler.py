@@ -14,5 +14,5 @@ class QulacsSampler(BaseSampler):
     def __init__(self) -> None:
         self._impl = create_qulacs_vector_concurrent_sampler()
 
-    def sample(self, circuit_shots_tuples):
+    def sample(self, circuit_shots_tuples):  # noqa: ANN001
         return self._impl(circuit_shots_tuples)

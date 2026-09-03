@@ -23,12 +23,12 @@ Cost: ``2 * (number of learning gate positions)`` circuit executions per observa
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Any, List
 
 import numpy as np
 from numpy.typing import NDArray
 from quri_parts.core.estimator import ConcurrentQuantumEstimator
-from quri_parts.core.operator import Operator
+from quri_parts.core.estimator import Estimatable
 from quri_parts.core.state import GeneralCircuitQuantumState
 
 if TYPE_CHECKING:
@@ -41,8 +41,8 @@ def parameter_shift_gradient(
     circuit: "LearningCircuit",
     x: NDArray[np.float64],
     theta: NDArray[np.float64],
-    operator: Operator,
-    estimator: ConcurrentQuantumEstimator,
+    operator: Estimatable,
+    estimator: "ConcurrentQuantumEstimator[Any]",
 ) -> NDArray[np.float64]:
     """Gradient of ``<O>`` w.r.t. the learning parameters by the parameter-shift rule.
 

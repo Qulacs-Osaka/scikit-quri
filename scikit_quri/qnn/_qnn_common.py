@@ -1,11 +1,10 @@
-# mypy: ignore-errors
 """Common quantum circuit execution utilities shared by QNNClassifier and QNNRegressor.
 
 Provides state preparation, expectation value computation, and gradient estimation
 logic that is delegated from each QNN class.
 """
 
-from typing import List, Sequence
+from typing import List, Sequence, Union
 
 import numpy as np
 from numpy.typing import NDArray
@@ -48,7 +47,7 @@ def build_circuit_states(
     """
     # Hoist parametric state construction out of the per-sample loop:
     # the underlying circuit is identical across samples; only bound params change.
-    param_circuit_state: ParametricCircuitQuantumState = quantum_state(  # type: ignore
+    param_circuit_state: ParametricCircuitQuantumState = quantum_state(
         n_qubits=ansatz.n_qubits, circuit=ansatz.circuit
     )
     circuit_states: List[QulacsStateT] = []
@@ -211,7 +210,7 @@ def predict_inner_cached(
 
 def estimate_grad(
     ansatz: LearningCircuit,
-    gradient_estimator: GradientEstimatorType,
+    gradient_estimator: Union[GradientEstimatorType, BaseGradientEstimator],
     operators: Sequence[Estimatable],
     x_scaled: NDArray[np.float64],
     params: Params,
@@ -240,13 +239,13 @@ def estimate_grad(
     # dispatch passing one raised "not callable" from the loop below — the library's
     # own gradient abstraction did not work with the library's own models.
     if isinstance(gradient_estimator, BaseGradientEstimator):
-        grads = np.empty(
+        explicit_grads = np.empty(
             (len(x_scaled), len(operators), ansatz.learning_params_count), dtype=np.float64
         )
         for s, x in enumerate(x_scaled):
             bound_params = ansatz.generate_bound_params(x, params)
             for i, op in enumerate(operators):
-                grads[s, i] = np.real(
+                explicit_grads[s, i] = np.real(
                     np.asarray(
                         gradient_estimator.estimate_learning_param_gradient(
                             op, ansatz, bound_params, x=x, theta=params
@@ -254,7 +253,7 @@ def estimate_grad(
                         dtype=np.complex128,
                     )
                 )
-        return grads
+        return explicit_grads
 
     # Exact statevector backends can use the adjoint method: one forward pass plus
     # one backpropagation per observable, instead of 2 * parameter_count circuit

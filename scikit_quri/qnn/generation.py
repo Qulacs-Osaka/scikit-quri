@@ -1,4 +1,3 @@
-# mypy: ignore-errors
 """Quantum Circuit Born Machine (QCBM) generative model.
 
 Implements the MMD-based training algorithm from
@@ -15,6 +14,8 @@ real hardware (``OqtopusSampler``).
 
 from functools import partial
 from typing import Callable, Optional, Sequence
+
+import warnings
 
 import numpy as np
 from numpy.typing import NDArray
@@ -185,7 +186,7 @@ class QNNGenerator:
 
     # --- Prediction -------------------------------------------------------
 
-    def predict(self, n_shots: Optional[int] = None) -> NDArray[np.float64]:
+    def sample(self, n_shots: Optional[int] = None) -> NDArray[np.float64]:
         """Estimate the model's output probability vector via sampling.
 
         Args:
@@ -194,15 +195,32 @@ class QNNGenerator:
         Returns:
             Empirical probability vector of length ``2^fitting_qubit``.
             Has shot noise of order ``1/sqrt(n_shots)``.
+
+        Note:
+            This used to be called ``predict``, which took no input data and returned
+            a distribution rather than a prediction per sample -- a third meaning of
+            the name across the three models. ``predict`` remains as a deprecated
+            alias.
         """
         if self.trained_param is None:
-            raise ValueError("Call fit() before predict()")
+            raise ValueError("Call fit() before sample()")
         n = n_shots if n_shots is not None else self.n_shots
         samples = self._sample(self.trained_param, n)
         if self.fitting_qubit < self.n_qubit:
             samples = samples % (2**self.fitting_qubit)
         counts = np.bincount(samples, minlength=2**self.fitting_qubit)
         return counts.astype(np.float64) / len(samples)
+
+    def predict(self, n_shots: Optional[int] = None) -> NDArray[np.float64]:
+        """Deprecated alias for :meth:`sample`."""
+        warnings.warn(
+            "QNNGenerator.predict is deprecated; use sample(). It takes no input data "
+            "and returns a distribution, so it never matched the meaning of predict on "
+            "the other models.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.sample(n_shots)
 
     # --- Cost & gradient --------------------------------------------------
 
@@ -230,20 +248,31 @@ class QNNGenerator:
         shift = np.pi / 2
 
         model_samples = self._sample(theta, self.n_shots)
-        marginalize = self.fitting_qubit < self.n_qubit
-        mod = 2**self.fitting_qubit if marginalize else None
-        if marginalize:
+        # `mod is None` rather than a sentinel value: `else 1` would type-check but
+        # turn `samples % mod` into all zeros the moment a guard is dropped.
+        mod = 2**self.fitting_qubit if self.fitting_qubit < self.n_qubit else None
+        if mod is not None:
             model_samples = model_samples % mod
 
-        for j in range(n_params):
-            theta_plus = theta.copy()
-            theta_plus[j] += shift
-            theta_minus = theta.copy()
-            theta_minus[j] -= shift
+        # Shift one **gate position** at a time and let the parameter registry map the
+        # result back to learning parameters. Shifting theta[j] directly is only valid
+        # when a learning parameter drives exactly one gate: with share_with it drives
+        # several at once, and the two-term shift rule does not hold for a simultaneous
+        # shift -- the gradient of a shared parameter came out as 0.
+        base_bound = np.asarray(
+            self.circuit.generate_bound_params(np.array([0]), theta), dtype=np.float64
+        )
+        gate_gradients = np.zeros(self.circuit.parameter_count, dtype=np.float64)
 
-            plus_samples = self._sample(theta_plus, self.n_shots)
-            minus_samples = self._sample(theta_minus, self.n_shots)
-            if marginalize:
+        for position in sorted(set(self.circuit.get_learning_params_indexes())):
+            plus_bound = base_bound.copy()
+            plus_bound[position] += shift
+            minus_bound = base_bound.copy()
+            minus_bound[position] -= shift
+
+            plus_samples = self._sample_bound(plus_bound, self.n_shots)
+            minus_samples = self._sample_bound(minus_bound, self.n_shots)
+            if mod is not None:
                 plus_samples = plus_samples % mod
                 minus_samples = minus_samples % mod
 
@@ -252,7 +281,13 @@ class QNNGenerator:
             k_pt = self.kernel(plus_samples, train_samples).mean()
             k_mt = self.kernel(minus_samples, train_samples).mean()
 
-            grad[j] = (k_pm - k_mm) - (k_pt - k_mt)
+            gate_gradients[position] = (k_pm - k_mm) - (k_pt - k_mt)
+
+        grad = self.circuit.aggregate_gate_gradients(
+            gate_gradients,
+            skip_is_input=False,
+            chain_factors=self.circuit.input_chain_factors(np.array([0]), theta),
+        )
         return grad
 
     # --- Sampling ---------------------------------------------------------
@@ -262,7 +297,12 @@ class QNNGenerator:
 
         Returns an array of integers (each representing a bit string).
         """
-        bound = self.circuit.bind_input_and_parameters(np.array([0]), np.asarray(theta))
+        bound_params = self.circuit.generate_bound_params(np.array([0]), np.asarray(theta))
+        return self._sample_bound(bound_params, n_shots)
+
+    def _sample_bound(self, bound_params, n_shots: int) -> NDArray[np.int64]:
+        """Sample from the circuit bound with a **gate-level** parameter vector."""
+        bound = self.circuit.circuit.bind_parameters(list(bound_params))
         counts = next(iter(self.sampler.sample([(bound, n_shots)])))
         # MeasurementCounts is dict[int, int]; expand to a flat int array
         out = np.empty(int(sum(counts.values())), dtype=np.int64)

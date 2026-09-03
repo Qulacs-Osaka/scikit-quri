@@ -10,8 +10,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence, Mapping
-from typing import TYPE_CHECKING, Callable, NamedTuple
+from collections.abc import Sequence
+from typing import Dict, TYPE_CHECKING, Callable, NamedTuple
 
 import numpy as np
 from numpy.typing import NDArray
@@ -29,7 +29,7 @@ from quri_parts.core.state import ParametricQuantumStateVector, QuantumStateVect
 if TYPE_CHECKING:
     from scaluq.default.f64 import StateVectorBatched
 
-from . import cast_to_list, _backend, scaluqStateT, scaluqParametricStateT
+from . import cast_to_list, _backend, scaluqStateT, scaluqParametricStateT, scaluqAnyStateT
 from .circuit import convert_circuit, convert_parametric_circuit
 from .operator import convert_operator
 
@@ -39,7 +39,7 @@ class _Estimate(NamedTuple):
     error: float = 0.0
 
 
-def _create_scaluq_initial_state(state: scaluqStateT) -> _backend.StateVector:
+def _create_scaluq_initial_state(state: scaluqAnyStateT) -> _backend.StateVector:
     sq_state = _backend.StateVector(state.qubit_count)
     if isinstance(state, (QuantumStateVector, ParametricQuantumStateVector)):
         sq_state.load(cast_to_list(state.vector))
@@ -73,7 +73,7 @@ def _sequential_parametric_estimate(
 
     estimates = []
     for param in params:
-        tmp_params: Mapping[str, float] = {}
+        tmp_params: Dict[str, float] = {}
         for i in range(len(param)):
             tmp_params[str(i)] = param[i]
 
@@ -102,7 +102,7 @@ def create_scaluq_vector_parametric_estimator() -> ParametricQuantumEstimator[
 
 
 def _create_scaluq_initial_state_batched(
-    state: scaluqStateT,
+    state: scaluqAnyStateT,
     batch_num: int,
 ) -> _backend.StateVectorBatched:
     sq_state = _backend.StateVectorBatched(batch_num, state.qubit_count)

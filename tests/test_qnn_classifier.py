@@ -41,7 +41,7 @@ def test_classify_iris(solver: Optimizer, maxiter: int) -> None:
     qcl = QNNClassifier(circuit, num_class, estimator, gradient_estimator, solver, seed=0)
 
     qcl.fit(x_train, y_train, maxiter)
-    y_pred = qcl.predict(x_test).argmax(axis=1)
+    y_pred = qcl.predict(x_test)
 
     # 古典ベースライン（ロジスティック回帰）が f1=0.9740、多数派クラスが 0.0907。
     # maxiter=30・8シードでの実測は min 0.9740。maxiter=10 では 1/8 のシードが
@@ -75,7 +75,7 @@ def test_classify_iris(solver: Optimizer, maxiter: int) -> None:
     #     qcl = QNNClassifier(circuit, num_class,  estimator, gradient_estimator, solver)
 
     #     qcl.fit(x_train, y_train, maxiter)
-    #     y_pred = qcl.predict(x_test).argmax(axis=1)
+    #     y_pred = qcl.predict(x_test)
 
     #     # 古典ベースライン（ロジスティック回帰）が f1=0.9740、多数派クラスが 0.0907。
     # maxiter=30・8シードでの実測は min 0.9740。maxiter=10 では 1/8 のシードが

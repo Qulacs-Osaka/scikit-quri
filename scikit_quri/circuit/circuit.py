@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import TYPE_CHECKING, List, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple, cast
 
 import numpy as np
 from numpy.typing import NDArray
@@ -277,7 +277,9 @@ class LearningCircuit:
         """Circuit-level indices of all input-data-driven parameter slots."""
         return self._registry.input_param_positions()
 
-    def input_chain_factors(self, x: NDArray[np.float64], parameters: NDArray[np.float64]) -> dict:
+    def input_chain_factors(
+        self, x: NDArray[np.float64], parameters: NDArray[np.float64]
+    ) -> Dict[int, float]:
         """``{gate_pos: df/dtheta}`` for parametric-input gates (``angle = f(theta, x)``).
 
         Public accessor so gradient backends do not have to reach into the registry.
@@ -288,7 +290,7 @@ class LearningCircuit:
         self,
         gate_gradients: NDArray[np.float64],
         skip_is_input: bool = True,
-        chain_factors: Optional[dict] = None,
+        chain_factors: Optional[Dict[int, float]] = None,
     ) -> NDArray[np.float64]:
         """Aggregate per-gate-position gradients into per-learning-parameter gradients.
 
@@ -378,9 +380,11 @@ class LearningCircuit:
             ip = input_by_param.get(lp.parameter_id)
             if ip is not None:
                 theta_j = float(parameters[lp.parameter_id])
+                # A companion id is only set for the two-argument form.
+                func = cast(InputFuncWithParam, ip.func)
                 for i, x in enumerate(data):
-                    shifted_params[plus_rows[i], ip.gate_pos] = ip.func(theta_j + half_delta, x)
-                    shifted_params[minus_rows[i], ip.gate_pos] = ip.func(theta_j - half_delta, x)
+                    shifted_params[plus_rows[i], ip.gate_pos] = func(theta_j + half_delta, x)
+                    shifted_params[minus_rows[i], ip.gate_pos] = func(theta_j - half_delta, x)
                 continue
             gate_positions = np.array([p.gate_pos for p in lp.positions_in_circuit], dtype=np.int64)
             coefs = np.array(
@@ -421,7 +425,7 @@ class LearningCircuit:
         x: NDArray[np.float64],
         theta: NDArray[np.float64],
         operator: "Operator",
-        estimator: "ConcurrentQuantumEstimator",
+        estimator: "ConcurrentQuantumEstimator[Any]",
     ) -> NDArray[np.float64]:
         """Compute gradients of learnable parameters via the Hadamard test.
 

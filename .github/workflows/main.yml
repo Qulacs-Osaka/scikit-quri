@@ -58,10 +58,16 @@ jobs:
 
   # scaluq is 0.x and 0.2 moved the API around, so both supported versions are
   # exercised rather than trusting the lockfile's single pick.
-  scaluq-versions:
+  #
+  # The same applies to scikit-learn, which the models now subclass: 1.9 tightened
+  # Pipeline's fitted check and caught a missing __sklearn_is_fitted__ that 1.7 let
+  # through. fail-fast is off so one version failing still reports the other.
+  dependency-versions:
     strategy:
+      fail-fast: false
       matrix:
         scaluq-version: ["0.1.0", "0.2.0"]
+        sklearn-version: ["1.7.2", "1.9.0"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -70,10 +76,13 @@ jobs:
           enable-cache: true
           python-version: "3.11"
 
-      - name: Install the project with scaluq ${{ matrix.scaluq-version }}
+      - name: Install with scaluq ${{ matrix.scaluq-version }} and scikit-learn ${{ matrix.sklearn-version }}
         run: |
           uv venv --python 3.11 /tmp/sq
-          uv pip install --python /tmp/sq/bin/python . "scaluq==${{ matrix.scaluq-version }}" pytest pandas
+          uv pip install --python /tmp/sq/bin/python . \
+            "scaluq==${{ matrix.scaluq-version }}" \
+            "scikit-learn==${{ matrix.sklearn-version }}" \
+            pytest pandas
 
       - name: Run tests
         run: /tmp/sq/bin/python -m pytest tests -q -m "not oqtopus"

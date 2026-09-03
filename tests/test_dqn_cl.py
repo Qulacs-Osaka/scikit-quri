@@ -89,7 +89,7 @@ def test_dqn_cl():
     classifier = create_classifier(n_features, circuit, locality)
     classifier.fit(np.array(x_train), np.array(y_train), maxiter)
 
-    y_pred = classifier.predict(np.array(x_test)).argmax(axis=1)
+    y_pred = classifier.predict(np.array(x_test))
     score = f1_score(y_test, y_pred, average="weighted")
     # 多数派クラスが f1=0.2286、ロジスティック回帰が 0.9690。5シードでの実測は
     # min 0.9236 / med 0.9542 なので 0.8 では精度が 0.92->0.85 に落ちる回帰を見逃す。
@@ -110,7 +110,7 @@ def test_dqn_cl_no_cz():
     classifier = create_classifier(n_features, circuit, locality)
     classifier.fit(np.array(x_train), np.array(y_train), maxiter)
 
-    y_pred = classifier.predict(np.array(x_test)).argmax(axis=1)
+    y_pred = classifier.predict(np.array(x_test))
     score = f1_score(y_test, y_pred, average="weighted")
     # 多数派クラスが f1=0.2286、ロジスティック回帰が 0.9690。5シードでの実測は
     # min 0.9236 / med 0.9542 なので 0.8 では精度が 0.92->0.85 に落ちる回帰を見逃す。

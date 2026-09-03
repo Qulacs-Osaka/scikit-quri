@@ -1,4 +1,3 @@
-# mypy: ignore-errors
 import warnings
 from typing import List, Optional
 
@@ -6,6 +5,7 @@ import numpy as np
 from numpy.typing import NDArray
 from quri_parts.circuit import QuantumCircuit
 from scipy.stats import loguniform
+from sklearn.base import BaseEstimator as SklearnBaseEstimator, RegressorMixin
 from sklearn.kernel_ridge import KernelRidge
 from sklearn.model_selection import RandomizedSearchCV
 
@@ -15,7 +15,7 @@ from scikit_quri.circuit import LearningCircuit
 from scikit_quri.state.overlap_estimator import OverlapEstimator
 
 
-class QKRR:
+class QKRR(RegressorMixin, SklearnBaseEstimator):
     """class to solve regression problems with kernel ridge regressor with a quantum kernel"""
 
     def __init__(
@@ -38,12 +38,12 @@ class QKRR:
             )
         self.sampler = sampler
         self.krr = KernelRidge(kernel="precomputed")
-        self.kernel_ridge_tuned = None
+        self.kernel_ridge_tuned: Optional[KernelRidge] = None
         self.circuit = circuit
         self.data_circuits: List[QuantumCircuit] = []
         self.n_qubit: int = circuit.n_qubits
         self.n_iteration = n_iteration
-        self.estimator = None
+        self.estimator: Optional[OverlapEstimator] = None
 
     def fit(
         self,
@@ -108,6 +108,16 @@ class QKRR:
         kernel_ridge_tuned.fit(kar, y)
         print(kernel_ridge_tuned.best_params_)
         self.kernel_ridge_tuned = kernel_ridge_tuned
+
+    def __sklearn_is_fitted__(self) -> bool:
+        """Tell scikit-learn whether this estimator has been fitted.
+
+        ``check_is_fitted`` otherwise looks for attributes whose names end in ``_``,
+        a convention this library does not follow (kernel_ridge_tuned carries the fitted state).
+        Without this hook ``Pipeline.predict`` raises ``NotFittedError`` on
+        scikit-learn 1.9, while 1.7 happened to let it through.
+        """
+        return self.kernel_ridge_tuned is not None and self.estimator is not None
 
     def predict(self, xs: NDArray[np.float64]) -> NDArray[np.float64]:
         """

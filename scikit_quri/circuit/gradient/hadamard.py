@@ -9,14 +9,14 @@ itself emits via ``add_parametric_R*_gate``).
 from __future__ import annotations
 
 from enum import Enum, auto
-from typing import TYPE_CHECKING, List, Sequence
+from typing import TYPE_CHECKING, Any, Dict, List, Sequence, Union
 
 import numpy as np
 from numpy.typing import NDArray
 from quri_parts.circuit import ParametricQuantumGate, QuantumCircuit, QuantumGate
 from quri_parts.circuit.inverse import inverse_gate
 from quri_parts.core.estimator import ConcurrentQuantumEstimator
-from quri_parts.core.operator import Operator, pauli_label
+from quri_parts.core.operator import Operator, PauliLabel, pauli_label
 from quri_parts.core.state import GeneralCircuitQuantumState
 
 if TYPE_CHECKING:
@@ -29,7 +29,7 @@ class _Axis(Enum):
     Z = auto()
 
 
-def _gate_axis(gate: QuantumGate) -> _Axis:
+def _gate_axis(gate: Union[QuantumGate, ParametricQuantumGate]) -> _Axis:
     match gate.name:
         case "ParametricRX":
             return _Axis.X
@@ -43,7 +43,7 @@ def _gate_axis(gate: QuantumGate) -> _Axis:
 
 def _apply_gates(
     qc: QuantumCircuit,
-    gates: Sequence[QuantumGate],
+    gates: Sequence[Union[QuantumGate, ParametricQuantumGate]],
     parameters: Sequence[float],
 ) -> None:
     """Append ``gates`` to ``qc``, substituting concrete angles for any parametric gates.
@@ -91,7 +91,7 @@ def _invert_gate(gate: QuantumGate) -> QuantumGate:
 
 def _hadamard_observable(operator: Operator, ancilla_qubit: int) -> Operator:
     """O ⊗ Y on the ancilla qubit."""
-    result_terms: dict = {}
+    result_terms: Dict[PauliLabel, complex] = {}
     for p, c in operator.items():
         new_label = pauli_label(f"{str(p)} Y{ancilla_qubit}")
         result_terms[new_label] = result_terms.get(new_label, 0) + c
@@ -110,7 +110,7 @@ def _hadamard_test_circuit(
     then U{>j}. The ancilla qubit is index ``n_qubits``.
     """
     n_qubits = circuit.n_qubits
-    inner_gates = circuit.circuit.gates
+    inner_gates: Sequence[Union[QuantumGate, ParametricQuantumGate]] = circuit.circuit.gates
     bound_params = circuit.generate_bound_params(x, theta)
     test = QuantumCircuit(n_qubits + 1)
     ancilla = n_qubits
@@ -120,7 +120,7 @@ def _hadamard_test_circuit(
     _apply_gates(test, inner_gates, bound_params)
 
     # U†{>j}
-    gates_backward: List[QuantumGate] = []
+    gates_backward: List[Union[QuantumGate, ParametricQuantumGate]] = []
     params_backward: List[float] = []
     j = sum(1 for g in inner_gates if isinstance(g, ParametricQuantumGate))
     for i in range(len(inner_gates) - 1, gate_index, -1):
@@ -149,7 +149,7 @@ def _hadamard_test_circuit(
                 test.add_CZ_gate(ancilla, target_qubit)
 
     # U{>j}
-    gates_forward: List[QuantumGate] = []
+    gates_forward: List[Union[QuantumGate, ParametricQuantumGate]] = []
     params_forward: List[float] = []
     for i in range(gate_index + 1, len(inner_gates)):
         gate = inner_gates[i]
@@ -167,7 +167,7 @@ def hadamard_gradient(
     x: NDArray[np.float64],
     theta: NDArray[np.float64],
     operator: Operator,
-    estimator: ConcurrentQuantumEstimator,
+    estimator: "ConcurrentQuantumEstimator[Any]",
 ) -> NDArray[np.float64]:
     """Compute gradients of learnable parameters via the Hadamard test.
 

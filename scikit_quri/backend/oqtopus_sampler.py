@@ -1,6 +1,6 @@
 import warnings
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Iterable, Optional
+from typing import Iterable, List, Optional
 
 from quri_parts.circuit import NonParametricQuantumCircuit
 from quri_parts.core.sampling import MeasurementCounts
@@ -79,7 +79,7 @@ class OqtopusSampler(BaseSampler):
         #! qiskitのtranspilerで物理layoutを考慮してしまうので、combineすると相互作用でoverlapが1.0じゃなくなる
         #! qulacsのsimでも物理layoutが考慮されているっぽい？
         batched_circuits = [[c] for c in circuits]
-        counts = []
+        counts: List[MeasurementCounts] = []
         transpiler_info = {
             "transpiler_lib": "qiskit",
             "transpiler_options": {

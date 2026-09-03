@@ -11,7 +11,7 @@ through-instance-state coupling that previously existed between
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Callable, List, Optional, Sequence, Union
+from typing import Callable, List, Optional, Sequence, Union, cast
 
 import numpy as np
 from numpy.typing import NDArray
@@ -182,8 +182,11 @@ class ParameterRegistry:
                 continue
             theta_value = float(parameters[ip.companion_parameter_id])
             step = h * max(1.0, abs(theta_value))
-            plus = float(ip.func(theta_value + step, x))  # type: ignore[arg-type]
-            minus = float(ip.func(theta_value - step, x))  # type: ignore[arg-type]
+            # companion_parameter_id is set exactly when func is the two-argument
+            # form, so the union can be narrowed here.
+            func = cast(InputFuncWithParam, ip.func)
+            plus = float(func(theta_value + step, x))
+            minus = float(func(theta_value - step, x))
             factors[ip.gate_pos] = (plus - minus) / (2.0 * step)
         return factors
 
@@ -240,7 +243,7 @@ class ParameterRegistry:
             Array of length ``parameter_count`` ready to pass to
             ``UnboundParametricQuantumCircuit.bind_parameters``.
         """
-        bound = self._learning_template(parameters).copy()
+        bound: NDArray[np.float64] = self._learning_template(parameters).copy()
         for ip in self._input_parameters:
             bound[ip.gate_pos] = self._resolve_input_angle(ip, x, parameters)
         return bound
@@ -260,7 +263,7 @@ class ParameterRegistry:
         template = self._learning_template(parameters)
         # Broadcast the learning template across samples; input positions get
         # overwritten per row below.
-        batched = np.broadcast_to(template, (len(data), template.size)).copy()
+        batched: NDArray[np.float64] = np.broadcast_to(template, (len(data), template.size)).copy()
         for i, x in enumerate(data):
             for ip in self._input_parameters:
                 batched[i, ip.gate_pos] = self._resolve_input_angle(ip, x, parameters)
@@ -275,9 +278,9 @@ class ParameterRegistry:
         parameters: NDArray[np.float64],
     ) -> float:
         if ip.companion_parameter_id is None:
-            return ip.func(x)  # type: ignore[arg-type]
+            return cast(InputFunc, ip.func)(x)
         theta_value = float(parameters[ip.companion_parameter_id])
-        return ip.func(theta_value, x)  # type: ignore[arg-type]
+        return cast(InputFuncWithParam, ip.func)(theta_value, x)
 
     def _learning_template(self, parameters: NDArray[np.float64]) -> NDArray[np.float64]:
         """Return the learning-only contribution to the bound vector.

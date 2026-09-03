@@ -24,7 +24,7 @@ def test_predict_shape_and_normalization(qulacs_sampler: QulacsSampler) -> None:
 
     target = np.array([0.4, 0.3, 0.2, 0.1])
     qnn.fit_direct_distribution(target, maxiter=2, n_target_samples=500)
-    p = qnn.predict(n_shots=4000)
+    p = qnn.sample(n_shots=4000)
     assert p.shape == (4,)
     assert abs(p.sum() - 1.0) < 1e-9
     assert np.all(p >= 0.0)
@@ -89,7 +89,7 @@ def test_mix_gauss(qulacs_sampler: QulacsSampler) -> None:
     datas = rng.choice(a=range(64), size=10000, p=prob_list)
 
     qnn.fit(datas, maxiter=120)
-    data_param = qnn.predict(n_shots=20000)
+    data_param = qnn.sample(n_shots=20000)
 
     gosa = 0.0
     for i in range(3, 61):
@@ -125,7 +125,7 @@ def test_bar_stripe(qulacs_sampler: QulacsSampler) -> None:
     datas = rng.choice(a=range(512), size=100000, p=prob_list)
 
     qnn.fit(datas, maxiter=600)
-    data_param = qnn.predict(n_shots=20000)
+    data_param = qnn.sample(n_shots=20000)
 
     gosa = float(np.sum(np.abs(data_param - prob_list)))
     assert gosa < 0.4
