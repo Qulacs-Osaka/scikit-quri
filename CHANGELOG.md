@@ -50,6 +50,19 @@ released.
   two executions per gate position.
 - **`register_input_param` did not invalidate the template cache**, so binding once and
   then adding an input gate raised `IndexError`.
+- **`create_ibm_embedding_circuit` was not the ZZ feature map it claims to be.** The
+  second-order angle was written `pi - x_i * (pi - x_j)` instead of
+  `(pi - x_i) * (pi - x_j)` — a parenthesis moved while porting from scikit-qulacs,
+  whose copy has the published form. The angle multiplies `Z_i Z_j` and so has to be
+  symmetric in `i` and `j`; the shipped one was not (for `x_i=-0.5, x_j=0.8` it gave
+  4.31 one way and 0.23 the other). On 4 qubits the encoded state had a mean fidelity
+  of 0.086 against the intended one. Both forms are valid kernels, so accuracy on the
+  bundled toy tasks barely moves (iris f1 0.9482 → 0.9468, noisy-sine MSE 0.0026 →
+  0.0039); what was wrong is that the function did not implement the paper it cites.
+  The docstring also pointed at arXiv:1802.06002 (Farhi & Neven), which does not define
+  this feature map; it is Havlíček et al., [arXiv:1804.11326](https://arxiv.org/abs/1804.11326)
+  (Nature 567, 209). The term is now `scikit_quri.circuit.pre_defined.zz_data_map`, with
+  a test pinning both the value and the symmetry.
 
 ### Added
 
