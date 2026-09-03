@@ -10,7 +10,6 @@ from quri_parts.qulacs.overlap_estimator import _create_qulacs_initial_state
 from qulacs import QuantumState
 from quri_parts.core.state import quantum_state, GeneralCircuitQuantumState
 import time
-import matplotlib.pyplot as plt
 from scipy.spatial import distance
 from quri_parts.algo.optimizer import OptimizerStatus
 
@@ -667,46 +666,17 @@ class quantum_kernel_tsne:
             y: 2-D embedding of shape (n_samples, 2).
             y_label: Class labels of shape (n_samples,).
             title: Plot title.
+
+        Note:
+            matplotlib is imported here rather than at module scope. It is a
+            convenience method, and scikit-quri does not declare matplotlib as a
+            runtime dependency — importing it at module scope made
+            ``import scikit_quri.qnn.kernel_tsne`` depend on a plotting stack that
+            only happens to be installed because another package pulls it in.
         """
+        import matplotlib.pyplot as plt
+
         for i in np.unique(y_label):
             plt.scatter(y[:, 0][y_label == i], y[:, 1][y_label == i])
         plt.title(title)
         plt.show()
-
-
-if __name__ == "__main__":
-    from quri_parts.circuit import H, CZ
-    from sklearn.datasets import load_digits
-    from sklearn.preprocessing import MinMaxScaler
-
-    def create_quantum_circuit():
-        qc = LearningCircuit(n_qubits)
-
-        def preprocess_x(x: NDArray[np.float64], index: int) -> float:
-            xa = x[index % len(x)]
-            return min(1, max(-1, xa))
-
-        for i in range(n_qubits):
-            qc.add_gate(H(i))
-        for d in range(depth):
-            for i in range(n_qubits):
-                qc.add_input_RY_gate(i, lambda x, i=i: preprocess_x(x, i))
-            for i in range(n_qubits):
-                qc.add_input_RX_gate(i, lambda x, i=i: preprocess_x(x, i))
-            if d < depth - 1:
-                for i in range(n_qubits):
-                    qc.add_gate(CZ(i, (i + 1) % n_qubits))
-        return qc
-
-    X_train, y_train = load_digits(return_X_y=True)
-    X_train = X_train / 16.0
-    X_train = X_train[:500]
-    y_train = y_train[:500]
-    scaler = MinMaxScaler((0, np.pi / 2))
-    n_qubits = 12
-    depth = 1
-
-    X_train = scaler.fit_transform(X_train)
-    qk_tsne = quantum_kernel_tsne(max_iter=1000)
-    qk_tsne.init(create_quantum_circuit, [])
-    qk_tsne.train(X_train, y_train, method="COBYLA")

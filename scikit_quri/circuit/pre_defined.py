@@ -4,10 +4,12 @@ from typing import List, Optional
 
 import numpy as np
 from numpy.random import Generator, default_rng
+from numpy.typing import NDArray
 from quri_parts.circuit import CNOT, CZ, QuantumCircuit
 
 from .circuit import LearningCircuit
 from .encoding import clamped_cyclic_index, cyclic_index
+from .parameters import InputFunc
 
 
 def create_qcl_ansatz(
@@ -132,36 +134,39 @@ def create_farhi_neven_ansatz(
     return circuit
 
 
+def zz_data_map(i: int, j: int) -> InputFunc:
+    """Second-order term of the ZZ feature map: ``phi(x_i, x_j) = (pi - x_i)(pi - x_j)``.
+
+    The angle multiplies ``Z_i Z_j``, so it has to be symmetric under swapping the two
+    qubits. Exposed (and tested) because the parenthesisation is easy to get wrong.
+    """
+
+    def phi(x: NDArray[np.float64]) -> float:
+        return float((np.pi - cyclic_index(x, i)) * (np.pi - cyclic_index(x, j)))
+
+    return phi
+
+
 def create_ibm_embedding_circuit(n_qubit: int) -> LearningCircuit:
-    """Create circuit proposed in https://arxiv.org/abs/1802.06002.
+    """Create the ZZ feature map of https://arxiv.org/abs/1804.11326 (Nature 567, 209).
+
+    Two repetitions, with the entangling pairs on a ring rather than all-to-all.
+    The circuit carries no learning parameters; it is a kernel feature map.
 
     Args:
         n_qubits: number of qubits
 
     """
     circuit = LearningCircuit(n_qubit)
-    for i in range(n_qubit):
-        circuit.add_H_gate(i)
-    for i in range(n_qubit):
-        j = (i + 1) % n_qubit
-        circuit.add_input_RZ_gate(i, lambda x, i=i: cyclic_index(x, i))
-        circuit.add_CNOT_gate(i, j)
-        circuit.add_input_RZ_gate(
-            j,
-            lambda x, i=i, j=j: (np.pi - cyclic_index(x, i) * (np.pi - cyclic_index(x, j))),
-        )
-        circuit.add_CNOT_gate(i, j)
-    for i in range(n_qubit):
-        circuit.add_H_gate(i)
-    for i in range(n_qubit):
-        j = (i + 1) % n_qubit
-        circuit.add_input_RZ_gate(i, lambda x, i=i: cyclic_index(x, i))
-        circuit.add_CNOT_gate(i, j)
-        circuit.add_input_RZ_gate(
-            j,
-            lambda x, i=i, j=j: (np.pi - cyclic_index(x, i) * (np.pi - cyclic_index(x, j))),
-        )
-        circuit.add_CNOT_gate(i, j)
+    for _ in range(2):
+        for i in range(n_qubit):
+            circuit.add_H_gate(i)
+        for i in range(n_qubit):
+            j = (i + 1) % n_qubit
+            circuit.add_input_RZ_gate(i, lambda x, i=i: cyclic_index(x, i))
+            circuit.add_CNOT_gate(i, j)
+            circuit.add_input_RZ_gate(j, zz_data_map(i, j))
+            circuit.add_CNOT_gate(i, j)
     return circuit
 
 

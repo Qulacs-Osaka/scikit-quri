@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, List, Optional, Sequence, Tuple
 
 import numpy as np
 from numpy.typing import NDArray
-from quri_parts.circuit import Parameter, QuantumGate, UnboundParametricQuantumCircuit
+from quri_parts.circuit import QuantumGate, UnboundParametricQuantumCircuit
 from quri_parts.rust.circuit.circuit_parametric import ImmutableBoundParametricQuantumCircuit
 
 from .parameters import InputFunc, InputFuncWithParam, ParameterRegistry
@@ -146,13 +146,29 @@ class LearningCircuit:
         return self._add_parametric_R_gate_inner(qubit, _Axis.Z, share_with, share_with_coef)
 
     def add_parametric_multi_Pauli_rotation_gate(
-        self, targets: List[int], pauli_ids: List[int]
-    ) -> Parameter:
-        """Add a trainable multi-qubit Pauli rotation gate.
+        self,
+        targets: List[int],
+        pauli_ids: List[int],
+        share_with: Optional[int] = None,
+        share_with_coef: Optional[float] = None,
+    ) -> int:
+        """Add a trainable multi-qubit Pauli rotation gate and return its parameter ID.
 
-        Note: this gate is not integrated with the share_with mechanism.
+        Args:
+            targets: Target qubit indices.
+            pauli_ids: Pauli axis per target (1=X, 2=Y, 3=Z).
+            share_with: If given, share the learnable parameter with that ``parameter_id``.
+            share_with_coef: Coefficient applied to the shared parameter value.
+
+        Returns:
+            parameter_id: Index of the learnable parameter assigned to this gate.
         """
-        return self.circuit.add_ParametricPauliRotation_gate(targets, pauli_ids)
+        new_gate_pos = self._new_parameter_position()
+        parameter_id = self._registry.register_learning_param(
+            gate_pos=new_gate_pos, share_with=share_with, coef=share_with_coef
+        )
+        self.circuit.add_ParametricPauliRotation_gate(targets, pauli_ids)
+        return parameter_id
 
     # --- Parametric-input gates (angle = f(theta, x)) ----------------------
 
@@ -261,6 +277,29 @@ class LearningCircuit:
         """Circuit-level indices of all input-data-driven parameter slots."""
         return self._registry.input_param_positions()
 
+    def input_chain_factors(self, x: NDArray[np.float64], parameters: NDArray[np.float64]) -> dict:
+        """``{gate_pos: df/dtheta}`` for parametric-input gates (``angle = f(theta, x)``).
+
+        Public accessor so gradient backends do not have to reach into the registry.
+        """
+        return self._registry.input_chain_factors(x, parameters)
+
+    def aggregate_gate_gradients(
+        self,
+        gate_gradients: NDArray[np.float64],
+        skip_is_input: bool = True,
+        chain_factors: Optional[dict] = None,
+    ) -> NDArray[np.float64]:
+        """Aggregate per-gate-position gradients into per-learning-parameter gradients.
+
+        Applies ``share_with`` coefficients and, when ``chain_factors`` is given, the
+        chain rule for parametric-input gates. Every gradient backend should end with
+        this call so that all paths agree.
+        """
+        return self._registry.aggregate_gate_gradients(
+            gate_gradients, skip_is_input=skip_is_input, chain_factors=chain_factors
+        )
+
     def get_learning_param_grad_aggregators(self) -> List[List[Tuple[int, float]]]:
         """For each learning parameter, list ``(gate_pos, coef)`` tuples that
         must be summed to compose the per-learning-param gradient from per-gate
@@ -325,9 +364,24 @@ class LearningCircuit:
 
         half_delta = delta / 2
         sample_offsets = np.arange(n_samples, dtype=np.int64) * (2 * n_learning)
+        # Gate positions whose angle is f(theta, x): shifting the *angle* by delta/2
+        # differentiates w.r.t. the angle, not theta. Those are re-resolved below by
+        # shifting theta itself and re-evaluating f.
+        input_by_param = {
+            ip.companion_parameter_id: ip
+            for ip in self._registry.input_parameters
+            if ip.companion_parameter_id is not None
+        }
         for j, lp in enumerate(self._registry.learning_parameters):
             plus_rows = sample_offsets + 2 * j
             minus_rows = plus_rows + 1
+            ip = input_by_param.get(lp.parameter_id)
+            if ip is not None:
+                theta_j = float(parameters[lp.parameter_id])
+                for i, x in enumerate(data):
+                    shifted_params[plus_rows[i], ip.gate_pos] = ip.func(theta_j + half_delta, x)
+                    shifted_params[minus_rows[i], ip.gate_pos] = ip.func(theta_j - half_delta, x)
+                continue
             gate_positions = np.array([p.gate_pos for p in lp.positions_in_circuit], dtype=np.int64)
             coefs = np.array(
                 [p.coef if p.coef is not None else 1.0 for p in lp.positions_in_circuit],

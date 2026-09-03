@@ -1,11 +1,12 @@
 [project]
 name = "scikit-quri"
-version = "1.1.0"
+dynamic = ["version"]
 description = ""
 authors = [{ name = "Qulacs-Osaka", email = "qulacs.osaka@gmail.com" }]
 requires-python = ">=3.10,<3.12"
 readme = "./README.md"
 license = "MIT"
+license-files = ["LICENSE", "NOTICE"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
@@ -19,9 +20,12 @@ classifiers = [
 dependencies = [
     "scikit-learn>=1.4.0,<2",
     "quri-parts-openfermion>=0.23.0,<0.24",
-    "quri-parts-oqtopus==1.0.3",
+    "quri-parts-oqtopus>=1.1.5,<2",
     "quri-parts==0.24.1",
-    "scaluq>=0.1.0",
+    # 0.1 and 0.2 differ in how the precision-specific backend module is reached;
+    # quri_parts_scaluq handles both. The upper bound stays because 0.x makes no
+    # compatibility promise and 0.2 already moved the API around once.
+    "scaluq>=0.1.0,<0.3",
 ]
 
 [project.urls]
@@ -89,6 +93,17 @@ warn_return_any = true
 warn_unreachable = true
 warn_unused_configs = true
 warn_unused_ignores = true
+
+[tool.hatch.version]
+path = "scikit_quri/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+# Without this hatchling ships only the package matching the project name, so the
+# vendored quri_parts_scaluq was left out and `pip install scikit-quri` failed with
+# ModuleNotFoundError in 5 of the 6 subpackages (backend/__init__ imports it
+# unconditionally). Editable installs put the repo root on sys.path, so this never
+# showed up during development.
+packages = ["scikit_quri", "quri_parts_scaluq"]
 
 [tool.pytest.ini_options]
 markers = [

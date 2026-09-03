@@ -1,9 +1,9 @@
 from quri_parts.qulacs.estimator import create_qulacs_vector_concurrent_estimator
 
-from .base_estimator import BaseEstimator
+from .base_estimator import ExactStatevectorEstimator
 
 
-class QulacsEstimator(BaseEstimator):
+class QulacsEstimator(ExactStatevectorEstimator):
     """Expectation-value estimator backed by quri-parts-qulacs.
 
     Evaluates one operator against one quantum state per call (per-sample

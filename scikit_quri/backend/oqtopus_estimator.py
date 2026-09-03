@@ -1,4 +1,5 @@
 from collections.abc import Iterable, Sequence
+from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
 from quri_parts.circuit import NonParametricQuantumCircuit
@@ -31,10 +32,25 @@ class OqtopusEstimator(BaseEstimator):
         device_id: str,
         shots: int = 1000,
         config: Optional[OqtopusConfig] = None,
+        job_name: str = "scikit-quri estimation",
+        poll_interval: float = 1.0,
+        timeout: Optional[float] = None,
+        max_submit_workers: int = 8,
     ) -> None:
         self.backend = OqtopusEstimationBackend(config)
         self.device_id = device_id
         self.shots = shots
+        # OQTOPUS Cloud rejects a job whose name is null, but the SDK defaults the
+        # argument to None, so it has to be supplied here or every submission fails
+        # with "Invalid value for `name`, must not be `None`".
+        self.job_name = job_name
+        # The SDK polls every 10s by default, so a simulator job that finishes in well
+        # under a second still costs ~10s of waiting. Poll faster by default.
+        self.poll_interval = poll_interval
+        self.timeout = timeout
+        # Submission is two round trips (submit_job then get_job) and was measured at
+        # 5.3s per job, dominating the batch. It is pure network wait, so overlap it.
+        self.max_submit_workers = max_submit_workers
 
     def estimate(self, operators, states):
         """Compute expectation values for combinations of operators and states.
@@ -96,18 +112,40 @@ class OqtopusEstimator(BaseEstimator):
             BackendError: If execution on OQTOPUS fails.
 
         """
-        results: list[Estimate[complex]] = []
-        for circuit, operator in zip(circuits, operators):
+
+        # Submit every job first, then collect. Submitting and waiting alternately
+        # serialized the whole batch: each job cost one submission plus a full poll
+        # interval, so a parameter-shift gradient over 3 gate positions (6 jobs) took
+        # ~120s even though each job runs in well under a second. Submitting up front
+        # lets the queue overlap execution.
+        #
+        # OQTOPUS estimation returns a single exp_value per job, so several circuits
+        # cannot be folded into one job the way the sampler's divided_counts allows.
+        def submit(pair):
+            circuit, operator = pair
             # Normalize Estimatable to Operator
             if isinstance(operator, PauliLabel):
                 operator = Operator({operator: 1.0})
-            job = self.backend.estimate(
+            return self.backend.estimate(
                 circuit,
                 operator=operator,
                 device_id=self.device_id,
                 shots=self.shots,
+                name=self.job_name,
             )
-            result = job.result()
+
+        pairs = list(zip(circuits, operators))
+        if len(pairs) == 1 or self.max_submit_workers <= 1:
+            jobs = [submit(pair) for pair in pairs]
+        else:
+            workers = min(self.max_submit_workers, len(pairs))
+            with ThreadPoolExecutor(max_workers=workers) as pool:
+                # map keeps the submission order, which the result order depends on.
+                jobs = list(pool.map(submit, pairs))
+
+        results: list[Estimate[complex]] = []
+        for job in jobs:
+            result = job.result(timeout=self.timeout, wait=self.poll_interval)
             exp_real = result.exp_value
             # On failure the backend raises an exception, so exp_value is None only when the result is 0
             if exp_real is None:

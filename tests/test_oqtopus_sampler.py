@@ -15,8 +15,14 @@ def create_simple_circuit() -> QuantumCircuit:
     return circuit
 
 
+@pytest.mark.oqtopus
 def test_oqtopus_sampler_init() -> None:
-    """OqtopusSamplerの初期化テスト"""
+    """OqtopusSamplerの初期化テスト
+
+    Constructing the sampler builds OqtopusSamplingBackend, which reads ~/.oqtopus,
+    so this needs an account despite looking like a pure constructor test. Without
+    the marker it ran in CI and failed with KeyError: 'default'.
+    """
     sampler = OqtopusSampler(device_id="qulacs", config=None)
     assert sampler.device_id == "qulacs"
     assert sampler.config is None

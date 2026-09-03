@@ -49,4 +49,12 @@ def test_noisy_sine():
     qsvr.fit(x_train, y_train, sampler, n_shots=2**12)
     y_pred = qsvr.predict(x_test)
     loss = mean_squared_error(y_pred, y_test)
-    assert loss < 0.008
+    # QulacsSampler cannot be seeded (quri-parts does not thread a generator through),
+    # so this is a shot-noise distribution, not a number. Measured over 25 runs with
+    # the corrected ZZ feature map: p50 0.0075, p95 0.0083, max 0.0090, sd 0.00063.
+    # The old threshold of 0.008 sat at the p90 of that distribution and flaked on CI.
+    #
+    # 0.015 is ~12 sd above the median and still less than half of the 0.0306 that
+    # predicting the training mean scores, so a model that stopped learning fails.
+    # The label noise puts a floor of 0.05^2 = 0.0025 on any predictor.
+    assert loss < 0.015

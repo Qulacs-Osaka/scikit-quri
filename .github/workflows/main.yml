@@ -2,9 +2,8 @@ name: Test
 
 on:
   pull_request:
-    paths: 
-      - "scikit_quri/**"
-      - "tests/**"
+  push:
+    branches: [main]
 
 jobs:
   test:
@@ -29,9 +28,52 @@ jobs:
       - name: Check
         run: make check
       
-      - name: Create env
-        run: |
-          echo "${{ secrets.OQTOPUS_ENV }}" > ~/.oqtopus
-
+      # The OQTOPUS tests are deselected by make (see DESELECT_OQTOPUS), so the
+      # repository secret is no longer written here. It was never available to pull
+      # requests from forks, which made those runs impossible to get green.
       - name: Run tests
         run: make cov_ci
+
+  # A wheel that imports fine in place can still be broken once installed: an
+  # editable install puts the repository root on sys.path, which hid a missing
+  # package for the entire life of the project. Build it and import from a clean
+  # environment instead.
+  wheel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: "3.11"
+
+      - name: Build the wheel
+        run: uv build --wheel -o dist
+
+      - name: Install it into a clean environment and import every subpackage
+        run: |
+          uv venv --python 3.11 /tmp/clean
+          uv pip install --python /tmp/clean/bin/python dist/*.whl
+          /tmp/clean/bin/python -c "import scikit_quri.backend, scikit_quri.circuit, scikit_quri.qkrr, scikit_quri.qnn, scikit_quri.qsvm, scikit_quri.state; print('all subpackages import from the installed wheel')"
+
+  # scaluq is 0.x and 0.2 moved the API around, so both supported versions are
+  # exercised rather than trusting the lockfile's single pick.
+  scaluq-versions:
+    strategy:
+      matrix:
+        scaluq-version: ["0.1.0", "0.2.0"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: "3.11"
+
+      - name: Install the project with scaluq ${{ matrix.scaluq-version }}
+        run: |
+          uv venv --python 3.11 /tmp/sq
+          uv pip install --python /tmp/sq/bin/python . "scaluq==${{ matrix.scaluq-version }}" pytest pandas
+
+      - name: Run tests
+        run: /tmp/sq/bin/python -m pytest tests -q -m "not oqtopus"

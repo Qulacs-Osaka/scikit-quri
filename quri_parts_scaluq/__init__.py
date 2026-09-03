@@ -48,14 +48,26 @@ if _precision not in ["f32", "f64"]:
         " Choose 'f32' or 'f64'."
     )
 
-# Dynamically import the selected backend module
+# Resolve the precision-specific backend module.
+#
+# scaluq 0.1 registers it as an importable module path, while 0.2 builds it lazily and
+# only reaches it as an attribute of ``scaluq.default`` — ``import_module`` raises
+# ModuleNotFoundError there even though ``scaluq.default.f64`` exists. Try both, so the
+# adapter works with either release.
 _module_name = f"scaluq.default.{_precision}"
 try:
     _backend: Any = importlib.import_module(_module_name)
-except ImportError as e:
-    raise ImportError(
-        f"Failed to import scaluq backend '{_module_name}'."
-    ) from e
+except ImportError:
+    import scaluq
+
+    try:
+        _backend = getattr(scaluq.default, _precision)
+    except AttributeError as e:
+        available = getattr(scaluq, "_available_precisions", None)
+        raise ImportError(
+            f"Failed to resolve scaluq backend '{_module_name}'."
+            + (f" Available precisions: {available}." if available else "")
+        ) from e
 
 
 def get_scaluq_accuracy() -> str:

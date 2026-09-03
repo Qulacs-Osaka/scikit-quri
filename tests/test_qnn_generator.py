@@ -62,7 +62,13 @@ def test_cost_decreases(qulacs_sampler: QulacsSampler) -> None:
 
 
 @pytest.mark.skip(
-    "Parameter-shift gradient on many params with shot-based sampling is slow; covered by mini."
+    "Measured at ~3.4 hours: 120 learning parameters, so one parameter-shift gradient "
+    "is 240 samplings of 4096 shots and takes 102s (cost_func alone takes 0.74s), "
+    "times maxiter=120. None of the QNN speedups apply here — the objective is MMD^2 "
+    "between sampled bitstring distributions, not an expectation value, so the adjoint "
+    "method cannot be used. Reading the exact distribution from the simulator instead "
+    "of sampling would cut this by orders of magnitude, but that removes the shot "
+    "noise this test exists to exercise. Smaller case covered by test_cost_decreases."
 )
 def test_mix_gauss(qulacs_sampler: QulacsSampler) -> None:
     n_qubit = 6
@@ -92,7 +98,11 @@ def test_mix_gauss(qulacs_sampler: QulacsSampler) -> None:
     assert gosa / 2 < 0.08
 
 
-@pytest.mark.skip("This test takes too long time to finish")
+@pytest.mark.skip(
+    "Measured at ~49 hours: 352 learning parameters, so one parameter-shift gradient "
+    "is 704 samplings of 4096 shots and takes 295s, times maxiter=600. Same reason as "
+    "test_mix_gauss above; this one is an order of magnitude worse again."
+)
 def test_bar_stripe(qulacs_sampler: QulacsSampler) -> None:
     n_qubit = 9
     depth = 22

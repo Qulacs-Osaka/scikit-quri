@@ -10,10 +10,10 @@ from quri_parts_scaluq import _backend
 from quri_parts_scaluq.estimator import estimate as scaluq_estimate
 from quri_parts_scaluq.estimator import estimate_numerical_gradient as scaluq_grad
 
-from .base_estimator import BatchedSimEstimator
+from .base_estimator import BatchedSimEstimator, ExactStatevectorEstimator
 
 
-class ScaluqEstimator(BatchedSimEstimator):
+class ScaluqEstimator(BatchedSimEstimator, ExactStatevectorEstimator):
     """Batched expectation-value estimator backed by scaluq.
 
     The primary API is ``estimate_batched`` / ``estimate_grad_batched``, which

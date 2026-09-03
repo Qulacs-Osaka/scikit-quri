@@ -47,7 +47,11 @@ def load_dataset(
             y.append(kind)
             x.append([float(feature) for feature in row[1:]])
 
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=test_ratio, shuffle=True)
+    # random_state を固定しないと実行ごとに train/test 分割が変わり、
+    # 精度アサーションが再現しなくなる。
+    x_train, x_test, y_train, y_test = train_test_split(
+        x, y, test_size=test_ratio, shuffle=True, random_state=0
+    )
 
     return x_train, x_test, y_train, y_test
 
@@ -66,7 +70,7 @@ def create_classifier(n_features: int, circuit: LearningCircuit, locality: int):
             pass
             # operators.append(Operator({pauli_label(f"I {i}"): 1.0}))
     classifier = QNNClassifier(
-        circuit, 2, estimator, gradient_estimator, Adam(), operator=operators
+        circuit, 2, estimator, gradient_estimator, Adam(), operator=operators, seed=0
     )
     return classifier
 
@@ -87,7 +91,9 @@ def test_dqn_cl():
 
     y_pred = classifier.predict(np.array(x_test)).argmax(axis=1)
     score = f1_score(y_test, y_pred, average="weighted")
-    assert score > 0.8
+    # 多数派クラスが f1=0.2286、ロジスティック回帰が 0.9690。5シードでの実測は
+    # min 0.9236 / med 0.9542 なので 0.8 では精度が 0.92->0.85 に落ちる回帰を見逃す。
+    assert score > 0.90
 
 
 def test_dqn_cl_no_cz():
@@ -106,4 +112,6 @@ def test_dqn_cl_no_cz():
 
     y_pred = classifier.predict(np.array(x_test)).argmax(axis=1)
     score = f1_score(y_test, y_pred, average="weighted")
-    assert score > 0.8
+    # 多数派クラスが f1=0.2286、ロジスティック回帰が 0.9690。5シードでの実測は
+    # min 0.9236 / med 0.9542 なので 0.8 では精度が 0.92->0.85 に落ちる回帰を見逃す。
+    assert score > 0.90

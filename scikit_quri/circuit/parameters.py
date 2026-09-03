@@ -118,6 +118,9 @@ class ParameterRegistry:
         companion_parameter_id: Optional[int] = None,
     ) -> None:
         self._input_parameters.append(InputParameter(gate_pos, func, companion_parameter_id))
+        # The template is sized by parameter_count, which grows with every gate.
+        # Without this, binding once and then adding an input gate raises IndexError.
+        self._invalidate_template()
 
     # --- Read-only views ----------------------------------------------------
 
@@ -151,32 +154,75 @@ class ParameterRegistry:
     def input_param_positions(self) -> List[int]:
         return [ip.gate_pos for ip in self._input_parameters]
 
+    def input_chain_factors(
+        self,
+        x: NDArray[np.float64],
+        parameters: NDArray[np.float64],
+        h: float = 1e-6,
+    ) -> dict[int, float]:
+        """Return ``{gate_pos: d(angle)/d(theta)}`` for parametric-input gates.
+
+        A parametric-input gate has ``angle = f(theta, x)``, so a per-gate-position
+        gradient ``d<O>/d(angle)`` must be multiplied by ``df/dtheta`` to become
+        ``d<O>/d(theta)``. ``f`` is a plain Python callable, so this derivative is
+        taken by central difference — it costs no circuit evaluations.
+
+        Args:
+            x: Input data for the sample being differentiated.
+            parameters: Learning-parameter vector.
+            h: Step for the central difference, scaled by ``max(1, |theta|)``.
+
+        Returns:
+            Mapping from gate position to ``df/dtheta``. Gates whose angle depends
+            only on ``x`` are absent (they carry no learning-parameter gradient).
+        """
+        factors: dict[int, float] = {}
+        for ip in self._input_parameters:
+            if ip.companion_parameter_id is None:
+                continue
+            theta_value = float(parameters[ip.companion_parameter_id])
+            step = h * max(1.0, abs(theta_value))
+            plus = float(ip.func(theta_value + step, x))  # type: ignore[arg-type]
+            minus = float(ip.func(theta_value - step, x))  # type: ignore[arg-type]
+            factors[ip.gate_pos] = (plus - minus) / (2.0 * step)
+        return factors
+
     def aggregate_gate_gradients(
-        self, gate_gradients: NDArray[np.float64], skip_is_input: bool = True
+        self,
+        gate_gradients: NDArray[np.float64],
+        skip_is_input: bool = True,
+        chain_factors: Optional[dict[int, float]] = None,
     ) -> NDArray[np.float64]:
         """Aggregate per-gate-position gradients into per-learning-parameter gradients.
 
         For each learning parameter, sums ``gate_gradients[gate_pos] * coef`` across
-        all gate positions that share that parameter. When ``skip_is_input`` is True,
-        parameters created as companions of parametric-input gates are excluded — their
-        gradient w.r.t. the *learning* parameter is not captured by per-gate backprop
-        because of the chain rule through ``f(theta, x)``.
+        all gate positions that share that parameter.
+
+        Parametric-input gates (``angle = f(theta, x)``) need the chain-rule factor
+        ``df/dtheta``; pass ``chain_factors`` (from :meth:`input_chain_factors`) to
+        apply it. Without it those parameters cannot be differentiated correctly, so
+        ``skip_is_input=True`` zeroes them rather than reporting ``d<O>/d(angle)`` as
+        if it were ``d<O>/d(theta)``.
 
         Args:
             gate_gradients: Per-gate-position gradient array of length ``parameter_count``.
-            skip_is_input: If True (default), zero out gradients for ``is_input=True``
-                learning parameters.
+            skip_is_input: If True (default) and ``chain_factors`` is not given, zero out
+                gradients for ``is_input=True`` learning parameters.
+            chain_factors: ``{gate_pos: df/dtheta}`` for parametric-input gates. When
+                given, ``is_input`` parameters are included and scaled by their factor.
 
         Returns:
             Per-learning-parameter gradient array of length ``learning_params_count``.
         """
         ans = np.zeros(len(self._learning_parameters), dtype=np.float64)
         for param in self._learning_parameters:
-            if skip_is_input and param.is_input:
+            if param.is_input and chain_factors is None and skip_is_input:
                 continue
             for pos in param.positions_in_circuit:
-                coef = pos.coef if pos.coef is not None else 1.0
-                ans[param.parameter_id] += gate_gradients[pos.gate_pos] * coef
+                factor = pos.coef if pos.coef is not None else 1.0
+                if chain_factors is not None and pos.gate_pos in chain_factors:
+                    factor *= chain_factors[pos.gate_pos]
+                ans[param.parameter_id] += gate_gradients[pos.gate_pos] * factor
         return ans
 
     # --- Resolution (pure) --------------------------------------------------

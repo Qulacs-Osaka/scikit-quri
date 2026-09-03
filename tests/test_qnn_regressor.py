@@ -67,7 +67,7 @@ def test_noisy_two_vars_two_outputs(solver: Optimizer, maxiter: int) -> None:
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
     circuit = create_qcl_ansatz(n_qubit, depth, time_step, 0)
-    qnn = QNNRegressor(circuit, estimator, gradient_estimator, solver)
+    qnn = QNNRegressor(circuit, estimator, gradient_estimator, solver, seed=0)
     qnn.fit(x_train, y_train, maxiter)
 
     x_test, y_test = generate_noisy_data(x_min, x_max, (num_x, 2), two_vars_two_outputs)
@@ -94,7 +94,7 @@ def test_noisy_sine_two_vars(solver: Optimizer, maxiter: int) -> None:
     gradient_estimator = create_numerical_gradient_estimator(
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
-    qnn = QNNRegressor(circuit, estimator, gradient_estimator, solver)
+    qnn = QNNRegressor(circuit, estimator, gradient_estimator, solver, seed=0)
     qnn.fit(x_train, y_train, maxiter)
 
     x_test, y_test = generate_noisy_data(x_min, x_max, (num_x, 2), sine_two_vars)
@@ -127,13 +127,15 @@ def test_noisy_sine(solver: Optimizer, maxiter: int) -> None:
         create_qulacs_vector_concurrent_parametric_estimator(), delta=1e-10
     )
     circuit = create_qcl_ansatz(n_qubit, depth, time_step, 0)
-    qnn = QNNRegressor(circuit, estimator, gradient_estimator, solver)
+    qnn = QNNRegressor(circuit, estimator, gradient_estimator, solver, seed=0)
     qnn.fit(x_train, y_train, maxiter)
 
     x_test, y_test = generate_noisy_data(x_min, x_max, (num_x, 1), sine)
     y_pred = qnn.predict(x_test)
     loss = mean_squared_error(y_pred, y_test)
-    assert loss < 0.03
+    # 8シードでの実測は 0.0027-0.0073。0.03 は 4 倍以上の余裕があり、
+    # 勾配が 2.2 倍ずれていても素通りしていた。
+    assert loss < 0.012
 
 
 """

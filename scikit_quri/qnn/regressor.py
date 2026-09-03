@@ -84,6 +84,16 @@ class QNNRegressor:
     do_y_scale: bool = field(default=True)
     n_outputs: int = field(default=1)
     y_exp_ratio: float = field(default=2.2)
+    #: Use the exact adjoint (backpropagation) gradient when the estimator supports it
+    #: (``ExactStatevectorEstimator``: Qulacs, Scaluq). ~10-140x faster than a
+    #: finite-difference estimator and exact rather than O(delta^2).
+    #: The adjoint method cannot run on hardware, so with a device backend (OQTOPUS)
+    #: this flag has no effect and the supplied ``gradient_estimator`` is used - use
+    #: the parameter-shift rule there. Set to False to always use ``gradient_estimator``.
+    use_adjoint_gradient: bool = field(default=True)
+    #: Seed for the initial parameter draw. ``None`` uses fresh OS entropy, which
+    #: makes every fit (and therefore every accuracy assertion) non-reproducible.
+    seed: Optional[int] = field(default=None)
 
     trained_param: Optional[Params] = field(default=None)
 
@@ -130,10 +140,11 @@ class QNNRegressor:
 
         self.n_outputs = y_scaled.shape[1]
         # operator設定
-        operators = []
-        for i in range(self.n_outputs):
-            operators.append(Operator({pauli_label(f"Z {i}"): 1.0}))
-        self.operator = operators
+        # Respect an operator supplied to the constructor. It used to be overwritten
+        # here unconditionally, so the most natural customization -- choosing the
+        # observable -- was discarded with no error.
+        if not self.operator:
+            self.operator = [Operator({pauli_label(f"Z {i}"): 1.0}) for i in range(self.n_outputs)]
 
         self.x_train = x_scaled
         self.y_train = y_scaled
@@ -141,7 +152,7 @@ class QNNRegressor:
         parameter_count = self.ansatz.learning_params_count
 
         # set initial learning parameters
-        init_params = 2 * np.pi * np.random.random(parameter_count)
+        init_params = 2 * np.pi * np.random.default_rng(self.seed).random(parameter_count)
         optimizer_state = self.optimizer.get_init_state(init_params)
 
         c = 0
@@ -240,7 +251,15 @@ class QNNRegressor:
         diff = y_pred - y_scaled
         n_samples = len(diff)
         # grads[p] = (1/N) * sum_s (1/n_outputs) * sum_o 2 * diff[s,o] * y_pred_grads[s,o,p]
-        grads = (2.0 / (n_samples * self.n_outputs)) * np.einsum("so,sop->p", diff, y_pred_grads)
+        # ``_predict_inner`` scales expectation values by ``y_exp_ratio`` but
+        # ``_estimate_grad`` does not, so the same factor has to be applied here for
+        # grad_fn to be the gradient of cost_fn (QNNClassifier already does this).
+        grads = (
+            2.0
+            * self.y_exp_ratio
+            / (n_samples * self.n_outputs)
+            * np.einsum("so,sop->p", diff, y_pred_grads)
+        )
         return grads
 
     def _estimate_grad(self, x_scaled: NDArray[np.float64], params: Params) -> NDArray[np.float64]:
@@ -251,6 +270,7 @@ class QNNRegressor:
             x_scaled,
             params,
             estimator=self.estimator,
+            use_adjoint=self.use_adjoint_gradient,
         )
 
     def _predict_inner(self, x_scaled: NDArray[np.float64], params: Params) -> NDArray[np.float64]:

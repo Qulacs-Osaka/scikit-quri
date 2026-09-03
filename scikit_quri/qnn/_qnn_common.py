@@ -16,8 +16,17 @@ from quri_parts.core.state import ParametricCircuitQuantumState, quantum_state
 from quri_parts.qulacs import QulacsStateT
 from typing_extensions import TypeAlias
 
-from scikit_quri.backend import BaseEstimator, BatchedSimEstimator
+from scikit_quri.backend import (
+    BaseEstimator,
+    BaseGradientEstimator,
+    BatchedSimEstimator,
+    ExactStatevectorEstimator,
+)
 from scikit_quri.circuit import LearningCircuit
+from scikit_quri.circuit.gradient import (
+    adjoint_expectation_gradients_batch,
+    exact_expectations_batch,
+)
 
 GradientEstimatorType: TypeAlias = GradientEstimator[_ParametricStateT]
 
@@ -117,6 +126,13 @@ def predict_inner(
         res *= y_exp_ratio
         return res
 
+    # Exact statevector backends: convert the circuit and the observables once and
+    # rebind per sample, instead of letting quri-parts rebuild the qulacs circuit for
+    # every sample (profiling test_qcnn showed convert_gate called 1,063,040 times).
+    if isinstance(estimator, ExactStatevectorEstimator):
+        res = exact_expectations_batch(ansatz, x_scaled, params, list(operators))
+        return res * y_exp_ratio
+
     circuit_states = build_circuit_states(ansatz, x_scaled, params)
     return compute_expectations(estimator, operators, circuit_states, y_exp_ratio)
 
@@ -137,10 +153,13 @@ def predict_inner_cached(
     step by storing the most recent result keyed on the params content and a
     composite x_scaled fingerprint.
 
-    The x fingerprint combines ``id(x_scaled)`` with ``shape`` and ``dtype`` to
-    guard against the case where the previously cached array was garbage
-    collected and a new array reuses the same memory address. A params hash is
-    used as a fast-fail check before the exact ``np.array_equal`` comparison.
+    The cache keeps a strong reference to ``x_scaled`` and compares it by identity
+    first, then by content. Keying on ``id(x_scaled)`` without holding the array was
+    unsound: ``x_scaled`` is a temporary produced by the scaler inside ``predict``, so
+    it is freed on return and the next call's array frequently lands on the same
+    address. ``shape`` and ``dtype`` did not help, because calling ``predict`` twice
+    with batches of the same shape — the ordinary case — matches on both, and the
+    stale prediction of the previous batch was returned with no error.
 
     Args:
         ansatz: Learning circuit.
@@ -150,23 +169,33 @@ def predict_inner_cached(
         params: Learning parameters.
         y_exp_ratio: Scaling factor applied to expectation values.
         cache: Mutable dict with keys ``cached_params`` (Optional[NDArray]),
-            ``y_pred`` (Optional[NDArray]), ``cached_x_fp`` (Optional[tuple]),
+            ``y_pred`` (Optional[NDArray]), ``cached_x`` (Optional[NDArray]),
             ``cached_params_hash`` (Optional[int]).
 
     Returns:
         Prediction matrix. Shape: (n_samples, n_operators).
     """
     params_arr = np.ascontiguousarray(np.asarray(params))
-    x_fp = (id(x_scaled), x_scaled.shape, x_scaled.dtype)
     params_hash = hash(params_arr.tobytes())
     cached_params: NDArray[np.float64] | None = cache.get("cached_params")
     cached_y_pred: NDArray[np.float64] | None = cache.get("y_pred")
-    cached_x_fp: tuple | None = cache.get("cached_x_fp")
+    cached_x: NDArray[np.float64] | None = cache.get("cached_x")
     cached_params_hash: int | None = cache.get("cached_params_hash")
+    x_hit = cached_x is not None and (
+        # Identity is the common case (the same training batch every iteration);
+        # fall back to content so an array that was rebuilt or mutated in place is
+        # not mistaken for the cached one.
+        cached_x is x_scaled
+        or (
+            cached_x.shape == x_scaled.shape
+            and cached_x.dtype == x_scaled.dtype
+            and np.array_equal(cached_x, x_scaled)
+        )
+    )
     if (
         cached_params is not None
         and cached_y_pred is not None
-        and cached_x_fp == x_fp
+        and x_hit
         and cached_params_hash == params_hash
         and cached_params.shape == params_arr.shape
         and np.array_equal(cached_params, params_arr)
@@ -175,7 +204,7 @@ def predict_inner_cached(
     y_pred = predict_inner(ansatz, estimator, operators, x_scaled, params, y_exp_ratio)
     cache["cached_params"] = params_arr.copy()
     cache["y_pred"] = y_pred
-    cache["cached_x_fp"] = x_fp
+    cache["cached_x"] = x_scaled
     cache["cached_params_hash"] = params_hash
     return y_pred
 
@@ -188,6 +217,7 @@ def estimate_grad(
     params: Params,
     estimator: BaseEstimator | None = None,
     delta: float = 1e-5,
+    use_adjoint: bool = False,
 ) -> NDArray[np.float64]:
     """Estimate gradients of learning parameters for each input and operator.
 
@@ -204,6 +234,43 @@ def estimate_grad(
     Returns:
         Gradient tensor. Shape: (n_samples, n_operators, n_learning_params).
     """
+    # An explicitly supplied BaseGradientEstimator wins: it is a deliberate choice of
+    # gradient rule (e.g. parameter shift for hardware), not a default. These objects
+    # expose estimate_learning_param_gradient rather than __call__, so without this
+    # dispatch passing one raised "not callable" from the loop below — the library's
+    # own gradient abstraction did not work with the library's own models.
+    if isinstance(gradient_estimator, BaseGradientEstimator):
+        grads = np.empty(
+            (len(x_scaled), len(operators), ansatz.learning_params_count), dtype=np.float64
+        )
+        for s, x in enumerate(x_scaled):
+            bound_params = ansatz.generate_bound_params(x, params)
+            for i, op in enumerate(operators):
+                grads[s, i] = np.real(
+                    np.asarray(
+                        gradient_estimator.estimate_learning_param_gradient(
+                            op, ansatz, bound_params, x=x, theta=params
+                        ),
+                        dtype=np.complex128,
+                    )
+                )
+        return grads
+
+    # Exact statevector backends can use the adjoint method: one forward pass plus
+    # one backpropagation per observable, instead of 2 * parameter_count circuit
+    # simulations. Same quantity, ~10-140x faster and exact rather than O(delta^2).
+    #
+    # It is simulator-only: the adjoint method needs |psi> and O|psi> as vectors and
+    # replays the circuit backwards, none of which is available on hardware, where
+    # measurement collapses the state and recovering it would take exponentially many
+    # tomography shots. Backends that cannot provide this (OQTOPUS and any other real
+    # device) fall through to the supplied ``gradient_estimator``; the adjoint path is
+    # never taken for them, so a hardware run is never silently replaced by a local
+    # simulation. Use the parameter-shift rule there - it needs only ordinary circuit
+    # executions - e.g. SimGradientEstimator(method="parameter_shift").
+    if use_adjoint and isinstance(estimator, ExactStatevectorEstimator):
+        return adjoint_expectation_gradients_batch(ansatz, x_scaled, params, list(operators))
+
     # Capability dispatch: batched-simulation backends take the fast path.
     if isinstance(estimator, BatchedSimEstimator):
         n_learning = ansatz.learning_params_count
@@ -240,6 +307,15 @@ def estimate_grad(
     # Hoist parametric state construction out of the per-sample loop.
     param_state = quantum_state(n_qubits=ansatz.n_qubits, circuit=ansatz.circuit)
 
+    # Parametric-input gates have angle = f(theta, x), so the per-gate derivative
+    # d<O>/d(angle) must be scaled by df/dtheta to become d<O>/d(theta). The factor
+    # depends on x, so it is applied per sample. Without it the reported gradient is
+    # off by df/dtheta (e.g. exactly x for f = theta * x), which is not even a
+    # constant factor across samples and breaks the descent direction.
+    has_input_chain = any(
+        ip.companion_parameter_id is not None for ip in ansatz._registry.input_parameters
+    )
+
     grads = []
     values_matrix = np.zeros((n_ops, n_active), dtype=np.float64)
     for x in x_scaled:
@@ -248,5 +324,11 @@ def estimate_grad(
             estimate = gradient_estimator(op, param_state, circuit_params)
             values = np.ascontiguousarray(np.asarray(estimate.values).real, dtype=np.float64)
             values_matrix[i, :] = values[active_idx]
-        grads.append(np.einsum("ij,jk->ik", values_matrix, A))
+        if has_input_chain:
+            chain = ansatz.input_chain_factors(x, params)
+            scale = np.array([chain.get(p, 1.0) for p in active_positions], dtype=np.float64)
+            A_x = A * scale[:, None]
+        else:
+            A_x = A
+        grads.append(np.einsum("ij,jk->ik", values_matrix, A_x))
     return np.asarray(grads)

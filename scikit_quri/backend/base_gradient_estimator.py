@@ -1,5 +1,8 @@
 from abc import ABCMeta, abstractmethod
-from typing import Sequence
+from typing import Optional, Sequence
+
+import numpy as np
+from numpy.typing import NDArray
 
 from scikit_quri.circuit import LearningCircuit
 from quri_parts.core.estimator import Estimatable, Estimates
@@ -39,6 +42,8 @@ class BaseGradientEstimator(metaclass=ABCMeta):
         operators: Estimatable,
         circuit: LearningCircuit,
         params: Sequence[float],
+        x: Optional["NDArray[np.float64]"] = None,
+        theta: Optional["NDArray[np.float64]"] = None,
     ) -> Sequence[complex]:
         """
         学習パラメータに対する勾配を計算する

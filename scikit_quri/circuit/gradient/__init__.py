@@ -5,7 +5,20 @@ depend on specific quantum backends (qulacs, etc.). Each gradient method is a
 free function taking the circuit and inputs explicitly.
 """
 
+from .adjoint import (
+    adjoint_expectation_gradients,
+    adjoint_expectation_gradients_batch,
+    exact_expectations_batch,
+)
 from .backprop import backprop_inner_product
 from .hadamard import hadamard_gradient
+from .parameter_shift import parameter_shift_gradient
 
-__all__ = ["backprop_inner_product", "hadamard_gradient"]
+__all__ = [
+    "adjoint_expectation_gradients",
+    "adjoint_expectation_gradients_batch",
+    "exact_expectations_batch",
+    "backprop_inner_product",
+    "hadamard_gradient",
+    "parameter_shift_gradient",
+]

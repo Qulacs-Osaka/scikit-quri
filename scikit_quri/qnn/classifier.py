@@ -72,6 +72,16 @@ class QNNClassifier:
 
     do_x_scale: bool = field(default=True)
     y_exp_ratio: float = field(default=2.2)
+    #: Use the exact adjoint (backpropagation) gradient when the estimator supports it
+    #: (``ExactStatevectorEstimator``: Qulacs, Scaluq). ~10-140x faster than a
+    #: finite-difference estimator and exact rather than O(delta^2).
+    #: The adjoint method cannot run on hardware, so with a device backend (OQTOPUS)
+    #: this flag has no effect and the supplied ``gradient_estimator`` is used - use
+    #: the parameter-shift rule there. Set to False to always use ``gradient_estimator``.
+    use_adjoint_gradient: bool = field(default=True)
+    #: Seed for the initial parameter draw. ``None`` uses fresh OS entropy, which
+    #: makes every fit (and therefore every accuracy assertion) non-reproducible.
+    seed: Optional[int] = field(default=None)
 
     trained_param: Optional[Params] = field(default=None)
 
@@ -118,14 +128,15 @@ class QNNClassifier:
             x_scaled = x_train
 
         # operator設定
-        operators = []
-        for i in range(self.num_class):
-            operators.append(Operator({pauli_label(f"Z {i}"): 1.0}))
-        self.operator = operators
+        # Respect an operator supplied to the constructor. It used to be overwritten
+        # here unconditionally, so the most natural customization -- choosing the
+        # observable -- was discarded with no error.
+        if not self.operator:
+            self.operator = [Operator({pauli_label(f"Z {i}"): 1.0}) for i in range(self.num_class)]
 
         parameter_count = self.ansatz.learning_params_count
         if self.trained_param is None:
-            init_params = 2 * np.pi * np.random.random(parameter_count)
+            init_params = 2 * np.pi * np.random.default_rng(self.seed).random(parameter_count)
         else:
             init_params = self.trained_param
         # print(f"{init_params=}")
@@ -232,4 +243,5 @@ class QNNClassifier:
             x_scaled,
             params,
             estimator=self.estimator,
+            use_adjoint=self.use_adjoint_gradient,
         )
