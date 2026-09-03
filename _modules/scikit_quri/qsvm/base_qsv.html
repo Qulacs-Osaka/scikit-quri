@@ -320,7 +320,7 @@ document.write(`
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">TypeVar</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
@@ -336,6 +336,11 @@ document.write(`
 <div class="viewcode-block" id="SVMethodType"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.SVMethodType">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">SVMethodType</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
     <span class="n">SVC</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">SVR</span> <span class="o">=</span> <span class="mi">2</span></div>
+
+
+<span class="c1"># typing.Self is 3.11+, and this package supports 3.10, so fit() is annotated with a</span>
+<span class="c1"># bound TypeVar to keep `QSVC(...).fit(x, y)` typed as QSVC rather than as the base.</span>
+<span class="n">_QSV</span> <span class="o">=</span> <span class="n">TypeVar</span><span class="p">(</span><span class="s2">&quot;_QSV&quot;</span><span class="p">,</span> <span class="n">bound</span><span class="o">=</span><span class="s2">&quot;BaseQSV&quot;</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="BaseQSV"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">BaseQSV</span><span class="p">(</span><span class="n">SklearnBaseEstimator</span><span class="p">):</span>
@@ -372,14 +377,14 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">OverlapEstimator</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="BaseQSV.fit"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV.fit">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">:</span> <span class="n">_QSV</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
         <span class="n">y</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
         <span class="n">sampler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseSampler</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">n_shots</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">max_iter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">verbose</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_QSV</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fit the model to the training data.</span>
 
 <span class="sd">        Args:</span>
@@ -389,6 +394,9 @@ document.write(`
 <span class="sd">            n_shots: Deprecated. Pass it to ``__init__`` instead.</span>
 <span class="sd">            max_iter: Deprecated. Pass it to ``__init__`` instead.</span>
 <span class="sd">            verbose: Deprecated. Pass it to ``__init__`` instead.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            self, as scikit-learn estimators do, so ``fit(x, y).predict(x)`` works.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">(</span>
@@ -430,7 +438,8 @@ document.write(`
                 <span class="n">kernel</span><span class="o">=</span><span class="s2">&quot;precomputed&quot;</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span>
             <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sv_method</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">gram_train</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">gram_train</span> <span class="o">=</span> <span class="n">gram_train</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gram_train</span> <span class="o">=</span> <span class="n">gram_train</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__sklearn_is_fitted__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Tell scikit-learn whether this estimator has been fitted.</span>

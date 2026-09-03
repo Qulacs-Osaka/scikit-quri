@@ -430,7 +430,9 @@ document.write(`
                 <span class="n">feature_range</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">y_norm_range</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y_norm_range</span><span class="p">)</span>
             <span class="p">)</span>
 
-<div class="viewcode-block" id="QNNRegressor.fit"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.fit">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_train</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">y_train</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">maxiter</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="QNNRegressor.fit"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.fit">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">x_train</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">y_train</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">maxiter</span><span class="o">=</span><span class="mi">20</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;QNNRegressor&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Fit the model to the training data.</span>
 
@@ -438,6 +440,9 @@ document.write(`
 <span class="sd">            x_train: Input data whose shape is (n_samples, n_features).</span>
 <span class="sd">            y_train: Output data whose shape is (n_samples, n_outputs).</span>
 <span class="sd">            batch_size: The number of samples in each batch.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            self, as scikit-learn estimators do, so ``fit(x, y).predict(x)`` works.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">x_train</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -497,7 +502,10 @@ document.write(`
         <span class="c1"># Drop cached training-batch prediction so it doesn&#39;t pin the y_pred matrix</span>
         <span class="c1"># for the remainder of the instance&#39;s lifetime.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pred_cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">optimizer_state</span><span class="o">.</span><span class="n">cost</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+        <span class="c1"># Was printed unconditionally on every fit. Kept as an attribute instead so a</span>
+        <span class="c1"># caller can read it without the library writing to stdout.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">final_cost_</span> <span class="o">=</span> <span class="n">optimizer_state</span><span class="o">.</span><span class="n">cost</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
 
 <div class="viewcode-block" id="QNNRegressor.cost_fn"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.cost_fn">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">cost_fn</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">x_scaled</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">y_scaled</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">params</span><span class="p">:</span> <span class="n">Params</span>

@@ -368,12 +368,13 @@ document.write(`
         <span class="n">x</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
         <span class="n">y</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">],</span>
         <span class="n">sampler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseSampler</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;QKRR&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        train the machine.</span>
 <span class="sd">        :param x: training inputs</span>
 <span class="sd">        :param y: training teacher values</span>
 <span class="sd">        :param sampler: deprecated; pass it to the constructor instead</span>
+<span class="sd">        :return: self, as scikit-learn estimators do, so ``fit(x, y).predict(x)`` works</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">sampler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
@@ -402,7 +403,9 @@ document.write(`
         <span class="n">kar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">estimate_concurrent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
             <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">krr</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">kar</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="c1"># self.krr is not fitted here on purpose: RandomizedSearchCV clones it and fits</span>
+        <span class="c1"># the clones, and predict() only ever uses kernel_ridge_tuned. Fitting it first</span>
+        <span class="c1"># solved the same n x n system for nothing.</span>
 
         <span class="c1"># hyperparameter tuning</span>
         <span class="n">alpha_low</span> <span class="o">=</span> <span class="mf">1e-3</span>
@@ -424,8 +427,9 @@ document.write(`
         <span class="p">)</span>
 
         <span class="n">kernel_ridge_tuned</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">kar</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">kernel_ridge_tuned</span><span class="o">.</span><span class="n">best_params_</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">kernel_ridge_tuned</span> <span class="o">=</span> <span class="n">kernel_ridge_tuned</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">kernel_ridge_tuned</span> <span class="o">=</span> <span class="n">kernel_ridge_tuned</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">best_params_</span> <span class="o">=</span> <span class="n">kernel_ridge_tuned</span><span class="o">.</span><span class="n">best_params_</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">__sklearn_is_fitted__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Tell scikit-learn whether this estimator has been fitted.</span>

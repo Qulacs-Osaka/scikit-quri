@@ -441,18 +441,22 @@ document.write(`
 
     <span class="c1"># --- Training ---------------------------------------------------------</span>
 
-<div class="viewcode-block" id="QNNGenerator.fit"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.generation.QNNGenerator.fit">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_data</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">],</span> <span class="n">maxiter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="QNNGenerator.fit"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.generation.QNNGenerator.fit">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_data</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">],</span> <span class="n">maxiter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;QNNGenerator&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Train against a sample-list target distribution.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            train_data: Array of bit-string integers; the empirical</span>
 <span class="sd">                distribution of these is the target.</span>
 <span class="sd">            maxiter: Maximum optimizer iterations.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            self, as scikit-learn estimators do, so ``fit(data).sample(n)`` works.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">train_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span><span class="p">:</span>
             <span class="n">train_samples</span> <span class="o">=</span> <span class="n">train_samples</span> <span class="o">%</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_fit_inner</span><span class="p">(</span><span class="n">train_samples</span><span class="p">,</span> <span class="n">maxiter</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fit_inner</span><span class="p">(</span><span class="n">train_samples</span><span class="p">,</span> <span class="n">maxiter</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
 
 <div class="viewcode-block" id="QNNGenerator.fit_direct_distribution"><a class="viewcode-back" href="../../../scikit_quri.qnn.html#scikit_quri.qnn.generation.QNNGenerator.fit_direct_distribution">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fit_direct_distribution</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -460,7 +464,7 @@ document.write(`
         <span class="n">maxiter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
         <span class="n">n_target_samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10000</span><span class="p">,</span>
         <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;QNNGenerator&quot;</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Train against a target probability vector.</span>
 
 <span class="sd">        Internally samples ``n_target_samples`` bit strings from ``p`` and</span>
@@ -471,6 +475,9 @@ document.write(`
 <span class="sd">            maxiter: Maximum optimizer iterations.</span>
 <span class="sd">            n_target_samples: Number of target-distribution samples.</span>
 <span class="sd">            seed: Seed for the target sampler.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            self, matching :meth:`fit`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">fitting_qubit</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -478,7 +485,8 @@ document.write(`
             <span class="p">)</span>
         <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
         <span class="n">train_samples</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">n_target_samples</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_fit_inner</span><span class="p">(</span><span class="n">train_samples</span><span class="p">,</span> <span class="n">maxiter</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fit_inner</span><span class="p">(</span><span class="n">train_samples</span><span class="p">,</span> <span class="n">maxiter</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_fit_inner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_samples</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">],</span> <span class="n">maxiter</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">n_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span><span class="o">.</span><span class="n">learning_params_count</span>
