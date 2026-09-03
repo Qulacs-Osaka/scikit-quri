@@ -338,8 +338,10 @@ document.write(`
  | <a href="#Q"><strong>Q</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
  | <a href="#X"><strong>X</strong></a>
  | <a href="#Y"><strong>Y</strong></a>
+ | <a href="#Z"><strong>Z</strong></a>
  
 </div>
 <h2 id="A">A</h2>
@@ -365,10 +367,10 @@ document.write(`
 </li>
       <li><a href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.add_parametric_multi_Pauli_rotation_gate">add_parametric_multi_Pauli_rotation_gate() (scikit_quri.circuit.circuit.LearningCircuit method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.add_parametric_RX_gate">add_parametric_RX_gate() (scikit_quri.circuit.circuit.LearningCircuit method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.add_parametric_RY_gate">add_parametric_RY_gate() (scikit_quri.circuit.circuit.LearningCircuit method)</a>
 </li>
       <li><a href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.add_parametric_RZ_gate">add_parametric_RZ_gate() (scikit_quri.circuit.circuit.LearningCircuit method)</a>
@@ -384,6 +386,8 @@ document.write(`
       <li><a href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.add_Y_gate">add_Y_gate() (scikit_quri.circuit.circuit.LearningCircuit method)</a>
 </li>
       <li><a href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.add_Z_gate">add_Z_gate() (scikit_quri.circuit.circuit.LearningCircuit method)</a>
+</li>
+      <li><a href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.aggregate_gate_gradients">aggregate_gate_gradients() (scikit_quri.circuit.circuit.LearningCircuit method)</a>
 </li>
       <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier.ansatz">ansatz (scikit_quri.qnn.classifier.QNNClassifier attribute)</a>
 
@@ -547,6 +551,8 @@ document.write(`
         <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.estimator">(scikit_quri.qnn.regressor.QNNRegressor attribute)</a>
 </li>
       </ul></li>
+      <li><a href="scikit_quri.backend.html#scikit_quri.backend.base_estimator.ExactStatevectorEstimator">ExactStatevectorEstimator (class in scikit_quri.backend.base_estimator)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -621,7 +627,7 @@ document.write(`
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne.init">init() (scikit_quri.qnn.kernel_tsne.quantum_kernel_tsne method)</a>
 </li>
-      <li><a href="scikit_quri.backend.html#id0">input_param (scikit_quri.backend.oqtopus_gradient_estimator.LearningCircuitParameter attribute)</a>, <a href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.LearningCircuitParameter.input_param">[1]</a>
+      <li><a href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.input_chain_factors">input_chain_factors() (scikit_quri.circuit.circuit.LearningCircuit method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -651,15 +657,11 @@ document.write(`
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="scikit_quri.backend.html#id1">learning_param (scikit_quri.backend.oqtopus_gradient_estimator.LearningCircuitParameter attribute)</a>, <a href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.LearningCircuitParameter.learning_param">[1]</a>
-</li>
       <li><a href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.learning_params_count">learning_params_count (scikit_quri.circuit.circuit.LearningCircuit property)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit">LearningCircuit (class in scikit_quri.circuit.circuit)</a>
-</li>
-      <li><a href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.LearningCircuitParameter">LearningCircuitParameter (class in scikit_quri.backend.oqtopus_gradient_estimator)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -727,8 +729,6 @@ document.write(`
       <li><a href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.n_qubits">n_qubits (scikit_quri.circuit.circuit.LearningCircuit attribute)</a>
 </li>
       <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier.num_class">num_class (scikit_quri.qnn.classifier.QNNClassifier attribute)</a>
-</li>
-      <li><a href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.numerical_gradient_estimates">numerical_gradient_estimates() (in module scikit_quri.backend.oqtopus_gradient_estimator)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -879,8 +879,6 @@ document.write(`
         <li><a href="scikit_quri.circuit.html#module-scikit_quri.circuit.circuit">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     scikit_quri.circuit.pre_defined
 
@@ -888,6 +886,8 @@ document.write(`
         <li><a href="scikit_quri.circuit.html#module-scikit_quri.circuit.pre_defined">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     scikit_quri.qkrr.qkrr
 
@@ -937,6 +937,12 @@ document.write(`
         <li><a href="scikit_quri.state.html#module-scikit_quri.state.overlap_estimator">module</a>
 </li>
       </ul></li>
+      <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier.seed">seed (scikit_quri.qnn.classifier.QNNClassifier attribute)</a>
+
+      <ul>
+        <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.seed">(scikit_quri.qnn.regressor.QNNRegressor attribute)</a>
+</li>
+      </ul></li>
       <li><a href="scikit_quri.backend.html#scikit_quri.backend.sim_estimator.SimEstimator">SimEstimator() (in module scikit_quri.backend.sim_estimator)</a>
 </li>
       <li><a href="scikit_quri.backend.html#scikit_quri.backend.sim_gradient_estimator.SimGradientEstimator">SimGradientEstimator (class in scikit_quri.backend.sim_gradient_estimator)</a>
@@ -974,6 +980,18 @@ document.write(`
   </ul></td>
 </tr></table>
 
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier.use_adjoint_gradient">use_adjoint_gradient (scikit_quri.qnn.classifier.QNNClassifier attribute)</a>
+
+      <ul>
+        <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.use_adjoint_gradient">(scikit_quri.qnn.regressor.QNNRegressor attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+</tr></table>
+
 <h2 id="X">X</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -998,6 +1016,14 @@ document.write(`
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.y_norm_range">y_norm_range (scikit_quri.qnn.regressor.QNNRegressor attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Z">Z</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="scikit_quri.circuit.html#scikit_quri.circuit.pre_defined.zz_data_map">zz_data_map() (in module scikit_quri.circuit.pre_defined)</a>
 </li>
   </ul></td>
 </tr></table>

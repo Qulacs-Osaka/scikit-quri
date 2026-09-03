@@ -316,175 +316,87 @@ document.write(`
                 <article class="bd-article">
                   
   <h1>Source code for scikit_quri.backend.oqtopus_gradient_estimator</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequence</span>
+<span></span><span class="sd">&quot;&quot;&quot;Gradient estimation on OQTOPUS backends.</span>
+
+<span class="sd">Uses the parameter-shift rule. The previous implementation took a central difference</span>
+<span class="sd">with a hardcoded ``delta=1e-5`` on shot-based expectation values: with the default</span>
+<span class="sd">1000 shots the sampling error of each term is divided by 1e-5, so the result was</span>
+<span class="sd">noise (measured spread ~5 orders of magnitude above the true value). The</span>
+<span class="sd">parameter-shift rule is exact for the Pauli rotations this library emits, needs no</span>
+<span class="sd">step size, and costs the same 2 executions per gate position.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
-
-<span class="c1"># from quri_parts.circuit.parameter_shift import ShiftedParameters</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">quantum_state</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Estimatable</span><span class="p">,</span> <span class="n">Estimate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">Estimatable</span><span class="p">,</span> <span class="n">Estimates</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">LearningCircuit</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scikit_quri.circuit.gradient</span><span class="w"> </span><span class="kn">import</span> <span class="n">parameter_shift_gradient</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.base_gradient_estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseGradientEstimator</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.oqtopus_estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">OqtopusEstimator</span>
 
 
-<div class="viewcode-block" id="LearningCircuitParameter"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.LearningCircuitParameter">[docs]</a><span class="nd">@dataclass</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">LearningCircuitParameter</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;学習回路のパラメータを保持するデータクラス。</span>
-
-<span class="sd">    Attributes:</span>
-<span class="sd">        input_param: 入力データに対応するパラメータ。</span>
-<span class="sd">        learning_param: 最適化対象の学習パラメータ。</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">input_param</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span>
-    <span class="n">learning_param</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]</span></div>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_parametric_estimate</span><span class="p">(</span>
-    <span class="n">op_state</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Estimatable</span><span class="p">,</span> <span class="n">LearningCircuit</span><span class="p">],</span>
-    <span class="n">params</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">LearningCircuitParameter</span><span class="p">],</span>
-    <span class="n">estimator</span><span class="p">:</span> <span class="n">OqtopusEstimator</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Estimate</span><span class="p">[</span><span class="nb">complex</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;複数のパラメータセットに対して期待値を一括計算する。</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        op_state: (演算子, 学習回路)のタプル。</span>
-<span class="sd">        params: パラメータセットのシーケンス。</span>
-<span class="sd">        estimator: 期待値計算に使用する推定器。</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        各パラメータセットに対する期待値のEstimateオブジェクトのシーケンス。</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">operator</span><span class="p">,</span> <span class="n">circuit</span> <span class="o">=</span> <span class="n">op_state</span>
-    <span class="n">n_qubits</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">n_qubits</span>
-    <span class="n">estimates</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">states</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
-        <span class="n">bind_circuit</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">bind_input_and_parameters</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">input_param</span><span class="p">,</span> <span class="n">param</span><span class="o">.</span><span class="n">learning_param</span><span class="p">)</span>
-        <span class="n">state</span> <span class="o">=</span> <span class="n">quantum_state</span><span class="p">(</span><span class="n">n_qubits</span><span class="o">=</span><span class="n">n_qubits</span><span class="p">,</span> <span class="n">circuit</span><span class="o">=</span><span class="n">bind_circuit</span><span class="p">)</span>
-        <span class="n">states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-    <span class="n">estimates</span> <span class="o">=</span> <span class="n">estimator</span><span class="o">.</span><span class="n">estimate</span><span class="p">([</span><span class="n">operator</span><span class="p">],</span> <span class="n">states</span><span class="p">)</span>
-    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">estimates</span><span class="p">)</span>
-
-
-<div class="viewcode-block" id="numerical_gradient_estimates"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.numerical_gradient_estimates">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">numerical_gradient_estimates</span><span class="p">(</span>
-    <span class="n">op</span><span class="p">:</span> <span class="n">Estimatable</span><span class="p">,</span>
-    <span class="n">circuit</span><span class="p">:</span> <span class="n">LearningCircuit</span><span class="p">,</span>
-    <span class="n">params</span><span class="p">:</span> <span class="n">LearningCircuitParameter</span><span class="p">,</span>
-    <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-    <span class="n">estimator</span><span class="p">:</span> <span class="n">OqtopusEstimator</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">complex</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;数値微分により勾配を計算する。</span>
-
-<span class="sd">    中心差分法を用いて各学習パラメータに対する勾配を計算する。</span>
-<span class="sd">    grad[i] = (f(θ_i + δ/2) - f(θ_i - δ/2)) / δ</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        op: 期待値を計算する演算子。</span>
-<span class="sd">        circuit: 学習回路。</span>
-<span class="sd">        params: 入力パラメータと学習パラメータ。</span>
-<span class="sd">        delta: 数値微分の刻み幅。</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        各学習パラメータに対する勾配のシーケンス。</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">v</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">input_param</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">input_param</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">learning_param</span><span class="p">)):</span>
-        <span class="n">current_learning_param</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">learning_param</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">current_learning_param</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">delta</span> <span class="o">*</span> <span class="mf">0.5</span>
-        <span class="n">v</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">LearningCircuitParameter</span><span class="p">(</span><span class="n">input_param</span><span class="p">,</span> <span class="n">current_learning_param</span><span class="p">))</span>
-        <span class="n">current_learning_param</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">learning_param</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">current_learning_param</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-=</span> <span class="n">delta</span> <span class="o">*</span> <span class="mf">0.5</span>
-        <span class="n">v</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">LearningCircuitParameter</span><span class="p">(</span><span class="n">input_param</span><span class="p">,</span> <span class="n">current_learning_param</span><span class="p">))</span>
-    <span class="n">estimates</span> <span class="o">=</span> <span class="n">_parametric_estimate</span><span class="p">((</span><span class="n">op</span><span class="p">,</span> <span class="n">circuit</span><span class="p">),</span> <span class="n">v</span><span class="p">,</span> <span class="n">estimator</span><span class="p">)</span>
-    <span class="n">grad</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">learning_param</span><span class="p">)):</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="n">estimates</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">estimates</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
-        <span class="n">grad</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span> <span class="o">/</span> <span class="n">delta</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">grad</span></div>
-
-
-<span class="c1"># def parameter_shift_gradient_estimates(</span>
-<span class="c1">#     op: Estimatable,</span>
-<span class="c1">#     circuit: LearningCircuit,</span>
-<span class="c1">#     params: LearningCircuitParameter,</span>
-<span class="c1"># ) -&gt; Sequence[complex]:</span>
-<span class="c1">#     &quot;&quot;&quot;パラメータシフト法により勾配を計算する。</span>
-
-<span class="c1">#     Note:</span>
-<span class="c1">#         現在実装中。</span>
-
-<span class="c1">#     Args:</span>
-<span class="c1">#         op: 期待値を計算する演算子。</span>
-<span class="c1">#         circuit: 学習回路。</span>
-<span class="c1">#         params: 入力パラメータと学習パラメータ。</span>
-
-<span class="c1">#     Returns:</span>
-<span class="c1">#         各学習パラメータに対する勾配のシーケンス。</span>
-<span class="c1">#     &quot;&quot;&quot;</span>
-<span class="c1"># gen_params = circuit.generate_bound_params(</span>
-<span class="c1">#     np.array(params.input_param), np.array(params.learning_param)</span>
-<span class="c1"># )</span>
-<span class="c1"># param_mapping = circuit.circuit.param_mapping</span>
-<span class="c1"># parameter_shift = ShiftedParameters(param_mapping)</span>
-<span class="c1"># derivatives = parameter_shift.get_derivatives()</span>
-<span class="c1"># shifted_params_and_coefs = [d.get_shifted_parameters_and_coef(gen_params) for d in derivatives]</span>
-
-<span class="c1"># gate_params = set()</span>
-<span class="c1"># for params_and_coefs in shifted_params_and_coefs:</span>
-<span class="c1">#     for p, _ in params_and_coefs:</span>
-<span class="c1">#         gate_params.add(p)</span>
-<span class="c1"># gate_params_list = list(gate_params)</span>
-<span class="c1"># pass</span>
-
-
 <div class="viewcode-block" id="OqtopusGradientEstimator"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.OqtopusGradientEstimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">OqtopusGradientEstimator</span><span class="p">(</span><span class="n">BaseGradientEstimator</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Oqtopusを用いて勾配を計算するGradient Estimator Class。</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gradient estimator backed by OQTOPUS, using the parameter-shift rule.&quot;&quot;&quot;</span>
 
-<span class="sd">    OqtopusEstimatorを内部で使用し、数値微分により勾配を計算する。</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;qulacs&quot;</span><span class="p">,</span> <span class="n">shots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="n">OqtopusEstimator</span><span class="p">(</span><span class="n">device_id</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="n">shots</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="n">OqtopusEstimator</span><span class="p">(</span><span class="s2">&quot;qulacs&quot;</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_concurrent_estimator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operators</span><span class="p">,</span> <span class="n">states</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">estimate</span><span class="p">(</span><span class="n">operators</span><span class="p">,</span> <span class="n">states</span><span class="p">)</span>
 
-<div class="viewcode-block" id="OqtopusGradientEstimator.estimate_gradient"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.OqtopusGradientEstimator.estimate_gradient">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operators</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;全パラメータに対する勾配を計算する。</span>
+<div class="viewcode-block" id="OqtopusGradientEstimator.estimate_gradient"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.OqtopusGradientEstimator.estimate_gradient">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_gradient</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">operators</span><span class="p">:</span> <span class="n">Estimatable</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">params</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Estimates</span><span class="p">[</span><span class="nb">complex</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Not available.</span>
 
-<span class="sd">        Note:</span>
-<span class="sd">            現在未実装。</span>
-
-<span class="sd">        Raises:</span>
-<span class="sd">            NotImplementedError: このメソッドは未実装。</span>
+<span class="sd">        The parameter-shift rule is defined per learning parameter of a</span>
+<span class="sd">        :class:`LearningCircuit`; use :meth:`estimate_learning_param_gradient`.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;OqtopusGradientEstimator is not implemented yet.&quot;</span><span class="p">)</span></div>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;OqtopusGradientEstimator only supports estimate_learning_param_gradient; &quot;</span>
+            <span class="s2">&quot;the parameter-shift rule needs the circuit&#39;s parameter registry to map &quot;</span>
+            <span class="s2">&quot;gate positions back to learning parameters.&quot;</span>
+        <span class="p">)</span></div>
 
-<div class="viewcode-block" id="OqtopusGradientEstimator.estimate_learning_param_gradient"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.OqtopusGradientEstimator.estimate_learning_param_gradient">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_learning_param_gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operators</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">complex</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;学習パラメータに対する勾配を計算する。</span>
-
-<span class="sd">        入力パラメータは固定し、学習パラメータのみに対する勾配を計算する。</span>
+<div class="viewcode-block" id="OqtopusGradientEstimator.estimate_learning_param_gradient"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.OqtopusGradientEstimator.estimate_learning_param_gradient">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">estimate_learning_param_gradient</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">operators</span><span class="p">:</span> <span class="n">Estimatable</span><span class="p">,</span>
+        <span class="n">circuit</span><span class="p">:</span> <span class="n">LearningCircuit</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span>
+        <span class="n">x</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">theta</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">complex</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gradient w.r.t. the learning parameters, of length ``learning_params_count``.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            operators: 期待値を計算する演算子。</span>
-<span class="sd">            circuit: 学習回路。</span>
-<span class="sd">            params: 全パラメータ（入力+学習）の値。</span>
+<span class="sd">            operators: Observable.</span>
+<span class="sd">            circuit: The learning circuit.</span>
+<span class="sd">            params: Unused; kept for interface compatibility. The shifts are applied</span>
+<span class="sd">                to the gate-level parameters resolved from ``x`` and ``theta``.</span>
+<span class="sd">            x: Input data for the sample being differentiated. Required.</span>
+<span class="sd">            theta: Learning-parameter vector. Required.</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            各学習パラメータに対する勾配のシーケンス。</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If ``x`` or ``theta`` is missing. The previous implementation</span>
+<span class="sd">                sliced the already-resolved gate angles out of ``params`` and fed them</span>
+<span class="sd">                back in as if they were raw input data and a theta vector, which is a</span>
+<span class="sd">                different circuit whenever an input function is not the identity, and</span>
+<span class="sd">                has the wrong length as soon as ``share_with`` is used.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">learning_params</span> <span class="o">=</span> <span class="n">LearningCircuitParameter</span><span class="p">(</span>
-            <span class="n">input_param</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">params</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">circuit</span><span class="o">.</span><span class="n">get_input_params_indexes</span><span class="p">()]),</span>
-            <span class="n">learning_param</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">params</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">circuit</span><span class="o">.</span><span class="n">get_learning_params_indexes</span><span class="p">()]),</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">theta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;estimate_learning_param_gradient needs x and theta: the parameter-shift &quot;</span>
+                <span class="s2">&quot;rule differentiates w.r.t. the learning parameters, and the chain rule &quot;</span>
+                <span class="s2">&quot;for parametric-input gates (angle = f(theta, x)) needs both.&quot;</span>
+            <span class="p">)</span>
+        <span class="n">grad</span> <span class="o">=</span> <span class="n">parameter_shift_gradient</span><span class="p">(</span>
+            <span class="n">circuit</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">theta</span><span class="p">),</span> <span class="n">operators</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_concurrent_estimator</span>
         <span class="p">)</span>
-        <span class="n">estimate_gradients</span> <span class="o">=</span> <span class="n">numerical_gradient_estimates</span><span class="p">(</span>
-            <span class="n">operators</span><span class="p">,</span> <span class="n">circuit</span><span class="p">,</span> <span class="n">learning_params</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">estimator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">estimator</span>
-        <span class="p">)</span>
-        <span class="k">return</span> <span class="n">estimate_gradients</span></div></div>
+        <span class="k">return</span> <span class="n">grad</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div></div>
 </pre></div>
 
                 </article>

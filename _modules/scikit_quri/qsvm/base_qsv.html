@@ -318,7 +318,9 @@ document.write(`
   <h1>Source code for scikit_quri.qsvm.base_qsv</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
@@ -338,9 +340,32 @@ document.write(`
 <div class="viewcode-block" id="BaseQSV"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.BaseQSV">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">BaseQSV</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Base class for Quantum Support Vector Machine.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">LearningCircuit</span><span class="p">,</span> <span class="n">sv_method_type</span><span class="p">:</span> <span class="n">SVMethodType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">circuit</span><span class="p">:</span> <span class="n">LearningCircuit</span><span class="p">,</span>
+        <span class="n">sv_method_type</span><span class="p">:</span> <span class="n">SVMethodType</span><span class="p">,</span>
+        <span class="n">sampler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseSampler</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">n_shots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+        <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e7</span><span class="p">),</span>
+        <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">circuit</span><span class="o">.</span><span class="n">learning_params_count</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> is a kernel method: it evaluates the feature map &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;only and never optimizes parameters, so the circuit must have no &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;learnable parameters (got </span><span class="si">{</span><span class="n">circuit</span><span class="o">.</span><span class="n">learning_params_count</span><span class="si">}</span><span class="s2">). Use a &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;data-encoding circuit such as create_ibm_embedding_circuit. Passing a &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;trainable ansatz used to fail later with an unrelated IndexError.&quot;</span>
+            <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="o">=</span> <span class="n">circuit</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sv_method_type</span> <span class="o">=</span> <span class="n">sv_method_type</span>
+        <span class="c1"># The backend is a property of the model, not training data. Taking it in fit()</span>
+        <span class="c1"># kept this estimator out of Pipeline and every cross-validation helper, which</span>
+        <span class="c1"># all call fit(X, y).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">sampler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_shots</span> <span class="o">=</span> <span class="n">n_shots</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span> <span class="o">=</span> <span class="n">max_iter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">QuantumCircuit</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">n_qubit</span> <span class="o">=</span> <span class="n">circuit</span><span class="o">.</span><span class="n">n_qubits</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="kc">None</span>
@@ -349,34 +374,60 @@ document.write(`
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
         <span class="n">y</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
-        <span class="n">sampler</span><span class="p">:</span> <span class="n">BaseSampler</span><span class="p">,</span>
-        <span class="n">n_shots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
-        <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e7</span><span class="p">),</span>
-        <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">sampler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseSampler</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">n_shots</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_iter</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fit the model to the training data.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            x: Training feature matrix of shape (n_samples, n_features).</span>
 <span class="sd">            y: Training labels.</span>
-<span class="sd">            sampler: Sampling backend (e.g. ``QulacsSampler`` or ``OqtopusSampler``).</span>
-<span class="sd">            n_shots: Number of shots per circuit execution. Defaults to 1000.</span>
-<span class="sd">            max_iter: Maximum number of iterations for the SVM solver. Defaults to 1e7.</span>
-<span class="sd">            verbose: Whether to print the SVM training progress. Defaults to False.</span>
+<span class="sd">            sampler: Deprecated. Pass the sampler to ``__init__`` instead.</span>
+<span class="sd">            n_shots: Deprecated. Pass it to ``__init__`` instead.</span>
+<span class="sd">            max_iter: Deprecated. Pass it to ``__init__`` instead.</span>
+<span class="sd">            verbose: Deprecated. Pass it to ``__init__`` instead.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s2">&quot;sampler&quot;</span><span class="p">,</span> <span class="n">sampler</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;n_shots&quot;</span><span class="p">,</span> <span class="n">n_shots</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;max_iter&quot;</span><span class="p">,</span> <span class="n">max_iter</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span> <span class="n">verbose</span><span class="p">),</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Passing </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> to fit() is deprecated; pass it to the constructor &quot;</span>
+                    <span class="s2">&quot;instead. Configuration in fit() prevents use with scikit-learn&#39;s &quot;</span>
+                    <span class="s2">&quot;Pipeline and cross-validation helpers, which call fit(X, y).&quot;</span><span class="p">,</span>
+                    <span class="ne">DeprecationWarning</span><span class="p">,</span>
+                    <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;No sampler configured. Pass one to the constructor, e.g. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(circuit, sampler=QulacsSampler()).&quot;</span>
+            <span class="p">)</span>
+
         <span class="n">n_x</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">gram_train</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_x</span><span class="p">,</span> <span class="n">n_x</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_run_circuit</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_x</span><span class="p">)]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="n">OverlapEstimator</span><span class="p">(</span><span class="n">sampler</span><span class="p">,</span> <span class="n">n_shots</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="n">OverlapEstimator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_shots</span><span class="p">)</span>
         <span class="n">gram_train</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">estimate_concurrent</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span>
         <span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_x</span><span class="p">,</span> <span class="n">n_x</span><span class="p">)</span>
         <span class="c1"># max_iter must be specified at instantiation time for sklearn SVM</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sv_method_type</span> <span class="o">==</span> <span class="n">SVMethodType</span><span class="o">.</span><span class="n">SVC</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">sv_method</span> <span class="o">=</span> <span class="n">svm</span><span class="o">.</span><span class="n">SVC</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="s2">&quot;precomputed&quot;</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="n">max_iter</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sv_method</span> <span class="o">=</span> <span class="n">svm</span><span class="o">.</span><span class="n">SVC</span><span class="p">(</span>
+                <span class="n">kernel</span><span class="o">=</span><span class="s2">&quot;precomputed&quot;</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span>
+            <span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">sv_method_type</span> <span class="o">==</span> <span class="n">SVMethodType</span><span class="o">.</span><span class="n">SVR</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">sv_method</span> <span class="o">=</span> <span class="n">svm</span><span class="o">.</span><span class="n">SVR</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="s2">&quot;precomputed&quot;</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="n">max_iter</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sv_method</span> <span class="o">=</span> <span class="n">svm</span><span class="o">.</span><span class="n">SVR</span><span class="p">(</span>
+                <span class="n">kernel</span><span class="o">=</span><span class="s2">&quot;precomputed&quot;</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_iter</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">verbose</span>
+            <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sv_method</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">gram_train</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gram_train</span> <span class="o">=</span> <span class="n">gram_train</span></div>
 
@@ -412,11 +463,29 @@ document.write(`
 
 <span class="sd">    Args:</span>
 <span class="sd">        circuit: LearningCircuit</span>
+<span class="sd">        sampler: Sampling backend, e.g. ``QulacsSampler()`` or ``OqtopusSampler(...)``.</span>
+<span class="sd">        n_shots: Shots per circuit execution.</span>
+<span class="sd">        max_iter: Iteration cap for the underlying scikit-learn solver.</span>
+<span class="sd">        verbose: Forwarded to the scikit-learn solver.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">LearningCircuit</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">SVMethodType</span><span class="o">.</span><span class="n">SVC</span><span class="p">)</span></div>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">circuit</span><span class="p">:</span> <span class="n">LearningCircuit</span><span class="p">,</span>
+        <span class="n">sampler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseSampler</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">n_shots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+        <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e7</span><span class="p">),</span>
+        <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">circuit</span><span class="p">,</span>
+            <span class="n">SVMethodType</span><span class="o">.</span><span class="n">SVC</span><span class="p">,</span>
+            <span class="n">sampler</span><span class="o">=</span><span class="n">sampler</span><span class="p">,</span>
+            <span class="n">n_shots</span><span class="o">=</span><span class="n">n_shots</span><span class="p">,</span>
+            <span class="n">max_iter</span><span class="o">=</span><span class="n">max_iter</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="QSVR"><a class="viewcode-back" href="../../../scikit_quri.qsvm.html#scikit_quri.qsvm.base_qsv.QSVR">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QSVR</span><span class="p">(</span><span class="n">BaseQSV</span><span class="p">):</span>
@@ -424,11 +493,29 @@ document.write(`
 
 <span class="sd">    Args:</span>
 <span class="sd">        circuit: LearningCircuit</span>
+<span class="sd">        sampler: Sampling backend, e.g. ``QulacsSampler()`` or ``OqtopusSampler(...)``.</span>
+<span class="sd">        n_shots: Shots per circuit execution.</span>
+<span class="sd">        max_iter: Iteration cap for the underlying scikit-learn solver.</span>
+<span class="sd">        verbose: Forwarded to the scikit-learn solver.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">LearningCircuit</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">SVMethodType</span><span class="o">.</span><span class="n">SVR</span><span class="p">)</span></div>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">circuit</span><span class="p">:</span> <span class="n">LearningCircuit</span><span class="p">,</span>
+        <span class="n">sampler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseSampler</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">n_shots</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+        <span class="n">max_iter</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e7</span><span class="p">),</span>
+        <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">circuit</span><span class="p">,</span>
+            <span class="n">SVMethodType</span><span class="o">.</span><span class="n">SVR</span><span class="p">,</span>
+            <span class="n">sampler</span><span class="o">=</span><span class="n">sampler</span><span class="p">,</span>
+            <span class="n">n_shots</span><span class="o">=</span><span class="n">n_shots</span><span class="p">,</span>
+            <span class="n">max_iter</span><span class="o">=</span><span class="n">max_iter</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
+        <span class="p">)</span></div>
 </pre></div>
 
                 </article>

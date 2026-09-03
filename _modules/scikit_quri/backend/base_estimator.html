@@ -350,6 +350,22 @@ document.write(`
 <span class="sd">        &quot;&quot;&quot;</span></div></div>
 
 
+<div class="viewcode-block" id="ExactStatevectorEstimator"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.base_estimator.ExactStatevectorEstimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ExactStatevectorEstimator</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Capability marker: the backend evaluates expectation values from the exact</span>
+<span class="sd">    state vector, with no sampling noise and with the state itself accessible.</span>
+
+<span class="sd">    Only such a backend can use the adjoint (backpropagation) gradient, which needs</span>
+<span class="sd">    ``|psi&gt;`` and ``O|psi&gt;`` as vectors and replays the circuit backwards. On real</span>
+<span class="sd">    hardware neither is obtainable: measurement collapses the state and recovering it</span>
+<span class="sd">    would need exponentially many tomography shots. Hardware backends (OQTOPUS) must</span>
+<span class="sd">    **not** inherit from this class — the parameter-shift rule is the correct choice</span>
+<span class="sd">    there, since it needs only ordinary circuit executions.</span>
+
+<span class="sd">    ``_qnn_common.estimate_grad`` dispatches on</span>
+<span class="sd">    ``isinstance(estimator, ExactStatevectorEstimator)``.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
+
+
 <div class="viewcode-block" id="BatchedSimEstimator"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.base_estimator.BatchedSimEstimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">BatchedSimEstimator</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">ABCMeta</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Capability extension for simulation backends that natively batch</span>
 <span class="sd">    expectation-value evaluation over a single parametric circuit with many</span>

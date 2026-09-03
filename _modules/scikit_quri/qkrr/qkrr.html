@@ -317,7 +317,8 @@ document.write(`
                   
   <h1>Source code for scikit_quri.qkrr.qkrr</h1><div class="highlight"><pre>
 <span></span><span class="c1"># mypy: ignore-errors</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">NDArray</span>
@@ -335,10 +336,25 @@ document.write(`
 <div class="viewcode-block" id="QKRR"><a class="viewcode-back" href="../../../scikit_quri.qkrr.html#scikit_quri.qkrr.qkrr.QKRR">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QKRR</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;class to solve regression problems with kernel ridge regressor with a quantum kernel&quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">circuit</span><span class="p">:</span> <span class="n">LearningCircuit</span><span class="p">,</span> <span class="n">n_iteration</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">circuit</span><span class="p">:</span> <span class="n">LearningCircuit</span><span class="p">,</span>
+        <span class="n">n_iteration</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">sampler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseSampler</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param circuit: circuit to generate quantum feature</span>
+<span class="sd">        :param sampler: sampling backend; a property of the model, not of the data</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">circuit</span><span class="o">.</span><span class="n">learning_params_count</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> is a kernel method: it evaluates the feature map &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;only and never optimizes parameters, so the circuit must have no &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;learnable parameters (got </span><span class="si">{</span><span class="n">circuit</span><span class="o">.</span><span class="n">learning_params_count</span><span class="si">}</span><span class="s2">). Use a &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;data-encoding circuit such as create_ibm_embedding_circuit. Passing a &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;trainable ansatz used to fail later with an unrelated IndexError.&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">sampler</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">krr</span> <span class="o">=</span> <span class="n">KernelRidge</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="s2">&quot;precomputed&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kernel_ridge_tuned</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">circuit</span> <span class="o">=</span> <span class="n">circuit</span>
@@ -347,18 +363,42 @@ document.write(`
         <span class="bp">self</span><span class="o">.</span><span class="n">n_iteration</span> <span class="o">=</span> <span class="n">n_iteration</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="QKRR.fit"><a class="viewcode-back" href="../../../scikit_quri.qkrr.html#scikit_quri.qkrr.qkrr.QKRR.fit">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">y</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">],</span> <span class="n">sampler</span><span class="p">:</span> <span class="n">BaseSampler</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="QKRR.fit"><a class="viewcode-back" href="../../../scikit_quri.qkrr.html#scikit_quri.qkrr.qkrr.QKRR.fit">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">fit</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">x</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span>
+        <span class="n">y</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">int_</span><span class="p">],</span>
+        <span class="n">sampler</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseSampler</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        train the machine.</span>
 <span class="sd">        :param x: training inputs</span>
 <span class="sd">        :param y: training teacher values</span>
+<span class="sd">        :param sampler: deprecated; pass it to the constructor instead</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">sampler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;Passing sampler to fit() is deprecated; pass it to the constructor &quot;</span>
+                <span class="s2">&quot;instead. Configuration in fit() prevents use with scikit-learn&#39;s &quot;</span>
+                <span class="s2">&quot;Pipeline and cross-validation helpers, which call fit(X, y).&quot;</span><span class="p">,</span>
+                <span class="ne">DeprecationWarning</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">sampler</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;No sampler configured. Pass one to the constructor, e.g. &quot;</span>
+                <span class="s2">&quot;QKRR(circuit, sampler=QulacsSampler()).&quot;</span>
+            <span class="p">)</span>
+
         <span class="n">kar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
-        <span class="c1"># Compute UΦx to get kernel of `x` and `y`.</span>
+        <span class="c1"># Reset rather than append: fitting a second time used to keep the circuits</span>
+        <span class="c1"># from the first fit, so the Gram matrix no longer matched len(x) and the</span>
+        <span class="c1"># reshape below raised &quot;cannot reshape array of size ... into shape ...&quot;.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run_circuit</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="n">OverlapEstimator</span><span class="p">(</span><span class="n">sampler</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span> <span class="o">=</span> <span class="n">OverlapEstimator</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="p">)</span>
         <span class="n">kar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="o">.</span><span class="n">estimate_concurrent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_circuits</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
             <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="p">)</span>

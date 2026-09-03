@@ -390,6 +390,16 @@ document.write(`
 
     <span class="n">do_x_scale</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">y_exp_ratio</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">2.2</span><span class="p">)</span>
+    <span class="c1">#: Use the exact adjoint (backpropagation) gradient when the estimator supports it</span>
+    <span class="c1">#: (``ExactStatevectorEstimator``: Qulacs, Scaluq). ~10-140x faster than a</span>
+    <span class="c1">#: finite-difference estimator and exact rather than O(delta^2).</span>
+    <span class="c1">#: The adjoint method cannot run on hardware, so with a device backend (OQTOPUS)</span>
+    <span class="c1">#: this flag has no effect and the supplied ``gradient_estimator`` is used - use</span>
+    <span class="c1">#: the parameter-shift rule there. Set to False to always use ``gradient_estimator``.</span>
+    <span class="n">use_adjoint_gradient</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1">#: Seed for the initial parameter draw. ``None`` uses fresh OS entropy, which</span>
+    <span class="c1">#: makes every fit (and therefore every accuracy assertion) non-reproducible.</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
     <span class="n">trained_param</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Params</span><span class="p">]</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
@@ -436,14 +446,15 @@ document.write(`
             <span class="n">x_scaled</span> <span class="o">=</span> <span class="n">x_train</span>
 
         <span class="c1"># operator設定</span>
-        <span class="n">operators</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_class</span><span class="p">):</span>
-            <span class="n">operators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Operator</span><span class="p">({</span><span class="n">pauli_label</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Z </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">}))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">operator</span> <span class="o">=</span> <span class="n">operators</span>
+        <span class="c1"># Respect an operator supplied to the constructor. It used to be overwritten</span>
+        <span class="c1"># here unconditionally, so the most natural customization -- choosing the</span>
+        <span class="c1"># observable -- was discarded with no error.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">operator</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">operator</span> <span class="o">=</span> <span class="p">[</span><span class="n">Operator</span><span class="p">({</span><span class="n">pauli_label</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Z </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">):</span> <span class="mf">1.0</span><span class="p">})</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_class</span><span class="p">)]</span>
 
         <span class="n">parameter_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ansatz</span><span class="o">.</span><span class="n">learning_params_count</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">trained_param</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">init_params</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">parameter_count</span><span class="p">)</span>
+            <span class="n">init_params</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">seed</span><span class="p">)</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">parameter_count</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">init_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trained_param</span>
         <span class="c1"># print(f&quot;{init_params=}&quot;)</span>
@@ -550,6 +561,7 @@ document.write(`
             <span class="n">x_scaled</span><span class="p">,</span>
             <span class="n">params</span><span class="p">,</span>
             <span class="n">estimator</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">estimator</span><span class="p">,</span>
+            <span class="n">use_adjoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">use_adjoint_gradient</span><span class="p">,</span>
         <span class="p">)</span></div>
 </pre></div>
 

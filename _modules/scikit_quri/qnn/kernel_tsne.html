@@ -328,7 +328,6 @@ document.write(`
 <span class="kn">from</span><span class="w"> </span><span class="nn">qulacs</span><span class="w"> </span><span class="kn">import</span> <span class="n">QuantumState</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.core.state</span><span class="w"> </span><span class="kn">import</span> <span class="n">quantum_state</span><span class="p">,</span> <span class="n">GeneralCircuitQuantumState</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial</span><span class="w"> </span><span class="kn">import</span> <span class="n">distance</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.algo.optimizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptimizerStatus</span>
 
@@ -985,49 +984,20 @@ document.write(`
 <span class="sd">            y: 2-D embedding of shape (n_samples, 2).</span>
 <span class="sd">            y_label: Class labels of shape (n_samples,).</span>
 <span class="sd">            title: Plot title.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            matplotlib is imported here rather than at module scope. It is a</span>
+<span class="sd">            convenience method, and scikit-quri does not declare matplotlib as a</span>
+<span class="sd">            runtime dependency — importing it at module scope made</span>
+<span class="sd">            ``import scikit_quri.qnn.kernel_tsne`` depend on a plotting stack that</span>
+<span class="sd">            only happens to be installed because another package pulls it in.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">y_label</span><span class="p">):</span>
             <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">y</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">][</span><span class="n">y_label</span> <span class="o">==</span> <span class="n">i</span><span class="p">],</span> <span class="n">y</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">][</span><span class="n">y_label</span> <span class="o">==</span> <span class="n">i</span><span class="p">])</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.circuit</span><span class="w"> </span><span class="kn">import</span> <span class="n">H</span><span class="p">,</span> <span class="n">CZ</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_digits</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.preprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">MinMaxScaler</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">create_quantum_circuit</span><span class="p">():</span>
-        <span class="n">qc</span> <span class="o">=</span> <span class="n">LearningCircuit</span><span class="p">(</span><span class="n">n_qubits</span><span class="p">)</span>
-
-        <span class="k">def</span><span class="w"> </span><span class="nf">preprocess_x</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">NDArray</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">],</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-            <span class="n">xa</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">index</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span>
-            <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">xa</span><span class="p">))</span>
-
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_qubits</span><span class="p">):</span>
-            <span class="n">qc</span><span class="o">.</span><span class="n">add_gate</span><span class="p">(</span><span class="n">H</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">depth</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_qubits</span><span class="p">):</span>
-                <span class="n">qc</span><span class="o">.</span><span class="n">add_input_RY_gate</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">:</span> <span class="n">preprocess_x</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_qubits</span><span class="p">):</span>
-                <span class="n">qc</span><span class="o">.</span><span class="n">add_input_RX_gate</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">:</span> <span class="n">preprocess_x</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">d</span> <span class="o">&lt;</span> <span class="n">depth</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_qubits</span><span class="p">):</span>
-                    <span class="n">qc</span><span class="o">.</span><span class="n">add_gate</span><span class="p">(</span><span class="n">CZ</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">n_qubits</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">qc</span>
-
-    <span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span> <span class="o">=</span> <span class="n">load_digits</span><span class="p">(</span><span class="n">return_X_y</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">X_train</span> <span class="o">=</span> <span class="n">X_train</span> <span class="o">/</span> <span class="mf">16.0</span>
-    <span class="n">X_train</span> <span class="o">=</span> <span class="n">X_train</span><span class="p">[:</span><span class="mi">500</span><span class="p">]</span>
-    <span class="n">y_train</span> <span class="o">=</span> <span class="n">y_train</span><span class="p">[:</span><span class="mi">500</span><span class="p">]</span>
-    <span class="n">scaler</span> <span class="o">=</span> <span class="n">MinMaxScaler</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span>
-    <span class="n">n_qubits</span> <span class="o">=</span> <span class="mi">12</span>
-    <span class="n">depth</span> <span class="o">=</span> <span class="mi">1</span>
-
-    <span class="n">X_train</span> <span class="o">=</span> <span class="n">scaler</span><span class="o">.</span><span class="n">fit_transform</span><span class="p">(</span><span class="n">X_train</span><span class="p">)</span>
-    <span class="n">qk_tsne</span> <span class="o">=</span> <span class="n">quantum_kernel_tsne</span><span class="p">(</span><span class="n">max_iter</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
-    <span class="n">qk_tsne</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">create_quantum_circuit</span><span class="p">,</span> <span class="p">[])</span>
-    <span class="n">qk_tsne</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">X_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;COBYLA&quot;</span><span class="p">)</span>
 </pre></div>
 
                 </article>

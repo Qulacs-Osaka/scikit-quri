@@ -332,11 +332,20 @@ document.write(`
 
 
 <div class="viewcode-block" id="OqtopusSampler"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">OqtopusSampler</span><span class="p">(</span><span class="n">BaseSampler</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">device_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">OqtopusConfig</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">device_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">OqtopusConfig</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">job_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;scikit-quri sampling&quot;</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">backend</span> <span class="o">=</span> <span class="n">OqtopusSamplingBackend</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">device_id</span> <span class="o">=</span> <span class="n">device_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">device_backend</span> <span class="o">=</span> <span class="n">OqtopusDeviceBackend</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="c1"># OQTOPUS Cloud rejects a job whose name is null, but the SDK defaults the</span>
+        <span class="c1"># argument to None, so it has to be supplied here or every submission fails</span>
+        <span class="c1"># with &quot;Invalid value for `name`, must not be `None`&quot;.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">job_name</span> <span class="o">=</span> <span class="n">job_name</span>
 
 <div class="viewcode-block" id="OqtopusSampler.get_device_qubit_count"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler.get_device_qubit_count">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_device_qubit_count</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Oqtopusのデバイスの量子ビット数を取得する関数</span>
@@ -356,7 +365,9 @@ document.write(`
 <span class="sd">        Raises:</span>
 <span class="sd">            BackendError: Oqtopusでの実行に失敗した場合</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">circuit</span><span class="p">,</span> <span class="n">device_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="n">n_shots</span><span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backend</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span>
+            <span class="n">circuit</span><span class="p">,</span> <span class="n">device_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="n">n_shots</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_name</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">counts</span></div>
 
 <div class="viewcode-block" id="OqtopusSampler.sample"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.oqtopus_sampler.OqtopusSampler.sample">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">sample</span><span class="p">(</span>
@@ -401,6 +412,7 @@ document.write(`
                 <span class="n">batched_circuits</span><span class="p">,</span>
                 <span class="n">device_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device_id</span><span class="p">,</span>
                 <span class="n">shots</span><span class="o">=</span><span class="n">max_shots</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">job_name</span><span class="p">,</span>
                 <span class="n">transpiler_info</span><span class="o">=</span><span class="n">transpiler_info</span><span class="p">,</span>
             <span class="p">)</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">req</span><span class="o">.</span><span class="n">divided_counts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>

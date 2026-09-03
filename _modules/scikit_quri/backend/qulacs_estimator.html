@@ -318,10 +318,10 @@ document.write(`
   <h1>Source code for scikit_quri.backend.qulacs_estimator</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">quri_parts.qulacs.estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_qulacs_vector_concurrent_estimator</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">.base_estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseEstimator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.base_estimator</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExactStatevectorEstimator</span>
 
 
-<div class="viewcode-block" id="QulacsEstimator"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.QulacsEstimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QulacsEstimator</span><span class="p">(</span><span class="n">BaseEstimator</span><span class="p">):</span>
+<div class="viewcode-block" id="QulacsEstimator"><a class="viewcode-back" href="../../../scikit_quri.backend.html#scikit_quri.backend.QulacsEstimator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">QulacsEstimator</span><span class="p">(</span><span class="n">ExactStatevectorEstimator</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Expectation-value estimator backed by quri-parts-qulacs.</span>
 
 <span class="sd">    Evaluates one operator against one quantum state per call (per-sample</span>

@@ -388,6 +388,7 @@ document.write(`
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.base_estimator.BaseEstimator.estimate"><code class="docutils literal notranslate"><span class="pre">BaseEstimator.estimate()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.base_estimator.ExactStatevectorEstimator"><code class="docutils literal notranslate"><span class="pre">ExactStatevectorEstimator</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.base_estimator.BatchedSimEstimator"><code class="docutils literal notranslate"><span class="pre">BatchedSimEstimator</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.base_estimator.BatchedSimEstimator.estimate_batched"><code class="docutils literal notranslate"><span class="pre">BatchedSimEstimator.estimate_batched()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.base_estimator.BatchedSimEstimator.estimate_grad_batched"><code class="docutils literal notranslate"><span class="pre">BatchedSimEstimator.estimate_grad_batched()</span></code></a></li>
@@ -411,14 +412,6 @@ document.write(`
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="scikit_quri.backend.html#module-scikit_quri.backend.oqtopus_gradient_estimator">scikit_quri.backend.oqtopus_gradient_estimator module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.LearningCircuitParameter"><code class="docutils literal notranslate"><span class="pre">LearningCircuitParameter</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.LearningCircuitParameter.input_param"><code class="docutils literal notranslate"><span class="pre">LearningCircuitParameter.input_param</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.LearningCircuitParameter.learning_param"><code class="docutils literal notranslate"><span class="pre">LearningCircuitParameter.learning_param</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#id0"><code class="docutils literal notranslate"><span class="pre">LearningCircuitParameter.input_param</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#id1"><code class="docutils literal notranslate"><span class="pre">LearningCircuitParameter.learning_param</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.numerical_gradient_estimates"><code class="docutils literal notranslate"><span class="pre">numerical_gradient_estimates()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.OqtopusGradientEstimator"><code class="docutils literal notranslate"><span class="pre">OqtopusGradientEstimator</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.OqtopusGradientEstimator.estimate_gradient"><code class="docutils literal notranslate"><span class="pre">OqtopusGradientEstimator.estimate_gradient()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.backend.html#scikit_quri.backend.oqtopus_gradient_estimator.OqtopusGradientEstimator.estimate_learning_param_gradient"><code class="docutils literal notranslate"><span class="pre">OqtopusGradientEstimator.estimate_learning_param_gradient()</span></code></a></li>
@@ -484,6 +477,8 @@ document.write(`
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.get_learning_params_indexes"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_learning_params_indexes()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.get_minimum_learning_param_indexes"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_minimum_learning_param_indexes()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.get_input_params_indexes"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_input_params_indexes()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.input_chain_factors"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.input_chain_factors()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.aggregate_gate_gradients"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.aggregate_gate_gradients()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.get_learning_param_grad_aggregators"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.get_learning_param_grad_aggregators()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.bind_input_and_parameters"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.bind_input_and_parameters()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.circuit.LearningCircuit.generate_bound_params"><code class="docutils literal notranslate"><span class="pre">LearningCircuit.generate_bound_params()</span></code></a></li>
@@ -501,6 +496,7 @@ document.write(`
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.pre_defined.CZ"><code class="docutils literal notranslate"><span class="pre">CZ()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.pre_defined.create_qcl_ansatz"><code class="docutils literal notranslate"><span class="pre">create_qcl_ansatz()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.pre_defined.create_farhi_neven_ansatz"><code class="docutils literal notranslate"><span class="pre">create_farhi_neven_ansatz()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.pre_defined.zz_data_map"><code class="docutils literal notranslate"><span class="pre">zz_data_map()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.pre_defined.create_ibm_embedding_circuit"><code class="docutils literal notranslate"><span class="pre">create_ibm_embedding_circuit()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.pre_defined.create_dqn_cl"><code class="docutils literal notranslate"><span class="pre">create_dqn_cl()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="scikit_quri.circuit.html#scikit_quri.circuit.pre_defined.create_dqn_cl_no_cz"><code class="docutils literal notranslate"><span class="pre">create_dqn_cl_no_cz()</span></code></a></li>
@@ -536,6 +532,8 @@ document.write(`
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier.x_norm_range"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.x_norm_range</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier.do_x_scale"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.do_x_scale</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier.y_exp_ratio"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.y_exp_ratio</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier.use_adjoint_gradient"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.use_adjoint_gradient</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier.seed"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.seed</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier.trained_param"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.trained_param</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier.n_qubit"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.n_qubit</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.qnn.html#scikit_quri.qnn.classifier.QNNClassifier.fit"><code class="docutils literal notranslate"><span class="pre">QNNClassifier.fit()</span></code></a></li>
@@ -612,6 +610,8 @@ document.write(`
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.do_y_scale"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.do_y_scale</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.n_outputs"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.n_outputs</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.y_exp_ratio"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.y_exp_ratio</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.use_adjoint_gradient"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.use_adjoint_gradient</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.seed"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.seed</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.trained_param"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.trained_param</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.fit"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.fit()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="scikit_quri.qnn.html#scikit_quri.qnn.regressor.QNNRegressor.cost_fn"><code class="docutils literal notranslate"><span class="pre">QNNRegressor.cost_fn()</span></code></a></li>
@@ -663,6 +663,7 @@ document.write(`
 </section>
 <section id="module-scikit_quri">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-scikit_quri" title="Permalink to this heading">#</a></h2>
+<p>scikit-quri: quantum machine learning on top of QURI Parts.</p>
 </section>
 </section>
 
